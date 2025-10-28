@@ -25,7 +25,7 @@ services:
       - ./.env
     environment:
       - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/notification_db
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
       - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
@@ -37,9 +37,12 @@ services:
     volumes:
       - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
     depends_on:
-      - db
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
 
   db:
     image: postgres:15
@@ -54,9 +57,17 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${SPRING_RABBITMQ_PASSWORD}
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
