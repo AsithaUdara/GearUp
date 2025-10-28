@@ -9,10 +9,8 @@ services:
     env_file:
       - ./.env
     environment:
-      # Path inside the container where the Firebase JSON will be mounted
       - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
     volumes:
-      # Mount the host path specified in .env into the container (read-only)
       - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
     depends_on:
       - notification-service
@@ -27,6 +25,15 @@ services:
       - ./.env
     environment:
       - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
     volumes:
       - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
     depends_on:
@@ -38,8 +45,8 @@ services:
     image: postgres:15
     environment:
       POSTGRES_DB: notification_db
-      POSTGRES_USER: automobile_user
-      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
