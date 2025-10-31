@@ -1,0 +1,114 @@
+name: Build, Push and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - microservice-initialization
+
+env:
+  REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
+  HELM_NAMESPACE: staging
+
+jobs:
+  build-and-push:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - name: api-gateway
+            module: api-gateway
+            dockerfile: api-gateway/Dockerfile
+            image: api-gateway
+          - name: notification-service
+            module: services/notification-service
+            dockerfile: services/notification-service/Dockerfile
+            image: notification-service
+          - name: user-auth-service
+            module: services/user-auth-service
+            dockerfile: services/user-auth-service/Dockerfile
+            image: user-auth-service
+          - name: automobile-service
+            module: services/automobile-service
+            dockerfile: services/automobile-service/Dockerfile
+            image: automobile-service
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build module jar
+        run: |
+          ./mvnw -B -DskipTests package -pl ${{ matrix.service.module }} -am
+
+      - name: Log in to registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY_URL }}/as/${{ matrix.service.image }}:${{ github.sha }}
+
+  deploy:
+    name: Deploy Helm charts
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: '1.30.0'
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+
+      - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64 }}
+        run: |
+          echo "$KUBE_CONFIG_BASE64" | base64 --decode > kubeconfig
+          mkdir -p $HOME/.kube
+          mv kubeconfig $HOME/.kube/config
+
+      - name: Deploy charts from deployment/helm/charts
+        env:
+          REGISTRY_URL: ${{ env.REGISTRY_URL }}
+          IMAGE_TAG: ${{ github.sha }}
+          NAMESPACE: ${{ env.HELM_NAMESPACE }}
+        run: |
+          set -e
+          for chart in deployment/helm/charts/*; do
+            if [ -d "$chart" ]; then
+              name=$(basename "$chart")
+              echo "Deploying chart $name from $chart"
+              helm upgrade --install "$name" "$chart" --namespace "$NAMESPACE" \
+                --create-namespace \
+                --set image.repository="$REGISTRY_URL/as/$name" \
+                --set image.tag="$IMAGE_TAG"
+            fi
+          done

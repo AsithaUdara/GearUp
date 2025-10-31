@@ -86,14 +86,12 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
-            <version>3.1.8</version>
         </dependency>
 
         <!-- MockWebServer for end-to-end gateway tests -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
-            <version>4.11.0</version>
             <scope>test</scope>
         </dependency>
 
