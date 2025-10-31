@@ -50,9 +50,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.firebase</groupId>
-            <artifactId>firebase-admin</artifactId>
-            <version>9.2.0</version>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-security-lib</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>me.paulschwarz</groupId>

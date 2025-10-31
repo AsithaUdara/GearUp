@@ -18,7 +18,8 @@
     <description>Shared event DTOs and message models for inter-service communication</description>
 
     <dependencies>
-        <!-- keep minimal; services will add specific dependencies -->
+        <!-- Shared event models use Lombok for DTO builders and boilerplate -->
+        <!-- Keep this module Lombok-free to avoid annotation-processor issues during compilation in CI/JDK toolchains -->
     </dependencies>
 
 </project>

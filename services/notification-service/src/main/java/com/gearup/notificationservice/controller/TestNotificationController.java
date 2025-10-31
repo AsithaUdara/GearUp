@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gearup.notificationservice.config.RabbitMQConfig;
-import com.gearup.notificationservice.dto.event.InvoiceCreatedEvent;
-import com.gearup.notificationservice.dto.event.InvoicePaidEvent;
+import com.gearup.shared.event.InvoiceCreatedEvent;
+import com.gearup.shared.event.InvoicePaidEvent;
 import com.gearup.notificationservice.dto.event.TaskAssignedEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -33,15 +33,15 @@ public class TestNotificationController {
     public ResponseEntity<String> testInvoiceCreated(Authentication authentication) {
         String userId = authentication.getName();
         
-        InvoiceCreatedEvent event = InvoiceCreatedEvent.builder()
-                .eventId(UUID.randomUUID().toString())
-                .userId(userId)
-                .timestamp(LocalDateTime.now())
-                .invoiceId("INV-" + System.currentTimeMillis())
-                .invoiceNumber("INV-2024-001")
-                .amount(1500.00)
-                .customerName("John Doe")
-                .build();
+        InvoiceCreatedEvent event = new InvoiceCreatedEvent(
+                UUID.randomUUID().toString(),
+                userId,
+                LocalDateTime.now(),
+                "INV-" + System.currentTimeMillis(),
+                "INV-2024-001",
+                1500.00,
+                "John Doe"
+        );
         
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.NOTIFICATION_EXCHANGE,
@@ -88,15 +88,15 @@ public class TestNotificationController {
     public ResponseEntity<String> testInvoicePaid(Authentication authentication) {
         String userId = authentication.getName();
         
-        InvoicePaidEvent event = InvoicePaidEvent.builder()
-                .eventId(UUID.randomUUID().toString())
-                .userId(userId)
-                .timestamp(LocalDateTime.now())
-                .invoiceId("INV-" + System.currentTimeMillis())
-                .invoiceNumber("INV-2024-002")
-                .amount(2500.00)
-                .paymentMethod("Credit Card")
-                .build();
+        InvoicePaidEvent event = new InvoicePaidEvent(
+                UUID.randomUUID().toString(),
+                userId,
+                LocalDateTime.now(),
+                "INV-" + System.currentTimeMillis(),
+                "INV-2024-002",
+                2500.00,
+                "Credit Card"
+        );
         
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.NOTIFICATION_EXCHANGE,

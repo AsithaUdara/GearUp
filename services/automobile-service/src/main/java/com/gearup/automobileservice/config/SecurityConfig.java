@@ -1,6 +1,6 @@
 package com.gearup.automobileservice.config;
 
-import com.gearup.automobileservice.security.FirebaseFilter;
+import com.gearup.security.FirebaseAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,8 +20,8 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public FirebaseFilter firebaseFilter() {
-        return new FirebaseFilter();
+    public FirebaseAuthenticationFilter firebaseFilter() {
+        return new FirebaseAuthenticationFilter();
     }
 
     @Bean

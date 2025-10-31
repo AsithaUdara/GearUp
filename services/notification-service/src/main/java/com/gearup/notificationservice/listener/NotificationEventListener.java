@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 
 import com.gearup.notificationservice.config.RabbitMQConfig;
 import com.gearup.notificationservice.dto.NotificationRequest;
-import com.gearup.notificationservice.dto.event.InvoiceCreatedEvent;
-import com.gearup.notificationservice.dto.event.InvoicePaidEvent;
+import com.gearup.shared.event.InvoiceCreatedEvent;
+import com.gearup.shared.event.InvoicePaidEvent;
 import com.gearup.notificationservice.dto.event.InvoiceUpdatedEvent;
 import com.gearup.notificationservice.dto.event.TaskAssignedEvent;
 import com.gearup.notificationservice.dto.event.TaskCompletedEvent;

@@ -61,11 +61,17 @@
             <scope>runtime</scope>
         </dependency>
         
-        <!-- Firebase Admin SDK -->
+        <!-- Shared security utilities (includes Firebase Admin) -->
         <dependency>
-            <groupId>com.google.firebase</groupId>
-            <artifactId>firebase-admin</artifactId>
-            <version>9.2.0</version>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-security-lib</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- Shared event models -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-event-models</artifactId>
+            <version>1.0.0</version>
         </dependency>
         
         <!-- Lombok (reduces boilerplate) -->
