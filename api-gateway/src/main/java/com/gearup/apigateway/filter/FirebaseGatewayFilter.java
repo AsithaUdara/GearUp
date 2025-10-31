@@ -63,6 +63,6 @@ public class FirebaseGatewayFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         // Ensure this runs early but after routing decisions
-        return Ordered.HIGHEST_PRECEDENCE + 10;
+        return HIGHEST_PRECEDENCE + 10;
     }
 }
