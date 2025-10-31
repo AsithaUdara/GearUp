@@ -1,22 +1,24 @@
 package com.gearup.security;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
-import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.InputStream;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+
+import jakarta.annotation.PostConstruct;
 
 /**
  * Shared Firebase configuration initializer. Services should include the
  * property `app.firebase-configuration-file` pointing to the service account
  * JSON file (classpath: or filesystem) so this initializer can load it.
  */
-@Component
+@Component("sharedFirebaseConfig")
 public class FirebaseConfig {
 
     @Value("${app.firebase-configuration-file}")
