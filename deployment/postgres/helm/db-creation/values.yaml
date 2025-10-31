@@ -1,0 +1,8 @@
+# List services for which to create DB and user
+services:
+  - notification-service
+  - user-auth-service
+
+postgres:
+  superuser: postgres
+  superuserPassword: "REPLACE_ME"

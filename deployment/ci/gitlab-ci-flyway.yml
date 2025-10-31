@@ -1,0 +1,32 @@
+# GitLab CI snippet: run Flyway migrations and integration tests against a Postgres service
+stages:
+  - migrate
+  - test
+
+variables:
+  FLYWAY_URL: "jdbc:postgresql://postgres:5432/as_notification"
+  FLYWAY_USER: "svc_notification"
+
+migrate:
+  image: maven:3.10.1-jdk-21
+  stage: migrate
+  services:
+    - name: postgres:15
+      alias: postgres
+  script:
+    - export PGPASSWORD="$POSTGRES_PASSWORD"
+    - mvn -pl services/notification-service flyway:migrate -Dflyway.url=$FLYWAY_URL -Dflyway.user=$FLYWAY_USER -Dflyway.password=$POSTGRES_PASSWORD
+  only:
+    - main
+
+integration_tests:
+  image: maven:3.10.1-jdk-21
+  stage: test
+  services:
+    - name: postgres:15
+      alias: postgres
+  script:
+    - export PGPASSWORD="$POSTGRES_PASSWORD"
+    - mvn -DskipTests=false -pl services/notification-service test
+  only:
+    - main

@@ -4,7 +4,7 @@ server:
 # Force the native repository profile (filesystem-backed) for local dev and tests.
 spring:
   profiles:
-    active: git
+    active: native
   cloud:
     config:
       server:

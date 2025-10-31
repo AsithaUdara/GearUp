@@ -60,6 +60,12 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Flyway Core for runtime migrations (Spring Boot auto-run) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
         
         <!-- Shared security utilities (includes Firebase Admin) -->
         <dependency>
@@ -97,6 +103,24 @@
     
     <build>
         <plugins>
+            <!-- Flyway plugin for CI/CD execution of migrations -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <!-- version managed by root pluginManagement -->
+                <configuration>
+                    <!-- Defaults; CI should override via -Dflyway.url / -Dflyway.user / -Dflyway.password -->
+                    <url>${flyway.url:${spring.datasource.url}}</url>
+                    <user>${flyway.user:${spring.datasource.username}}</user>
+                    <password>${flyway.password:${spring.datasource.password}}</password>
+                    <schemas>
+                        <schema>public</schema>
+                    </schemas>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration</location>
+                    </locations>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -118,4 +142,28 @@
             </plugin>
         </plugins>
     </build>
+    
+    <profiles>
+        <!-- CI-friendly profile that runs Flyway migrate in the pre-integration-test phase when activated -->
+        <profile>
+            <id>run-migrations</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>migrate-db</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>migrate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
