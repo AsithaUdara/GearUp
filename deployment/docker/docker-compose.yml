@@ -1,7 +1,7 @@
 services:
-  main:
+  automobile-service:
     build:
-      context: ./main
+      context: ./services/automobile-service
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
@@ -16,7 +16,7 @@ services:
 
   notification-service:
     build:
-      context: ./notification-service
+      context: ./services/notification-service
       dockerfile: Dockerfile
     ports:
       - "8081:8081"

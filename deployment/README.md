@@ -23,5 +23,6 @@ docker compose -f deployment/docker/docker-compose.yml down
 ```
 
 Notes:
+
 - For production use, replace docker-compose with Kubernetes + Helm charts in `deployment/helm`.
 - Each service should provide its own Dockerfile at `services/<name>/Dockerfile`.

@@ -3,14 +3,34 @@
 Secure Spring Boot backend with Firebase Authentication and environment-based secret management.
 
 ## Features
+
 - Firebase Admin SDK initialization from `.env` (no secrets in repo)
 - Stateless Spring Security with custom `FirebaseFilter`
 - CORS configuration for local frontend
 - Layered package structure (`config`, `security`, `controller`)
 
 ## Requirements
+
 - Java 21
 - Use Maven Wrapper (`mvnw.cmd`) if Maven not installed
+
+## Monorepo layout (new)
+
+This repository has been reorganized into a monorepo-style microservice layout. Top-level folders now include:
+
+```
+api-gateway/
+service-discovery/
+config-server/
+services/
+	├─ automobile-service/   # previously `main`
+	└─ notification-service/ # previously `notification-service`
+shared-libs/
+deployment/
+docs/
+```
+
+Local docker-compose for quick dev is at `deployment/docker/docker-compose.yml` and has been updated to reference the services under `services/`.
 
 ## Setup
 
@@ -69,24 +89,29 @@ java -jar main/target/demo-0.0.1-SNAPSHOT.jar
 ```
 
 ## Test Endpoints
+
 Public: `GET http://localhost:8080/api/public/hello`
 Secure: `GET http://localhost:8080/api/secure/hello` with header:
+
 ```
 Authorization: Bearer <firebase-id-token>
 ```
 
 ## Troubleshooting
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| 401 Unauthorized | Invalid / expired token | Refresh Firebase ID token |
-| Firebase not initialized | Empty `.env` | Populate JSON correctly |
-| mvn not recognized | Maven not installed | Use `mvnw.cmd` |
+
+| Symptom                  | Cause                   | Fix                       |
+| ------------------------ | ----------------------- | ------------------------- |
+| 401 Unauthorized         | Invalid / expired token | Refresh Firebase ID token |
+| Firebase not initialized | Empty `.env`            | Populate JSON correctly   |
+| mvn not recognized       | Maven not installed     | Use `mvnw.cmd`            |
 
 ## Next Steps (Optional)
+
 - Add SLF4J logging instead of `printStackTrace()`
 - Add `spring-boot-starter-actuator`
 - Externalize CORS origins via env var
 - Write tests for `FirebaseFilter`
 
 ---
+
 Professional, secure, and ready for review.
