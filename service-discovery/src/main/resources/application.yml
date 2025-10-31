@@ -2,9 +2,6 @@ server:
   port: 8761
 
 spring:
-  cloud:
-    bootstrap:
-      enabled: true
   security:
     user:
       name: ${EUREKA_ADMIN_USER:admin}
