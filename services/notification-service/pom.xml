@@ -107,27 +107,20 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
+                <version>11.7.2</version>
                 <configuration>
-                    <url>${flyway.url:${spring.datasource.url}}</url>
-                    <user>${flyway.user:${spring.datasource.username}}</user>
-                    <password>${flyway.password:${spring.datasource.password}}</password>
+                    <url>jdbc:postgresql://localhost:5432/as_notification-service</url>
+                    <user>postgres</user>
+                    <password>postgres</password>
                     <schemas>
                         <schema>public</schema>
                     </schemas>
-                    <locations>
-                        <location>filesystem:src/main/resources/db/migration</location>
-                    </locations>
                 </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>org.flywaydb</groupId>
                         <artifactId>flyway-database-postgresql</artifactId>
-                        <version>${flyway.db.postgresql.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>${postgresql.version}</version>
+                        <version>11.7.2</version>
                     </dependency>
                 </dependencies>
             </plugin>
