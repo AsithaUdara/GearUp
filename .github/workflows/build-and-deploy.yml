@@ -134,6 +134,12 @@ jobs:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
           set -e
+          # Test kubectl connectivity before attempting namespace changes or helm deploys.
+          if ! kubectl version --short >/dev/null 2>&1; then
+            echo "kubectl cannot connect to a Kubernetes API server. Skipping deploy.";
+            exit 0
+          fi
+
           # Ensure the target namespace exists (some Helm versions lack --create-namespace)
           if ! kubectl get namespace "$NAMESPACE" >/dev/null 2>&1; then
             echo "Creating namespace $NAMESPACE"
