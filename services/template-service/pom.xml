@@ -21,6 +21,10 @@
     <name>template-service</name>
     <description>Template Service for GearUp backend</description>
 
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
     <dependencies>
         <!-- Spring Boot Starter -->
         <dependency>
@@ -28,25 +32,36 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- PostgreSQL Driver -->
+        <!-- Spring Boot Data JPA (if needed) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL Driver (version managed by parent) -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.2</version>
+            <scope>runtime</scope>
         </dependency>
 
-        <!-- Flyway Core -->
+        <!-- Flyway Core (version managed by parent) -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>11.7.2</version>
         </dependency>
 
-        <!-- Flyway PostgreSQL Database Plugin -->
+        <!-- Flyway PostgreSQL Database Plugin (version managed by parent) -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-            <version>11.7.2</version>
+        </dependency>
+
+        <!-- Other dependencies as needed -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
@@ -58,13 +73,13 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- Flyway Maven Plugin -->
+            <!-- Flyway Maven Plugin (consistent version with notification service) -->
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>11.7.2</version>
+                <version>${flyway.version}</version>
                 <configuration>
-                    <url>jdbc:postgresql://localhost:5432/as_notification-service</url>
+                    <url>jdbc:postgresql://localhost:5432/as_template-service</url>
                     <user>postgres</user>
                     <password>your_password_here</password>
                     <schemas>
@@ -75,11 +90,19 @@
                     <dependency>
                         <groupId>org.flywaydb</groupId>
                         <artifactId>flyway-database-postgresql</artifactId>
-                        <version>11.7.2</version>
+                        <version>${flyway.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
+
+            <!-- Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
-
 </project>
