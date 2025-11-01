@@ -21,6 +21,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for KUBE_CONFIG_BASE64 secret
+        run: |
+          if [ -z "${{ secrets.KUBE_CONFIG_BASE64 }}" ]; then
+            echo "KUBE_CONFIG_BASE64 secret is not set. Skipping deploy job.";
+            exit 0;
+          else
+            echo "KUBE_CONFIG_BASE64 found, proceeding with deploy.";
+          fi
+
       - name: Inject Firebase service account (if provided)
         run: |
           if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
