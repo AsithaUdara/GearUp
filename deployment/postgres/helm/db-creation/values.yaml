@@ -5,4 +5,4 @@ services:
 
 postgres:
   superuser: postgres
-  superuserPassword: "REPLACE_ME"
+  superuserPassword: postgres

@@ -15,7 +15,7 @@ jobs:
         env:
           POSTGRES_DB: as_notification
           POSTGRES_USER: svc_notification
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -23,10 +23,10 @@ jobs:
           --health-interval 10s --health-timeout 5s --health-retries 5
 
     env:
-      # These can be overridden per-job if needed
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       FLYWAY_URL: jdbc:postgresql://localhost:5432/as_notification
       FLYWAY_USER: svc_notification
-      FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      FLYWAY_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
             pg_isready -h localhost -p 5432 -U $FLYWAY_USER && break || sleep 2;
           done
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Run Flyway migrations (notification-service)
         run: |

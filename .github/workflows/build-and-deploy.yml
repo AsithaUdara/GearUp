@@ -15,8 +15,37 @@ env:
   HELM_NAMESPACE: staging
 
 jobs:
+  build-root:
+    name: Build root modules (install shared libs)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and install all modules
+        run: |
+          ./mvnw -B -U -DskipTests clean install
+
   build-and-push:
     name: Build and push images
+    needs: build-root
     runs-on: ubuntu-latest
     strategy:
       matrix:

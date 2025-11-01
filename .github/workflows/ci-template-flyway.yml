@@ -7,12 +7,14 @@ on:
 jobs:
   flyway-template:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: changeme
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -42,14 +44,14 @@ jobs:
             pg_isready -h localhost -p 5432 -U postgres && break || sleep 2
           done
         env:
-          PGPASSWORD: changeme
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Create DB and user for template-service
         run: |
-          psql -h localhost -U postgres -c "CREATE USER svc_template_service WITH PASSWORD 'changeme';" || true
+          psql -h localhost -U postgres -c "CREATE USER svc_template_service WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';" || true
           psql -h localhost -U postgres -c "CREATE DATABASE as_template_service OWNER svc_template_service;" || true
         env:
-          PGPASSWORD: changeme
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Run Flyway migrate for template-service
         run: |
