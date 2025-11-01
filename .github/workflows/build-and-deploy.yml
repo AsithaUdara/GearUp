@@ -103,7 +103,10 @@ jobs:
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
         with:
-          version: '1.30.0'
+          # Use 'latest' to avoid failures when a specific patch isn't available
+          # on the action runner. If you prefer a pinned version, replace with
+          # a known available version string like '1.29.7'.
+          version: 'latest'
 
       - name: Install Helm
         uses: azure/setup-helm@v1
