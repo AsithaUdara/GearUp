@@ -1,12 +1,15 @@
 services:
   automobile-service:
     build:
-      context: ./services/automobile-service
-      dockerfile: Dockerfile
+      # Use repository root as build context so the Docker build can access shared modules
+      context: ../../
+      # Dockerfile for this service, path relative to the build context
+      dockerfile: ./services/automobile-service/Dockerfile
     ports:
       - "8080:8080"
+    # point env_file to repo root so variables are picked from the top-level .env
     env_file:
-      - ./.env
+      - ../../.env
     environment:
       - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
     volumes:
@@ -16,12 +19,14 @@ services:
 
   notification-service:
     build:
-      context: ./services/notification-service
-      dockerfile: Dockerfile
+      # Use repository root as build context so the Docker build can access shared modules
+      context: ../../
+      # Dockerfile for this service, path relative to the build context
+      dockerfile: ./services/notification-service/Dockerfile
     ports:
       - "8081:8081"
     env_file:
-      - ./.env
+      - ../../.env
     environment:
       - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/notification_db

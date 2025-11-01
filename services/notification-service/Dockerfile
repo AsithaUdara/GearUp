@@ -1,32 +1,24 @@
 ## Multi-stage Dockerfile — notification-service
-FROM maven:3.10.1-jdk-21 AS build
+# Build context should be the repository root so local shared modules can be built
+FROM openjdk:21-jdk AS builder
 WORKDIR /workspace
-COPY pom.xml mvnw ./
-COPY .mvn/ .mvn/
-COPY src/ src/
-RUN ./mvnw -DskipTests package
 
-FROM eclipse-temurin:21-jre-jammy
-RUN addgroup --system app && adduser --system --ingroup app app
-WORKDIR /app
-COPY --from=build /workspace/target/*.jar app.jar
-RUN chown -R app:app /app
-USER app
-EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD curl -f http://localhost:8080/actuator/health || exit 1
-LABEL maintainer="ops@company.com" \
-    org.opencontainers.image.version="0.1.0"
-ENTRYPOINT ["java","-jar","/app/app.jar"]
-FROM maven:3.9.4-eclipse-temurin-21 AS builder
-WORKDIR /workspace
+# Copy full repository into build image
 COPY . /workspace
 
-# Build the application
-RUN mvn -B -DskipTests package
+# Build the notification-service module and any required local modules using the mvnw wrapper
+RUN ./mvnw -B -DskipTests -pl services/notification-service -am package
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-alpine AS runtime
+RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
-COPY --from=builder /workspace/target/*.jar /app/app.jar
 
+# Copy the service jar produced by the reactor build
+COPY --from=builder /workspace/services/notification-service/target/*.jar /app/app.jar
+RUN chown -R app:app /app
+USER app
 EXPOSE 8081
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD curl -f http://localhost:8081/actuator/health || exit 1
+LABEL maintainer="ops@company.com" \
+    org.opencontainers.image.version="0.1.0"
 ENTRYPOINT ["java","-jar","/app/app.jar"]

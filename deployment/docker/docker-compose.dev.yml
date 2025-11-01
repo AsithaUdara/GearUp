@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  automobile-service:
+    build:
+      dockerfile: ./services/automobile-service/Dockerfile.dev
+
+  notification-service:
+    build:
+      dockerfile: ./services/notification-service/Dockerfile.dev
