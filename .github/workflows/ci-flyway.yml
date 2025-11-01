@@ -40,6 +40,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Build and install all modules
+        run: ./mvnw -B -U -DskipTests clean install
+
       - name: Wait for Postgres
         run: |
           for i in {1..30}; do
