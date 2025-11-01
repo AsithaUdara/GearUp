@@ -64,6 +64,59 @@ Top-level modules and important folders:
 - (Optional) IDE: IntelliJ IDEA or VS Code with Java extensions
 - Network access to Maven Central (for building dependencies) or a corporate mirror
 
+### Install & configure required software
+
+If you don't already have the prerequisites installed, the short instructions and official download links below will get you set up. These notes focus on Windows (PowerShell) since the project owner works on Windows, but the links are cross-platform.
+
+- Git
+  - Download: https://git-scm.com/downloads
+  - Install normally. After install, verify with:
+
+```powershell
+git --version
+```
+
+- Java JDK 21 (Eclipse Temurin / Adoptium)
+  - Download: https://adoptium.net (select Temurin 21)
+  - Install and set `JAVA_HOME` (example on Windows PowerShell):
+
+```powershell
+# set for current session
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-21'
+# add to PATH for the session
+$env:Path = "$env:JAVA_HOME\bin;" + $env:Path
+# To persist, update system environment variables via Windows Settings or use setx
+```
+
+- Docker Desktop (Windows)
+
+  - Download: https://www.docker.com/products/docker-desktop
+  - Install and enable WSL 2 integration (recommended). After installing, start Docker Desktop and ensure it is healthy.
+  - Verify: `docker version` and `docker compose version`.
+  - Shared folders: If you need bind mounts from Windows into containers (e.g., Firebase JSON), ensure the folder is allowed in Docker Desktop Settings -> Resources -> File Sharing.
+
+- PostgreSQL client (psql)
+  - On Windows you can install the PostgreSQL client from https://www.postgresql.org/download/windows/ (or use `psql` bundled in Docker images). Verify with:
+
+```powershell
+psql --version
+```
+
+- pgAdmin (optional, GUI)
+
+  - Download: https://www.pgadmin.org/download/
+  - Alternatively run the official container: `dpage/pgadmin4` (see `docs/POSTGRES_AND_MIGRATIONS.md` for the quick docker run example).
+
+- IDE (recommended)
+  - IntelliJ IDEA: https://www.jetbrains.com/idea/
+  - VS Code: https://code.visualstudio.com/ (install Java Extension Pack)
+
+Notes
+
+- The repository includes the Maven wrapper (`mvnw` / `mvnw.cmd`) so you don't need a global Maven installation. Use `.
+mvnw.cmd` on Windows.
+- If you rely on corporate proxies/firewalls, ensure the build host can reach Maven Central or configure a mirror.
+
 ## Configure secrets and environment variables
 
 This repo uses a `.env` file at the repo root to keep local development environment variables and secret references. DO NOT commit secrets to Git. Instead:
@@ -164,6 +217,44 @@ ENTRYPOINT ["java","-jar","/app/app.jar"]
 .\mvnw.cmd -T1C -DskipTests -DskipITs package
 ```
 
+## How to test
+
+Quick testing commands and tips (PowerShell):
+
+- Run all unit tests for the repo:
+
+```powershell
+.\mvnw.cmd test
+```
+
+- Run tests for a single service (from repo root):
+
+```powershell
+.\mvnw.cmd -pl services/notification-service -am test
+```
+
+- Run integration/migration checks (Postgres + Flyway):
+
+```powershell
+# start postgres for migrations
+docker compose -f deployment/postgres/docker-compose.yml up -d
+
+# create DBs/users and apply migrations for all services
+.\scripts\run-flyway-locally.ps1 -UseCompose -DbPassword 'changeme'
+```
+
+- Smoke-test running services via Docker Compose:
+
+```powershell
+docker compose -f deployment/docker/docker-compose.yml up --build -d
+docker compose -f deployment/docker/docker-compose.yml logs -f notification-service
+# then curl or call sample endpoints from each service README
+```
+
+Links:
+
+- Detailed DB/Flyway instructions: `docs/POSTGRES_AND_MIGRATIONS.md`
+- Per-service testing: see `services/<service>/README.md`
 - Build single service image (production Dockerfile):
 
 ```powershell
@@ -188,6 +279,10 @@ docker compose -f deployment/docker/docker-compose.yml down --remove-orphans
 - SpotBugs may need network access during plugin resolution; in CI ensure plugin caching or allow network.
 
 I can add short, focused READMEs per service or generate a developer quickstart printed in the root README. Tell me if you want the more concise README replaced or the existing `README.md` updated.
+
+## Postgres & migrations
+
+Detailed Postgres and Flyway migration instructions live in `docs/POSTGRES_AND_MIGRATIONS.md`. It includes the compose file location, the helper script `scripts/run-flyway-locally.ps1`, CI examples, and step-by-step commands.
 
 ---
 

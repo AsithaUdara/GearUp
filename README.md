@@ -88,6 +88,65 @@ If you prefer to run services directly via Maven (dev mode):
 java -jar main/target/demo-0.0.1-SNAPSHOT.jar
 ```
 
+## DB & migrations (quick-start)
+
+This project uses PostgreSQL and Flyway for schema migrations. Quick steps to get started locally:
+
+1. Start a local Postgres container (the repo includes a compose at `deployment/postgres/docker-compose.yml`):
+
+```powershell
+docker compose -f deployment/postgres/docker-compose.yml up -d
+```
+
+2. Run the repo helper to create per-service DBs/users and apply Flyway migrations:
+
+```powershell
+.\scripts\run-flyway-locally.ps1 -UseCompose -DbPassword 'changeme'
+```
+
+3. Migration files are detected in each service at `services/<service>/src/main/resources/db/migration` (Flyway naming: `V1__init.sql`, `V2__...`).
+
+4. For a single-service migration you can run:
+
+```powershell
+.\scripts\run-flyway-locally.ps1 -Service notification-service -DbPassword 'changeme'
+```
+
+More detailed instructions and CI examples are in `docs/POSTGRES_AND_MIGRATIONS.md`.
+
+## How to test
+
+Short test guide and quick commands (PowerShell):
+
+- Run unit tests for the whole repo:
+
+```powershell
+.\mvnw.cmd test
+```
+
+- Run tests for a single service (from repo root):
+
+```powershell
+.\mvnw.cmd -pl services/automobile-service -am test
+```
+
+- Apply Flyway migrations locally (quick verification):
+
+```powershell
+docker compose -f deployment/postgres/docker-compose.yml up -d
+.\scripts\run-flyway-locally.ps1 -UseCompose -DbPassword 'changeme'
+```
+
+- Quick smoke test using Docker Compose (build & run services):
+
+```powershell
+docker compose -f deployment/docker/docker-compose.yml up --build -d
+docker compose -f deployment/docker/docker-compose.yml logs -f notification-service
+# then call endpoints listed under each service README
+```
+
+See `DEV_GUIDE.md` for a slightly more detailed developer quickstart and `docs/POSTGRES_AND_MIGRATIONS.md` for Flyway examples.
+
 ## Test Endpoints
 
 Public: `GET http://localhost:8080/api/public/hello`

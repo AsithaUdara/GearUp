@@ -2,6 +2,21 @@ Docker deployment — how to run the GearUp stack locally
 
 This file explains the Compose files and secrets mounting used by the repository.
 
+## Install Docker Desktop
+
+If you don't already have Docker installed, Docker Desktop is the recommended option on Windows and macOS.
+
+- Download: https://www.docker.com/products/docker-desktop
+- After installation on Windows, enable WSL 2 integration (Docker Desktop > Settings > Resources > WSL Integration) for best performance.
+- Ensure the folder(s) you plan to mount into containers (for example the host path to the Firebase JSON) are allowed in Docker Desktop Settings -> Resources -> File Sharing.
+
+Verify installation:
+
+```powershell
+docker version
+docker compose version
+```
+
 Compose files
 
 - `deployment/docker/docker-compose.yml` — primary production-style compose file. Services are defined with build contexts and production Dockerfiles.
@@ -54,3 +69,7 @@ Removing dev artifacts
 - If you prefer not to use the dev helper flow, you can safely remove `deployment/docker/docker-compose.dev.yml`, `dev-up.ps1`, and `services/*/Dockerfile.dev` once the production Dockerfiles are verified to work for your team. I can remove those on request.
 
 If you'd like, I can also add a small example `docker-compose` override that only starts a single service plus its dependencies to speed up local development. Say "add single-service override" and I'll add it.
+
+## Postgres & Migrations
+
+For full Postgres and Flyway migration instructions see `docs/POSTGRES_AND_MIGRATIONS.md` (includes the `scripts/run-flyway-locally.ps1` usage, compose file location, and CI example).
