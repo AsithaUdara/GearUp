@@ -1,0 +1,7 @@
+# Defaults that services can pick up during bootstrap phase
+spring:
+  cloud:
+    config:
+      fail-fast: true
+      label: main
+      # Clients should override via env or profiles when deploying

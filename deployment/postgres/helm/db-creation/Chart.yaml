@@ -1,0 +1,4 @@
+apiVersion: v2
+name: postgres-db-creation
+description: Small helper Helm chart to create DB users and databases for services
+version: 0.1.0

@@ -1,0 +1,71 @@
+name: CI - Flyway migrate (template-service)
+
+on:
+  pull_request:
+    branches: [ main, microservice-initialization ]
+
+jobs:
+  flyway-template:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      FLYWAY_URL: jdbc:postgresql://localhost:5432/as_template_service
+      FLYWAY_USER: svc_template_service
+      FLYWAY_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject Firebase service account (if provided)
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        run: |
+          printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > firebase-service-account.json
+          chmod 600 firebase-service-account.json
+          echo "FIREBASE_CONFIG_PATH=$(pwd)/firebase-service-account.json" >> $GITHUB_ENV
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build and install all modules
+        run: ./mvnw -B -U -DskipTests clean install
+
+      - name: Install psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U postgres && break || sleep 2
+          done
+        env:
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+
+      - name: Create DB and user for template-service
+        run: |
+          psql -h localhost -U postgres -c "CREATE USER svc_template_service WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';" || true
+          psql -h localhost -U postgres -c "CREATE DATABASE as_template_service OWNER svc_template_service;" || true
+        env:
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+
+      - name: Run Flyway migrate for template-service
+        run: |
+          ./mvnw "-Dflyway.url=$FLYWAY_URL" "-Dflyway.user=$FLYWAY_USER" "-Dflyway.password=$FLYWAY_PASSWORD" -pl services/template-service flyway:migrate

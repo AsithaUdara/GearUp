@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-dbs
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: psql
+          image: postgres:15
+          env:
+            - name: PGPASSWORD
+              value: "{{ .Values.postgres.superuserPassword }}"
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              for svc in {{- range $i, $s := .Values.services }}{{ if $i }} {{ end }}{{ $s }}{{- end }}; do
+                dbname=as_${svc}
+                dbuser=svc_${svc}
+                echo "Creating user $dbuser and database $dbname"
+                psql -h {{ .Release.Name }}-postgres -U {{ .Values.postgres.superuser }} -c "CREATE USER \"$dbuser\" WITH PASSWORD '{{ .Values.postgres.superuserPassword }}';" || true
+                psql -h {{ .Release.Name }}-postgres -U {{ .Values.postgres.superuser }} -c "CREATE DATABASE \"$dbname\" OWNER \"$dbuser\";" || true
+              done
+      # Service account + RBAC might be needed depending on your cluster; this is a minimal example
