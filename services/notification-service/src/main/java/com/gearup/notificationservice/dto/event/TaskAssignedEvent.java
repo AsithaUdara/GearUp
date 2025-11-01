@@ -19,13 +19,4 @@ public class TaskAssignedEvent extends BaseNotificationEvent {
     private String assignedBy;
     private String dueDate;
     private String priority;
-
-    @java.lang.SuppressWarnings(value = "all")
-    @lombok.Generated
-    public static class TaskAssignedEventBuilder {
-
-        public Object eventId(String toString) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-    }
 }
