@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build, Push and Deploy
 
 on:
   push:
@@ -52,8 +52,8 @@ jobs:
         run: |
           ./mvnw -B -U -DskipTests clean install
 
-  build-modules:
-    name: Build individual microservices
+  build-and-push:
+    name: Build and push images
     needs: build-root
     runs-on: ubuntu-latest
     strategy:
@@ -61,15 +61,33 @@ jobs:
         service:
           - name: api-gateway
             module: api-gateway
+            dockerfile: api-gateway/Dockerfile
+            image: api-gateway
           - name: notification-service
             module: services/notification-service
+            dockerfile: services/notification-service/Dockerfile
+            image: notification-service
           - name: user-auth-service
             module: services/user-auth-service
+            dockerfile: services/user-auth-service/Dockerfile
+            image: user-auth-service
           - name: automobile-service
             module: services/automobile-service
+            dockerfile: services/automobile-service/Dockerfile
+            image: automobile-service
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Inject Firebase service account (if provided)
+        run: |
+          if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > firebase-service-account.json
+            chmod 600 firebase-service-account.json
+            echo "FIREBASE_CONFIG_PATH=$(pwd)/firebase-service-account.json" >> $GITHUB_ENV
+          else
+            echo "No FIREBASE_SERVICE_ACCOUNT secret provided, skipping."
+          fi
 
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
@@ -92,10 +110,15 @@ jobs:
         run: |
           ./mvnw -B -DskipTests package -pl ${{ matrix.service.module }} -am
 
+      # Registry not configured for this repository — skip login / push steps.
+      # If you later add REGISTRY_URL and credentials as secrets, we can re-enable
+      # registry login and image push steps here.
+
   deploy:
     name: Deploy Helm charts
-    needs: build-modules
+    needs: build-and-push
     runs-on: ubuntu-latest
+    if: ${{ env.REGISTRY_URL != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -118,6 +141,7 @@ jobs:
 
       - name: Deploy charts from deployment/helm/charts
         env:
+          REGISTRY_URL: ${{ env.REGISTRY_URL }}
           IMAGE_TAG: ${{ github.sha }}
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
@@ -126,6 +150,9 @@ jobs:
             if [ -d "$chart" ]; then
               name=$(basename "$chart")
               echo "Deploying chart $name from $chart"
-              helm upgrade --install "$name" "$chart" --namespace "$NAMESPACE" --create-namespace
+              helm upgrade --install "$name" "$chart" --namespace "$NAMESPACE" \
+                --create-namespace \
+                --set image.repository="$REGISTRY_URL/as/$name" \
+                --set image.tag="$IMAGE_TAG"
             fi
           done
