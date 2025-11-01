@@ -10,7 +10,7 @@
         <groupId>com.gearup</groupId>
         <artifactId>gearup-root</artifactId>
         <version>1.0.0</version>
-        <relativePath>../../gearup-root/pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>com.gearup</groupId>
