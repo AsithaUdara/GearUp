@@ -15,7 +15,7 @@ migrate:
       alias: postgres
   script:
     - export PGPASSWORD="$POSTGRES_PASSWORD"
-    - mvn -pl services/notification-service flyway:migrate -Dflyway.url=$FLYWAY_URL -Dflyway.user=$FLYWAY_USER -Dflyway.password=$POSTGRES_PASSWORD
+    - 'mvn "-Dflyway.url=$FLYWAY_URL" "-Dflyway.user=$FLYWAY_USER" "-Dflyway.password=$POSTGRES_PASSWORD" -pl services/notification-service flyway:migrate'
   only:
     - main
 

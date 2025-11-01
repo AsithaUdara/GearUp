@@ -53,8 +53,7 @@ jobs:
 
       - name: Run Flyway migrations (notification-service)
         run: |
-          ./mvnw -pl services/notification-service flyway:migrate \
-            -Dflyway.url=$FLYWAY_URL -Dflyway.user=$FLYWAY_USER -Dflyway.password=$FLYWAY_PASSWORD
+          ./mvnw "-Dflyway.url=$FLYWAY_URL" "-Dflyway.user=$FLYWAY_USER" "-Dflyway.password=$FLYWAY_PASSWORD" -pl services/notification-service flyway:migrate
 
       - name: Run integration tests
         run: |

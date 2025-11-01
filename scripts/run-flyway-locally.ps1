@@ -18,7 +18,7 @@ This script will:
 
 param(
     [string]$Service = "all",
-    [string]$DbPassword = "changeme",
+    [System.Security.SecureString]$DbPassword = (ConvertTo-SecureString 'postgresql' -AsPlainText -Force),
     [switch]$UseCompose,
     [switch]$KeepContainer
 )
@@ -81,7 +81,7 @@ foreach ($sd in $serviceDirs) {
 
     $flywayUrl = "jdbc:postgresql://localhost:5432/$dbName"
     Write-Host "Running Flyway migrate for $svc against $flywayUrl"
-    & "./mvnw.cmd" -pl "services/$svc" flyway:migrate -Dflyway.url=$flywayUrl -Dflyway.user=$dbUser -Dflyway.password=$DbPassword
+    & "./mvnw.cmd" "-Dflyway.url=$flywayUrl" "-Dflyway.user=$dbUser" "-Dflyway.password=$DbPassword" -pl "services/$svc" flyway:migrate
 }
 
 if (-not $KeepContainer) {

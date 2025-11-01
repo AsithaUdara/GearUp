@@ -83,7 +83,7 @@ jobs:
             echo "Migrating $svc"
             dbname=as_${svc}
             dbuser=svc_${svc}
-            ./mvnw -pl services/$svc flyway:migrate -Dflyway.url=jdbc:postgresql://localhost:5432/${dbname} -Dflyway.user=${dbuser} -Dflyway.password=${{ env.POSTGRES_PASSWORD }}
+            ./mvnw "-Dflyway.url=jdbc:postgresql://localhost:5432/${dbname}" "-Dflyway.user=${dbuser}" "-Dflyway.password=${{ env.POSTGRES_PASSWORD }}" -pl services/$svc flyway:migrate
           done < services.txt
 
       - name: Run integration tests across modules

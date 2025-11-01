@@ -112,6 +112,12 @@
                 <!-- version managed by root pluginManagement -->
                 <dependencies>
                     <!-- Flyway runs in plugin scope; ensure the JDBC driver is available to the plugin -->
+                    <!-- Flyway PostgreSQL database plugin (required for Flyway 9+/11+) -->
+                    <dependency>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-database-postgresql</artifactId>
+                        <version>11.7.2</version>
+                    </dependency>
                     <dependency>
                         <groupId>org.postgresql</groupId>
                         <artifactId>postgresql</artifactId>
@@ -171,6 +177,18 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.flywaydb</groupId>
+                                <artifactId>flyway-database-postgresql</artifactId>
+                                <version>11.7.2</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.postgresql</groupId>
+                                <artifactId>postgresql</artifactId>
+                                <version>42.7.2</version>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                 </plugins>
             </build>
