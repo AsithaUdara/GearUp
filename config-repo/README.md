@@ -1,3 +1,23 @@
+Config Repository — how to add service configuration
+
+This folder contains per-service YAML files served by the local Config Server.
+
+To add a configuration for a new service:
+
+1. Create `config-repo/my-service.yml`.
+2. Add service-specific properties (spring.datasource, logging, etc.).
+3. When running locally, the Config Server will automatically serve values from this folder.
+
+Example minimal file (my-service.yml):
+
+```
+spring:
+  application:
+    name: my-service
+  datasource:
+    url: jdbc:postgresql://db:5432/mydb
+```
+
 # config-repo (GearUp)
 
 This repository directory holds non-sensitive default configuration for the GearUp microservices. It is intended to be used by a Spring Cloud Config Server (see `../config-server`) and _must not_ contain production secrets.
