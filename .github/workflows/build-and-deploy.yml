@@ -22,6 +22,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Inject Firebase service account (if provided)
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        run: |
+          printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > firebase-service-account.json
+          chmod 600 firebase-service-account.json
+          echo "FIREBASE_CONFIG_PATH=$(pwd)/firebase-service-account.json" >> $GITHUB_ENV
+
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
 
@@ -69,6 +76,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Inject Firebase service account (if provided)
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        run: |
+          printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > firebase-service-account.json
+          chmod 600 firebase-service-account.json
+          echo "FIREBASE_CONFIG_PATH=$(pwd)/firebase-service-account.json" >> $GITHUB_ENV
 
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
