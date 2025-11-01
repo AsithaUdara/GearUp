@@ -38,8 +38,8 @@ Firebase credentials and mounts
 
 Production vs Dev compose flows
 
-- Production flow builds images from the repo using multi-stage Dockerfiles. The Dockerfiles run `./mvnw` inside the builder stage so builder images don't rely on pulling a specific Maven image tag.
-- Dev flow uses `docker-compose.dev.yml` and `Dockerfile.dev` to copy pre-built jars created by a local `mvn` run — this is faster for iterative development.
+- Production flow expects CI (or a local root-level Maven build) to produce service jars under `target/` and Dockerfiles copy those prebuilt jars into the runtime image. This avoids running Maven inside the image and makes image builds faster and more reproducible.
+- Dev helper flow (legacy): `docker-compose.dev.yml` and `Dockerfile.dev` were previously provided to copy locally built jars into a runtime image for quick iteration. Those files are now deprecated in this repo; the primary compose file is `deployment/docker/docker-compose.yml` and the recommended local flow is to run a root `./mvnw -DskipTests package` before starting compose so images can pick up the built artifacts.
 
 Common commands (PowerShell)
 

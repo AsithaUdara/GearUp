@@ -1,15 +1,10 @@
 ## Multi-stage Dockerfile — user-auth-service
-FROM maven:3.10.1-jdk-21 AS build
-WORKDIR /workspace
-COPY pom.xml mvnw ./
-COPY .mvn/ .mvn/
-COPY src/ src/
-RUN ./mvnw -DskipTests package
-
 FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
-COPY --from=build /workspace/target/*.jar app.jar
+
+# Copy the prebuilt service jar (CI will build the module before the Docker build)
+COPY services/user-auth-service/target/*.jar /app/app.jar
 RUN chown -R app:app /app
 USER app
 EXPOSE 8080
