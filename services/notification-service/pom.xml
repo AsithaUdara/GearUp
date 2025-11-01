@@ -58,7 +58,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.2</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -66,7 +65,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>11.7.2</version>
         </dependency>
         
         <!-- Shared security utilities (includes Firebase Admin) -->
@@ -110,20 +108,7 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
                 <!-- version managed by root pluginManagement -->
-                <dependencies>
-                    <!-- Flyway runs in plugin scope; ensure the JDBC driver is available to the plugin -->
-                    <!-- Flyway PostgreSQL database plugin (required for Flyway 9+/11+) -->
-                    <dependency>
-                        <groupId>org.flywaydb</groupId>
-                        <artifactId>flyway-database-postgresql</artifactId>
-                        <version>11.7.2</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>42.7.2</version>
-                    </dependency>
-                </dependencies>
+                
                 <configuration>
                     <!-- Defaults; CI should override via -Dflyway.url / -Dflyway.user / -Dflyway.password -->
                     <url>${flyway.url:${spring.datasource.url}}</url>
@@ -181,12 +166,12 @@
                             <dependency>
                                 <groupId>org.flywaydb</groupId>
                                 <artifactId>flyway-database-postgresql</artifactId>
-                                <version>11.7.2</version>
+                                <version>${flyway.db.postgresql.version}</version>
                             </dependency>
                             <dependency>
                                 <groupId>org.postgresql</groupId>
                                 <artifactId>postgresql</artifactId>
-                                <version>42.7.2</version>
+                                <version>${postgresql.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>

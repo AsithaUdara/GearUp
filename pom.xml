@@ -9,6 +9,7 @@
         <module>services/automobile-service</module>
         <module>services/notification-service</module>
         <module>services/template-service</module>
+        <module>services/user-auth-service</module>
 
         <!-- Infra modules -->
         <module>service-discovery</module>
@@ -23,6 +24,10 @@
         <!-- Central Spring Boot version for all modules -->
         <spring-boot.version>3.5.7</spring-boot.version>
         <java.version>21</java.version>
+        <!-- Centralized dependency versions -->
+        <postgresql.version>42.7.8</postgresql.version>
+        <flyway.version>11.7.2</flyway.version>
+        <flyway.db.postgresql.version>${flyway.version}</flyway.db.postgresql.version>
     </properties>
 
     <dependencyManagement>
@@ -100,17 +105,17 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>11.7.2</version>
+                <version>${flyway.version}</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.flywaydb</groupId>
                         <artifactId>flyway-database-postgresql</artifactId>
-                        <version>11.7.2</version>
+                        <version>${flyway.db.postgresql.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.postgresql</groupId>
                         <artifactId>postgresql</artifactId>
-                        <version>42.7.2</version>
+                        <version>${postgresql.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
