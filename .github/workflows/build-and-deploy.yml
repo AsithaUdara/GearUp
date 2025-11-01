@@ -125,10 +125,18 @@ jobs:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
           set -e
+          # Ensure the target namespace exists (some Helm versions lack --create-namespace)
+          if ! kubectl get namespace "$NAMESPACE" >/dev/null 2>&1; then
+            echo "Creating namespace $NAMESPACE"
+            kubectl create namespace "$NAMESPACE"
+          else
+            echo "Namespace $NAMESPACE already exists"
+          fi
+
           for chart in deployment/helm/charts/*; do
             if [ -d "$chart" ]; then
               name=$(basename "$chart")
               echo "Deploying chart $name from $chart"
-              helm upgrade --install "$name" "$chart" --namespace "$NAMESPACE" --create-namespace
+              helm upgrade --install "$name" "$chart" --namespace "$NAMESPACE"
             fi
           done
