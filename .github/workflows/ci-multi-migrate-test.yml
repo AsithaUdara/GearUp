@@ -9,12 +9,14 @@ on:
 jobs:
   migrate-and-test-all:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'changeme' }}
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -44,7 +46,7 @@ jobs:
             pg_isready -h localhost -p 5432 -U postgres && break || sleep 2
           done
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Discover services with Flyway migrations
         id: discover
@@ -60,17 +62,16 @@ jobs:
 
       - name: Create DBs and users for discovered services
         run: |
-          PGPASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           while read svc; do
             if [ -z "$svc" ]; then continue; fi
             echo "Creating DB and user for $svc"
             dbname=as_${svc}
             dbuser=svc_${svc}
-            psql -h localhost -U postgres -c "CREATE USER \"$dbuser\" WITH PASSWORD '${{ secrets.POSTGRES_PASSWORD }}';" || true
+            psql -h localhost -U postgres -c "CREATE USER \"$dbuser\" WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';" || true
             psql -h localhost -U postgres -c "CREATE DATABASE \"$dbname\" OWNER \"$dbuser\";" || true
           done < services.txt
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Run Flyway migrations for each service
         run: |
@@ -79,7 +80,7 @@ jobs:
             echo "Migrating $svc"
             dbname=as_${svc}
             dbuser=svc_${svc}
-            ./mvnw -pl services/$svc flyway:migrate -Dflyway.url=jdbc:postgresql://localhost:5432/${dbname} -Dflyway.user=${dbuser} -Dflyway.password=${{ secrets.POSTGRES_PASSWORD }}
+            ./mvnw -pl services/$svc flyway:migrate -Dflyway.url=jdbc:postgresql://localhost:5432/${dbname} -Dflyway.user=${dbuser} -Dflyway.password=${{ env.POSTGRES_PASSWORD }}
           done < services.txt
 
       - name: Run integration tests across modules
