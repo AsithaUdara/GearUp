@@ -4,97 +4,95 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
+    <!-- ✅ Use your multi-module parent -->
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.7</version>
-        <relativePath/>
+        <groupId>com.gearup</groupId>
+        <artifactId>gearup-root</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
-    
+
     <groupId>com.gearup</groupId>
     <artifactId>notification-service</artifactId>
     <version>1.0.0</version>
     <name>notification-service</name>
     <description>Notification Service for GearUp ERP</description>
-    
+
     <properties>
         <java.version>21</java.version>
     </properties>
-    
+
     <dependencies>
         <!-- Spring Boot Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-        
-        <!-- PostgreSQL Driver -->
+
+        <!-- PostgreSQL (version inherited from root) -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.8</version>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Flyway Core for runtime migrations (Spring Boot auto-run) -->
+        <!-- Flyway for runtime migrations (Spring Boot auto-run) -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>11.7.2</version>
         </dependency>
-        
-        <!-- Shared security utilities (includes Firebase Admin) -->
+
+        <!-- Shared security & event libraries -->
         <dependency>
             <groupId>com.gearup</groupId>
             <artifactId>shared-security-lib</artifactId>
             <version>1.0.0</version>
         </dependency>
-        <!-- Shared event models -->
+
         <dependency>
             <groupId>com.gearup</groupId>
             <artifactId>shared-event-models</artifactId>
             <version>1.0.0</version>
         </dependency>
-        
-        <!-- Lombok (reduces boilerplate) -->
+
+        <!-- Utility -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-        
-        <!-- Validation -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -102,17 +100,14 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <build>
         <plugins>
-            <!-- Flyway plugin for CI/CD execution of migrations -->
+            <!-- Flyway Maven plugin (CI/CD database migrations) -->
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <!-- version managed by root pluginManagement -->
-                
                 <configuration>
-                    <!-- Defaults; CI should override via -Dflyway.url / -Dflyway.user / -Dflyway.password -->
                     <url>${flyway.url:${spring.datasource.url}}</url>
                     <user>${flyway.user:${spring.datasource.username}}</user>
                     <password>${flyway.password:${spring.datasource.password}}</password>
@@ -123,19 +118,25 @@
                         <location>filesystem:src/main/resources/db/migration</location>
                     </locations>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-database-postgresql</artifactId>
+                        <version>${flyway.db.postgresql.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>${postgresql.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -145,40 +146,5 @@
             </plugin>
         </plugins>
     </build>
-    
-    <profiles>
-        <!-- CI-friendly profile that runs Flyway migrate in the pre-integration-test phase when activated -->
-        <profile>
-            <id>run-migrations</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.flywaydb</groupId>
-                        <artifactId>flyway-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>migrate-db</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>migrate</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.flywaydb</groupId>
-                                <artifactId>flyway-database-postgresql</artifactId>
-                                <version>${flyway.db.postgresql.version}</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.postgresql</groupId>
-                                <artifactId>postgresql</artifactId>
-                                <version>${postgresql.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+
 </project>
