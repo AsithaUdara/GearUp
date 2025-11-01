@@ -108,6 +108,14 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
                 <!-- version managed by root pluginManagement -->
+                <dependencies>
+                    <!-- Flyway runs in plugin scope; ensure the JDBC driver is available to the plugin -->
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>42.7.2</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <!-- Defaults; CI should override via -Dflyway.url / -Dflyway.user / -Dflyway.password -->
                     <url>${flyway.url:${spring.datasource.url}}</url>
