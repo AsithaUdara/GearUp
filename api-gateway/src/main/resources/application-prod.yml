@@ -1,0 +1,32 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+
+# Expose only minimal actuator endpoints in prod
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
+  actuator:
+    token: ${MANAGEMENT_ACTUATOR_TOKEN:}
+
+# Production-ready timeouts and resilience tweaks
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        slidingWindowSize: 100
+        failureRateThreshold: 50

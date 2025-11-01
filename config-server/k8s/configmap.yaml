@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-server-config
+data:
+  # Example: keep non-sensitive defaults here; DO NOT store secrets in ConfigMap for prod
+  git-uri: "https://github.com/yourorg/gearup-config-repo.git"

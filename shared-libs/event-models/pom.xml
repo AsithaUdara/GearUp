@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.gearup</groupId>
+        <artifactId>gearup-root</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>shared-event-models</artifactId>
+    <packaging>jar</packaging>
+
+    <name>shared-event-models</name>
+    <description>Shared event DTOs and message models for inter-service communication</description>
+
+    <dependencies>
+        <!-- Shared event models use Lombok for DTO builders and boilerplate -->
+        <!-- Keep this module Lombok-free to avoid annotation-processor issues during compilation in CI/JDK toolchains -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.5.7</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
+
+

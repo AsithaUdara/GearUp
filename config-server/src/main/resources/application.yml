@@ -1,0 +1,38 @@
+server:
+  port: ${CONFIG_SERVER_PORT:8888}
+
+# Force the native repository profile (filesystem-backed) for local dev and tests.
+spring:
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        # Use a native (filesystem) backend by default for local development/tests.
+        # Override with CONFIG_REPO_URI to point at a git-backed repo in production.
+        native:
+          searchLocations: ${CONFIG_REPO_URI:file:../config-repo}
+  security:
+    user:
+      name: ${CONFIG_SERVER_USER:configadmin}
+      password: ${CONFIG_SERVER_PASSWORD:change-me}
+
+# Management endpoints for readiness/liveness and health details for k8s
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# CORS / allowed origins for the config server UI/API (comma-separated)
+configserver:
+  cors:
+    allowed-origins: ${CONFIG_SERVER_CORS_ORIGINS:*}
+
+# Keep logs consistent across modules
+logging:
+  level:
+    root: INFO
