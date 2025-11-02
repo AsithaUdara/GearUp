@@ -5,14 +5,14 @@ import org.springframework.stereotype.Component;
 
 import com.gearup.notificationservice.config.RabbitMQConfig;
 import com.gearup.notificationservice.dto.NotificationRequest;
-import com.gearup.shared.event.InvoiceCreatedEvent;
-import com.gearup.shared.event.InvoicePaidEvent;
-import com.gearup.notificationservice.dto.event.InvoiceUpdatedEvent;
-import com.gearup.notificationservice.dto.event.TaskAssignedEvent;
-import com.gearup.notificationservice.dto.event.TaskCompletedEvent;
 import com.gearup.notificationservice.entity.NotificationPriority;
 import com.gearup.notificationservice.entity.NotificationType;
 import com.gearup.notificationservice.service.NotificationService;
+import com.gearup.shared.event.InvoiceCreatedEvent;
+import com.gearup.shared.event.InvoicePaidEvent;
+import com.gearup.shared.event.InvoiceUpdatedEvent;
+import com.gearup.shared.event.TaskAssignedEvent;
+import com.gearup.shared.event.TaskCompletedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

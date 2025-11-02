@@ -2,9 +2,9 @@ name: CI - Flyway migrations + integration tests
 
 on:
   push:
-    branches: [ main, microservice-initialization ]
+    branches: [main, microservice-initialization]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   migrate-and-test:
@@ -15,7 +15,8 @@ jobs:
         env:
           POSTGRES_DB: as_notification
           POSTGRES_USER: svc_notification
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          # Use the repository secret directly for the service container password
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -23,17 +24,21 @@ jobs:
           --health-interval 10s --health-timeout 5s --health-retries 5
 
     env:
+      # Expose commonly-used values to steps via environment variables
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       FLYWAY_URL: jdbc:postgresql://localhost:5432/as_notification
       FLYWAY_USER: svc_notification
-      FLYWAY_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+      FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Inject Firebase service account (if provided)
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
         run: |
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "No FIREBASE_SERVICE_ACCOUNT secret provided; skipping injection"
+            exit 0
+          fi
           printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > firebase-service-account.json
           chmod 600 firebase-service-account.json
           echo "FIREBASE_CONFIG_PATH=$(pwd)/firebase-service-account.json" >> $GITHUB_ENV
@@ -44,8 +49,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: "temurin"
+          java-version: "21"
 
       - name: Build and install all modules
         run: ./mvnw -B -U -DskipTests clean install
