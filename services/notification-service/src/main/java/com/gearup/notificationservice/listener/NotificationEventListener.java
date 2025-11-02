@@ -3,7 +3,6 @@ package com.gearup.notificationservice.listener;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import com.gearup.notificationservice.config.RabbitMQConfig;
 import com.gearup.notificationservice.dto.NotificationRequest;
 import com.gearup.notificationservice.entity.NotificationPriority;
 import com.gearup.notificationservice.entity.NotificationType;
@@ -13,6 +12,7 @@ import com.gearup.shared.event.InvoicePaidEvent;
 import com.gearup.shared.event.InvoiceUpdatedEvent;
 import com.gearup.shared.event.TaskAssignedEvent;
 import com.gearup.shared.event.TaskCompletedEvent;
+import com.gearup.shared.messaging.RabbitMQConfig;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

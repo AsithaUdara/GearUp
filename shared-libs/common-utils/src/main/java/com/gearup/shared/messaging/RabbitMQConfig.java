@@ -1,4 +1,4 @@
-package com.gearup.notificationservice.config;
+package com.gearup.shared.messaging;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

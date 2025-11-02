@@ -81,6 +81,13 @@
             <version>1.0.0</version>
         </dependency>
 
+        <!-- shared common utilities: Redis and RabbitMQ config + helpers -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-common-utils</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- Utility -->
         <dependency>
             <groupId>org.projectlombok</groupId>

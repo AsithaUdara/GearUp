@@ -1,4 +1,4 @@
-package com.gearup.notificationservice.service;
+package com.gearup.shared.cache;
 
 import java.util.concurrent.TimeUnit;
 

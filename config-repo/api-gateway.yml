@@ -1,6 +1,12 @@
 spring:
   application:
     name: api-gateway
+  redis:
+    host: ${SPRING_REDIS_HOST:redis}
+    port: ${SPRING_REDIS_PORT:6379}
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+    port: ${SPRING_RABBITMQ_PORT:5672}
 
 server:
   port: ${PORT:8080}
@@ -11,11 +17,7 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
 
-# Messaging / persistence placeholders
-redis:
-  host: ${REDIS_HOST:localhost}
-  port: ${REDIS_PORT:6379}
-
-rabbitmq:
-  host: ${RABBIT_HOST:localhost}
-  exchange: ${RABBIT_EXCHANGE:gateway-exchange}
+# Messaging / persistence placeholders (use central spring.* defaults)
+messaging:
+  rabbitmq:
+    exchange: ${RABBIT_EXCHANGE:gateway-exchange}
