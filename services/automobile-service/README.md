@@ -22,8 +22,14 @@ From the repo root:
 Run locally (Docker Compose)
 
 ```powershell
+# Build the automobile-service image and start the service (detached)
 docker compose -f deployment/docker/docker-compose.yml build automobile-service --progress=plain
-docker compose -f deployment/docker/docker-compose.yml up automobile-service
+docker compose -f deployment/docker/docker-compose.yml up --build -d automobile-service
+
+# Follow logs
+docker compose -f deployment/docker/docker-compose.yml logs -f automobile-service
+
+# If you use the legacy docker-compose binary, replace `docker compose` with `docker-compose`.
 ```
 
 Endpoints
