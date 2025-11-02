@@ -68,8 +68,10 @@ public class FirebaseConfig {
             }
 
             if (in == null) {
-                // No service account available — skip Firebase initialization in non-production contexts (tests/CI)
-                log.info("No Firebase service account found; skipping Firebase initialization.");
+                if ("prod".equals(System.getenv("SPRING_PROFILES_ACTIVE"))) {
+                    throw new IllegalStateException("Firebase credentials required in production");
+                }
+                log.warn("No Firebase service account found; skipping initialization.");
                 return;
             }
 

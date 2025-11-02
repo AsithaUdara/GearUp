@@ -15,8 +15,13 @@ Quick build & run (from repo root):
 
 ```
 .\mvnw.cmd -pl services/my-service -am -DskipTests package
-docker compose -f deployment/docker/docker-compose.yml build my-service
-docker compose -f deployment/docker/docker-compose.yml up -d my-service
+docker compose -f deployment/docker/docker-compose.yml build my-service --progress=plain
+docker compose -f deployment/docker/docker-compose.yml up --build -d my-service
+
+# Follow logs
+docker compose -f deployment/docker/docker-compose.yml logs -f my-service
+
+# If you use the legacy docker-compose binary, replace `docker compose` with `docker-compose`.
 ```
 
 Notes:

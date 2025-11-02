@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gearup.notificationservice.config.RabbitMQConfig;
-import com.gearup.notificationservice.dto.event.TaskAssignedEvent;
 import com.gearup.shared.event.InvoiceCreatedEvent;
 import com.gearup.shared.event.InvoicePaidEvent;
+import com.gearup.shared.event.TaskAssignedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,19 +60,17 @@ public class TestNotificationController {
     public ResponseEntity<String> testTaskAssigned(Authentication authentication) {
         String userId = authentication.getName();
         
-        // Build subclass fields using Lombok @Builder, then set base event fields via setters
-        TaskAssignedEvent event = TaskAssignedEvent.builder()
-                .taskId("TASK-" + System.currentTimeMillis())
-                .taskTitle("Complete Q4 Report")
-                .assignedBy("Manager")
-                .dueDate("2024-12-31")
-                .priority("HIGH")
-                .build();
-
-        // Set base properties declared in BaseNotificationEvent (shared library)
-        event.setEventId(UUID.randomUUID().toString());
-        event.setUserId(userId);
-        event.setTimestamp(LocalDateTime.now());
+        // Construct shared TaskAssignedEvent directly (canonical event lives in shared module)
+        TaskAssignedEvent event = new TaskAssignedEvent(
+                UUID.randomUUID().toString(),
+                userId,
+                LocalDateTime.now(),
+                "TASK-" + System.currentTimeMillis(),
+                "Complete Q4 Report",
+                "Manager",
+                "2024-12-31",
+                "HIGH"
+        );
         
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.NOTIFICATION_EXCHANGE,

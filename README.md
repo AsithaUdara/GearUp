@@ -64,15 +64,26 @@ Docker (recommended):
 2. Copy `.env.example` to `.env` and set `FIREBASE_CREDENTIALS_HOST_PATH` to the host path of your Firebase JSON.
 3. From the repo root run with Docker Compose (cross-platform):
 
-```bash
-# Build images and start containers in detached mode
-docker compose up --build -d
+Note: the repository's compose files live under `deployment/docker/`. You must point Docker Compose at that file (or run the commands from that folder). Below are the recommended cross-platform commands and alternatives for older Docker installations.
 
-# Tail logs (press Ctrl+C to stop)
-docker compose logs -f
+```powershell
+# Preferred (Docker Compose v2 - `docker compose`)
+# Build images and start containers in detached mode
+docker compose -f deployment/docker/docker-compose.yml up --build -d
+
+# View logs (follow)
+docker compose -f deployment/docker/docker-compose.yml logs -f
 
 # Stop and remove containers
-docker compose down
+docker compose -f deployment/docker/docker-compose.yml down
+```
+
+If you have the legacy `docker-compose` binary instead of the newer `docker compose` CLI, use the same commands but with a hyphen:
+
+```powershell
+docker-compose -f deployment/docker/docker-compose.yml up --build -d
+docker-compose -f deployment/docker/docker-compose.yml logs -f
+docker-compose -f deployment/docker/docker-compose.yml down
 ```
 
 If you prefer to run services directly via Maven (dev mode):

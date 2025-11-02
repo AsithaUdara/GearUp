@@ -22,8 +22,14 @@ From the repo root:
 Run locally (Docker Compose)
 
 ```powershell
+# Build the user-auth-service image and start the service (detached)
 docker compose -f deployment/docker/docker-compose.yml build user-auth-service --progress=plain
-docker compose -f deployment/docker/docker-compose.yml up user-auth-service
+docker compose -f deployment/docker/docker-compose.yml up --build -d user-auth-service
+
+# Follow logs
+docker compose -f deployment/docker/docker-compose.yml logs -f user-auth-service
+
+# If you use the legacy docker-compose binary, replace `docker compose` with `docker-compose`.
 ```
 
 Endpoints
