@@ -21,11 +21,6 @@ services:
       context: ../../
       # Dockerfile for this service, path relative to the build context
       dockerfile: ./services/notification-service/Dockerfile
-      # Ensure we build through the Maven builder stage and produce the runtime image
-      target: runtime
-      args:
-        # Default to skipping tests during local image builds for speed; set to 'false' to run tests
-        SKIP_TESTS: "true"
     ports:
       - "8081:8081"
     env_file:
@@ -84,3 +79,4 @@ services:
 
 volumes:
   db-data:
+  
