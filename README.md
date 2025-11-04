@@ -2,18 +2,35 @@
 
 Production-ready Spring Boot microservices architecture with service discovery, centralized configuration, API gateway, and PostgreSQL database-per-service pattern.
 
+## 🚀 **NEW DEVELOPERS START HERE!**
+
+**👉 Read the [Quick Start Guide](QUICK_START.md) for step-by-step beginner-friendly instructions**
+
+**👉 See [COMMANDS.md](COMMANDS.md) for complete verified command reference**
+
+### Quick Start (3 Steps):
+
+1. `.\mvnw clean install -DskipTests` - Build the project
+2. `cd deployment\docker` - Go to docker folder
+3. `docker-compose up -d` - Start all services
+
+That's it! See [QUICK_START.md](QUICK_START.md) for details.
+
+---
+
 ## 🏗️ Architecture Overview
 
 ```
 GearUp Backend
 ├── Infrastructure Services
-│   ├── api-gateway/           # Spring Cloud Gateway (Port 8080)
+│   ├── api-gateway/           # Spring Cloud Gateway (Port 9090)
 │   ├── service-discovery/     # Eureka Server (Port 8761)
 │   └── config-server/         # Spring Cloud Config (Port 8888)
 ├── Business Services
-│   ├── automobile-service/    # Vehicle management (Port 8082)
+│   ├── automobile-service/    # Vehicle management (Port 8080)
 │   ├── notification-service/  # Notifications & alerts (Port 8081)
-│   └── user-auth-service/     # Authentication (Port 8083)
+│   ├── user-auth-service/     # Authentication (Port 8082)
+│   └── template-service/      # Template service (Port 8083)
 ├── Shared Libraries
 │   ├── security-lib/          # Firebase auth utilities
 │   ├── common-dto/            # Shared data models
@@ -24,6 +41,25 @@ GearUp Backend
     ├── k8s/                   # Kubernetes manifests
     └── config-repo/           # Centralized configs
 ```
+
+---
+
+## 📚 Documentation
+
+### For Beginners
+
+- **[Quick Start Guide](QUICK_START.md)** - Step-by-step setup for new developers
+- **[Complete Command Reference](COMMANDS.md)** - All verified commands with examples
+- **[Security Quick Reference](docs/SECURITY_QUICK_REFERENCE.md)** - Security basics
+
+### For Advanced Users
+
+- **[Development Guide](docs/DEV_GUIDE.md)** - Detailed development workflows
+- **[Flyway Integration](docs/FLYWAY_INTEGRATION.md)** - Database migration guide
+- **[Security Hardening](docs/SECURITY_HARDENING.md)** - Complete security documentation
+- **[Infrastructure Status](docs/INFRASTRUCTURE_STATUS.md)** - System architecture details
+
+---
 
 ## ✨ Key Features
 
@@ -238,9 +274,9 @@ management.endpoints.web.exposure.include=health,info
 management.endpoint.health.show-details=always
 ```
 
-#### 5. Add Database to PostgreSQL
+#### 5. Add Database to PostgreSQL and Create Flyway Migrations
 
-Edit `deployment/postgres/init-db.sql`:
+Edit `deployment/postgres/init-db.sql` to add database and user (NOT tables):
 
 ```sql
 -- Create database
@@ -252,17 +288,43 @@ CREATE USER your_service_user WITH PASSWORD 'your_secure_password';
 -- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE as_your_service TO your_service_user;
 
--- Connect and create schema
+-- Connect and grant schema permissions
 \c as_your_service;
-CREATE SCHEMA IF NOT EXISTS public;
 GRANT ALL ON SCHEMA public TO your_service_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO your_service_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO your_service_user;
+```
 
--- Create your tables
+Create Flyway migration at `services/your-service/src/main/resources/db/migration/V1__initial_schema.sql`:
+
+```sql
+-- V1__initial_schema.sql
+-- Creates initial schema for your-service
+
 CREATE TABLE your_table (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create indexes for performance
+CREATE INDEX idx_your_table_name ON your_table(name);
+
+-- Add table comments
+COMMENT ON TABLE your_table IS 'Stores your business entities';
+```
+
+Add Flyway configuration to `services/your-service/src/main/resources/application.properties`:
+
+```properties
+# Flyway Configuration
+spring.flyway.enabled=true
+spring.flyway.baseline-on-migrate=true
+spring.flyway.locations=classpath:db/migration
+spring.flyway.validate-on-migrate=true
+spring.flyway.out-of-order=false
 ```
 
 #### 6. Add to Docker Compose
@@ -580,7 +642,7 @@ java -jar main/target/demo-0.0.1-SNAPSHOT.jar
 
 ## Database Setup (PostgreSQL)
 
-This project uses PostgreSQL 15 with a **database-per-service** architecture. Each microservice has its own isolated database with dedicated users and permissions.
+This project uses PostgreSQL 15 with a **database-per-service** architecture. Each microservice has its own isolated database with dedicated users and permissions. **Flyway** is used for version-controlled database migrations.
 
 ### Quick Start
 
@@ -595,7 +657,7 @@ Copy-Item .env.example .env
 ```
 AUTOMOBILE_DB_URL=jdbc:postgresql://gearup-postgres:5432/as_automobile_service
 AUTOMOBILE_DB_USER=auto_user
-AUTOMOBILE_DB_PASSWORD=auto_secure_pass_123
+AUTOMOBILE_DB_PASSWORD=auto_secure_pass_2024
 # ... (similar for notification and user-auth services)
 ```
 
@@ -608,10 +670,109 @@ AUTOMOBILE_DB_PASSWORD=auto_secure_pass_123
 This will:
 
 - Build all services with Maven
-- Start PostgreSQL container with automatic database initialization
-- Create 3 separate databases (automobile, notification, user-auth)
+- Start PostgreSQL container with automatic database/user initialization
+- Run Flyway migrations to create tables and schema
 - Run database connection tests
 - Perform health checks on all services
+
+### Database Migration with Flyway
+
+This project uses **Flyway** for version-controlled, automated database migrations. Flyway migrations are located in each service's `src/main/resources/db/migration/` directory.
+
+#### Migration File Structure
+
+```
+services/
+├── automobile-service/
+│   └── src/main/resources/db/migration/
+│       ├── V1__initial_schema.sql
+│       └── V2__add_vehicle_tracking.sql
+├── notification-service/
+│   └── src/main/resources/db/migration/
+│       └── V1__initial_schema.sql
+└── user-auth-service/
+    └── src/main/resources/db/migration/
+        └── V1__initial_schema.sql
+```
+
+#### Running Migrations Manually
+
+```powershell
+# Run migrations for all services
+make flyway-all              # Unix/macOS
+# Or manually via Maven:
+.\mvnw.cmd flyway:migrate -pl services/automobile-service
+.\mvnw.cmd flyway:migrate -pl services/notification-service
+.\mvnw.cmd flyway:migrate -pl services/user-auth-service
+.\mvnw.cmd flyway:migrate -pl services/template-service
+
+# Run migrations for specific service
+make flyway-automobile       # Unix/macOS
+.\mvnw.cmd -pl services/automobile-service flyway:migrate
+
+# Check migration status
+.\mvnw.cmd -pl services/automobile-service flyway:info
+
+# Validate migrations
+.\mvnw.cmd -pl services/automobile-service flyway:validate
+```
+
+#### Creating New Migrations
+
+1. Create a new SQL file in `services/your-service/src/main/resources/db/migration/`
+2. Follow naming convention: `V{version}__{description}.sql`
+   - Example: `V2__add_vehicle_status_column.sql`
+3. Write idempotent SQL (migrations run only once)
+4. Test locally before committing
+
+Example migration:
+
+```sql
+-- V2__add_vehicle_status_column.sql
+ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS status_updated_at TIMESTAMP;
+CREATE INDEX IF NOT EXISTS idx_vehicles_status_updated ON vehicles(status_updated_at);
+```
+
+#### Migration Best Practices
+
+- ✅ **Always use versioned migrations** (`V{number}__{description}.sql`)
+- ✅ **Write idempotent SQL** (use `IF NOT EXISTS`, `IF EXISTS`)
+- ✅ **Test migrations locally** before pushing
+- ✅ **Never modify existing migrations** (create new ones instead)
+- ✅ **Use descriptive names** for clarity
+- ✅ **Keep migrations small** and focused
+- ❌ **Never delete old migrations** (breaks Flyway checksums)
+
+#### Flyway Configuration
+
+Each service's `application.properties` contains Flyway configuration:
+
+```properties
+# Flyway Configuration
+spring.flyway.enabled=true
+spring.flyway.baseline-on-migrate=true
+spring.flyway.locations=classpath:db/migration
+spring.flyway.validate-on-migrate=true
+spring.flyway.out-of-order=false
+```
+
+#### Initial Database Setup Process
+
+1. **PostgreSQL container starts** with `deployment/postgres/init-db.sql`
+
+   - Creates databases: `as_automobile_service`, `as_notification_service`, `as_user_auth_service`, `as_template_service`
+   - Creates service users with credentials
+   - Grants permissions
+
+2. **Services start** and Flyway runs automatically:
+
+   - Creates `flyway_schema_history` table
+   - Executes pending migrations in order
+   - Validates checksums
+
+3. **Tables are created** by migration scripts:
+   - `V1__initial_schema.sql` creates initial tables
+   - Future migrations apply incrementally
 
 For detailed setup information, see `POSTGRES_SETUP.md`.
 
@@ -837,6 +998,33 @@ spring:
 ```
 
 ## 🔒 Security
+
+### ✅ Security Hardening (Updated 2024)
+
+**All hardcoded secrets have been removed from the codebase.**
+
+- ✅ No hardcoded passwords in configuration files
+- ✅ No credentials in version control
+- ✅ Environment variable-based secret management
+- ✅ Fail-fast if environment variables missing
+
+**Documentation**:
+
+- [Security Hardening Guide](docs/SECURITY_HARDENING.md)
+- [Security Audit Report](docs/SECURITY_AUDIT_REPORT.md)
+- [Quick Reference](docs/SECURITY_QUICK_REFERENCE.md)
+
+**Required Environment Variables**:
+
+```bash
+# See .env.example for complete list
+SPRING_DATASOURCE_URL
+SPRING_DATASOURCE_USERNAME
+SPRING_DATASOURCE_PASSWORD
+APP_FIREBASE_CONFIGURATION_FILE  # For automobile & user-auth services
+```
+
+**⚠️ Important**: Never commit `.env` or `firebase-service-account.json` to version control!
 
 ### Firebase Authentication Flow
 

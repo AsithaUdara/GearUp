@@ -12,10 +12,10 @@ services:
     env_file:
       - ../../.env
     environment:
-      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
-      - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL:-jdbc:postgresql://db:5432/as_automobile_service}
-      - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER:-svc_automobile_service}
-      - SPRING_DATASOURCE_PASSWORD=${AUTOMOBILE_DB_PASSWORD:-auto_svc_pass_2024}
+      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH}
+      - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${AUTOMOBILE_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
     volumes:
       - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
@@ -36,10 +36,10 @@ services:
     env_file:
       - ../../.env
     environment:
-      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
-      - SPRING_DATASOURCE_URL=${NOTIFICATION_DB_URL:-jdbc:postgresql://db:5432/as_notification_service}
-      - SPRING_DATASOURCE_USERNAME=${NOTIFICATION_DB_USER:-svc_notification_service}
-      - SPRING_DATASOURCE_PASSWORD=${NOTIFICATION_DB_PASSWORD:-notif_svc_pass_2024}
+      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH}
+      - SPRING_DATASOURCE_URL=${NOTIFICATION_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${NOTIFICATION_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${NOTIFICATION_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
       - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
       - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
@@ -68,10 +68,10 @@ services:
     env_file:
       - ../../.env
     environment:
-      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
-      - SPRING_DATASOURCE_URL=${USER_AUTH_DB_URL:-jdbc:postgresql://db:5432/as_user_auth_service}
-      - SPRING_DATASOURCE_USERNAME=${USER_AUTH_DB_USER:-svc_user_auth_service}
-      - SPRING_DATASOURCE_PASSWORD=${USER_AUTH_DB_PASSWORD:-auth_svc_pass_2024}
+      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH}
+      - SPRING_DATASOURCE_URL=${USER_AUTH_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${USER_AUTH_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${USER_AUTH_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
     volumes:
       - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
@@ -86,9 +86,14 @@ services:
     env_file:
       - ../../.env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-postgres}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Pass service passwords to init script
+      AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
+      NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
+      TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -118,6 +123,19 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: gearup-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gearup.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    restart: unless-stopped
 
 volumes:
   db-data:
