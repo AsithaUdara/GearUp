@@ -97,5 +97,8 @@ jobs:
           done < services.txt
 
       - name: Run integration tests across modules
+        env:
+          APP_FIREBASE_CONFIGURATION_FILE: ""
+          FIREBASE_CONFIG_PATH: ""
         run: |
           ./mvnw -DskipTests=false test

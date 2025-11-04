@@ -279,6 +279,8 @@ jobs:
                   SPRING_RABBITMQ_PASSWORD: guest
                   SPRING_REDIS_HOST: localhost
                   SPRING_REDIS_PORT: 6379
+                  APP_FIREBASE_CONFIGURATION_FILE: ""
+                  FIREBASE_CONFIG_PATH: ""
               run: |
                   ./mvnw -pl ${{ matrix.service.module }} -am test
 
