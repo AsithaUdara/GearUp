@@ -104,27 +104,7 @@
 
     <build>
         <plugins>
-            <!-- Flyway Maven plugin (CI/CD database migrations) -->
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>11.7.2</version>
-                <configuration>
-                    <url>jdbc:postgresql://localhost:5432/as_notification-service</url>
-                    <user>postgres</user>
-                    <password>postgres</password>
-                    <schemas>
-                        <schema>public</schema>
-                    </schemas>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.flywaydb</groupId>
-                        <artifactId>flyway-database-postgresql</artifactId>
-                        <version>11.7.2</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
+            <!-- Flyway removed: database initialization handled centrally via deployment/postgres/init-db.sql -->
 
             <plugin>
                 <groupId>org.springframework.boot</groupId>

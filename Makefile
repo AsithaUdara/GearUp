@@ -1,20 +1,14 @@
-## Makefile helpers for running Flyway migrations locally (Linux/macOS)
+## Makefile helpers for local postgres (kept for convenience).
+## Note: Flyway-based local migrations were removed in favor of a centralized
+## DB initialization script: deployment/postgres/init-db.sql
+## Developers should edit that script to add service schemas/tables and then
+## bring up Postgres with Docker Compose (see README.md quick-start).
 
-.PHONY: flyway-notification flyway-user-auth docker-run-postgres docker-stop-postgres
+.PHONY: docker-run-postgres docker-stop-postgres
 
 docker-run-postgres:
 	@if [ -f .env ]; then ENV_FILE="--env-file .env"; else ENV_FILE=""; fi; \
-	docker run --name local_postgres $$ENV_FILE -e POSTGRES_DB=${POSTGRES_DB:-as_notification} -e POSTGRES_USER=${POSTGRES_USER:-svc_notification} -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-${SPRING_DATASOURCE_PASSWORD}} -p 5432:5432 -d postgres:15
+	docker run --name local_postgres $$ENV_FILE -e POSTGRES_DB=${POSTGRES_DB:-gearup} -e POSTGRES_USER=${POSTGRES_USER:-gearup} -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password} -p 5432:5432 -d postgres:15
 
 docker-stop-postgres:
 	docker stop local_postgres || true && docker rm local_postgres || true
-
-flyway-notification: docker-run-postgres
-	@echo "Waiting for Postgres..."
-	until pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-svc_notification}; do sleep 1; done
-	./mvnw -pl services/notification-service flyway:migrate -Dflyway.url=jdbc:postgresql://localhost:5432/${POSTGRES_DB:-as_notification} -Dflyway.user=${POSTGRES_USER:-svc_notification} -Dflyway.password=${POSTGRES_PASSWORD:-${SPRING_DATASOURCE_PASSWORD}}
-
-flyway-user-auth: docker-run-postgres
-	@echo "Waiting for Postgres..."
-	until pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-svc_user}; do sleep 1; done
-	./mvnw -pl services/user-auth-service flyway:migrate -Dflyway.url=jdbc:postgresql://localhost:5432/${POSTGRES_DB:-as_user} -Dflyway.user=${POSTGRES_USER:-svc_user} -Dflyway.password=${POSTGRES_PASSWORD:-${SPRING_DATASOURCE_PASSWORD}}

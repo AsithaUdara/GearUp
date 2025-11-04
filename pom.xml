@@ -33,7 +33,6 @@
 
         <!-- Centralized dependency versions -->
         <postgresql.version>42.7.8</postgresql.version>
-        <flyway.version>11.7.2</flyway.version>
     </properties>
 
     <dependencyManagement>
@@ -120,24 +119,9 @@
                 <version>3.13.0</version>
             </plugin>
 
-            <!-- ✅ Fixed Flyway plugin configuration -->
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>${flyway.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.flywaydb</groupId>
-                        <artifactId>flyway-database-postgresql</artifactId>
-                        <version>${flyway.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>${postgresql.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
+            <!-- Flyway removed from root build: local development uses deployment/postgres/init-db.sql
+            If CI still requires Flyway migrations, configure Flyway in CI pipelines or in individual
+            service modules that explicitly opt in. -->
 
             <plugin>
                 <groupId>org.springframework.boot</groupId>

@@ -70,6 +70,12 @@ Removing dev artifacts
 
 If you'd like, I can also add a small example `docker-compose` override that only starts a single service plus its dependencies to speed up local development. Say "add single-service override" and I'll add it.
 
-## Postgres & Migrations
+## Postgres Initialization
 
-For full Postgres and Flyway migration instructions see `docs/POSTGRES_AND_MIGRATIONS.md` (includes the `scripts/run-flyway-locally.ps1` usage, compose file location, and CI example).
+Database initialization is handled centrally via `deployment/postgres/init-db.sql`. The init script creates per-service databases, users, and initial tables on first container startup.
+
+See `POSTGRES_SETUP.md` and `deployment/postgres/init-db.sql` for details and examples. For local verification, use the helper script:
+
+```powershell
+.\scripts\test-db-connections.ps1
+```

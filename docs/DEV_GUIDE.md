@@ -52,7 +52,7 @@ Top-level modules and important folders:
 - `deployment/` — Docker Compose and Kubernetes manifests for local and cloud deployment. `deployment/docker/docker-compose.yml` is the primary compose file.
 - `services/` — Each microservice lives in `services/<service-name>/` (e.g., `automobile-service`, `notification-service`, `user-auth-service`). Each has its own `pom.xml` and `Dockerfile`.
 - `shared-libs/` — Shared Java libraries used across services (e.g., `shared-security-lib`, `shared-event-models`).
-- `scripts/` — helpful scripts (example: `run-flyway-locally.ps1`).
+- `scripts/` — helpful scripts (deploy, test-db-connections, health-check, verify-deployment)
 
 ## Prerequisites & Tools (what you need locally)
 
@@ -131,7 +131,7 @@ copy .env.example .env
 2. Common variables you must set in `.env`:
 
 - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` — Postgres superuser credentials (defaults for local dev: `postgres` / `123456` / `postgres`).
-- `SERVICE_DB_PASSWORD` — password applied to every `svc_<service>` user created by `scripts/run-flyway-locally.ps1`.
+- `SERVICE_DB_PASSWORD` — (legacy) used by prior migration helpers; current DB init uses `deployment/postgres/init-db.sql`. Use `.env` per-service DB variables instead.
 - `<SERVICE>_DB_USER`, `<SERVICE>_DB_URL` — per-service overrides. Example: `NOTIFICATION_DB_USER=svc_notification_service`, `NOTIFICATION_DB_URL=jdbc:postgresql://db:5432/as_notification_service`.
 - `FIREBASE_CREDENTIALS_HOST_PATH` — absolute path on your Windows host where the Firebase service account JSON is stored, e.g. `C:\SecureKeys\gear-up\firebase-service-account.json`.
 - `FIREBASE_CREDENTIALS_CONTAINER_PATH` — path inside the container where the file will be mounted, usually `/run/secrets/firebase-service-account.json`.
@@ -175,25 +175,39 @@ This section shows the minimal steps to add a new microservice to the monorepo.
 3. Add `Application` class and Spring Boot dependencies. Use `shared-libs` where appropriate.
 4. Add a `Dockerfile` using the pattern found in existing services. Minimal multi-stage pattern:
 
-### Run migrations using the helper script
-
-1. Start Postgres for migrations (skip if the main stack is already running):
-
-```powershell
 docker compose -f deployment/postgres/docker-compose.yml up -d
+
+### Database initialization (PostgreSQL)
+
+This project uses a centralized DB initialization script instead of per-service Flyway migrations. The initialization script (`deployment/postgres/init-db.sql`) creates the per-service databases, users, and initial tables on first container startup.
+
+1. Edit `deployment/postgres/init-db.sql` to add or update the schemas for the service you're working on (e.g., `as_your_service`).
+
+2. Ensure the `.env` file contains the corresponding database connection variables (see root `README.md`):
+
+```text
+YOUR_SERVICE_DB_URL=jdbc:postgresql://db:5432/as_your_service
+YOUR_SERVICE_DB_USER=your_user
+YOUR_SERVICE_DB_PASSWORD=your_password
 ```
 
-2. Create `svc_*` users / `as_*` databases and apply Flyway migrations:
+3. Start Postgres (fresh volume recommended so init script runs):
 
 ```powershell
-.\scripts\run-flyway-locally.ps1 -UseCompose -DbPassword $env:SERVICE_DB_PASSWORD
+docker compose -f deployment/docker/docker-compose.yml down -v
+docker compose -f deployment/docker/docker-compose.yml up -d db
 ```
 
-- The script auto-detects any running Postgres container (including the one started by `deployment/docker/docker-compose.yml`) and runs `psql` inside it to provision roles and databases.
-- If `-DbPassword` is omitted, it falls back to `SERVICE_DB_PASSWORD`, then `POSTGRES_PASSWORD`, then `postgres`, matching the `svc_*` credentials services expect.
-- Supply a different password whenever you need to test with non-default credentials: `-DbPassword 'myStrongPassword!'`.
+4. Verify DB connections with the helper script:
 
-This workflow keeps local Compose environments and Flyway migrations in sync, preventing authentication drift across services.
+```powershell
+.\scripts\test-db-connections.ps1
+```
+
+Notes:
+
+- The centralized approach simplifies local setup and avoids Flyway version compatibility issues.
+- For CI/CD-driven migrations in production, consider adding a controlled migration process (Flyway or Liquibase) that runs during the deployment pipeline.
 
 - Never commit JSON service accounts or other secrets to the repo.
 - For local dev, use the `.env` and bind-mount secrets into containers (see `FIREBASE_CREDENTIALS_HOST_PATH`).
@@ -241,7 +255,8 @@ Quick testing commands and tips (PowerShell):
   2. Provision `svc_*` roles / `as_*` databases and apply migrations:
 
   ```powershell
-  .\scripts\run-flyway-locally.ps1 -UseCompose -DbPassword $env:SERVICE_DB_PASSWORD
+  # Use the centralized DB init script instead of Flyway in local dev. After editing `deployment/postgres/init-db.sql` and `.env`:
+  .\scripts\test-db-connections.ps1
   ```
 
   - The helper reuses any running Postgres container (including the one launched by `deployment/docker/docker-compose.yml`).
@@ -287,7 +302,7 @@ I can add short, focused READMEs per service or generate a developer quickstart 
 
 ## Postgres & migrations
 
-Detailed Postgres and Flyway migration instructions live in `docs/POSTGRES_AND_MIGRATIONS.md`. It includes the compose file location, the helper script `scripts/run-flyway-locally.ps1`, CI examples, and step-by-step commands.
+Detailed Postgres initialization instructions live in `POSTGRES_SETUP.md` and the init script at `deployment/postgres/init-db.sql`.
 
 ---
 
