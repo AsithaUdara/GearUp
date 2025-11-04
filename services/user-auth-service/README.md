@@ -40,16 +40,10 @@ Endpoints
 GET http://localhost:8080/api/auth/health
 ```
 
-Database migrations
+Database Schema
 
-Flyway migrations for this service (if any) live in `services/user-auth-service/src/main/resources/db/migration`.
-
-Run migrations with the helper:
-
-```powershell
-.\scripts\run-flyway-locally.ps1 -Service user-auth-service -DbPassword 'changeme'
-```
+The user auth service uses PostgreSQL database `as_user_auth_service`. Tables are created automatically via `deployment/postgres/init-db.sql` on first startup. See `POSTGRES_SETUP.md` for database configuration.
 
 More
 
-See `DEV_GUIDE.md` and `docs/POSTGRES_AND_MIGRATIONS.md` for developer quickstarts and migration guidance.
+See `DEV_GUIDE.md` and `POSTGRES_SETUP.md` for developer quickstarts and database guidance.

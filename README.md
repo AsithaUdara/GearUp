@@ -99,56 +99,72 @@ If you prefer to run services directly via Maven (dev mode):
 java -jar main/target/demo-0.0.1-SNAPSHOT.jar
 ```
 
-## DB & migrations (quick-start)
+## Database Setup (PostgreSQL)
 
-This project uses PostgreSQL and Flyway for schema migrations. Quick steps to get started locally:
+This project uses PostgreSQL 15 with a **database-per-service** architecture. Each microservice has its own isolated database with dedicated users and permissions.
 
-1. Start a local Postgres container (the repo includes a compose at `deployment/postgres/docker-compose.yml`):
+### Quick Start
 
-```powershell
-docker compose -f deployment/postgres/docker-compose.yml up -d
-```
-
-2. Run the repo helper to create per-service DBs/users and apply Flyway migrations:
+1. **Copy environment file**:
 
 ```powershell
-.\scripts\run-flyway-locally.ps1 -UseCompose -DbPassword 'changeme'
+Copy-Item .env.example .env
 ```
 
-3. Migration files are detected in each service at `services/<service>/src/main/resources/db/migration` (Flyway naming: `V1__init.sql`, `V2__...`).
+2. **Configure database credentials** in `.env`:
 
-4. For a single-service migration you can run:
+```
+AUTOMOBILE_DB_URL=jdbc:postgresql://gearup-postgres:5432/as_automobile_service
+AUTOMOBILE_DB_USER=auto_user
+AUTOMOBILE_DB_PASSWORD=auto_secure_pass_123
+# ... (similar for notification and user-auth services)
+```
+
+3. **Deploy with automated setup**:
 
 ```powershell
-.\scripts\run-flyway-locally.ps1 -Service notification-service -DbPassword 'changeme'
+.\scripts\deploy.ps1
 ```
 
-More detailed instructions and CI examples are in `docs/POSTGRES_AND_MIGRATIONS.md`.
+This will:
+
+- Build all services with Maven
+- Start PostgreSQL container with automatic database initialization
+- Create 3 separate databases (automobile, notification, user-auth)
+- Run database connection tests
+- Perform health checks on all services
+
+For detailed setup information, see `POSTGRES_SETUP.md`.
 
 ## How to test
 
 Short test guide and quick commands (PowerShell):
 
-- Run unit tests for the whole repo:
+- **Run unit tests** for the whole repo:
 
 ```powershell
 .\mvnw.cmd test
 ```
 
-- Run tests for a single service (from repo root):
+- **Run tests for a single service** (from repo root):
 
 ```powershell
 .\mvnw.cmd -pl services/automobile-service -am test
 ```
 
-- Apply Flyway migrations locally (quick verification):
+- **Verify database connections**:
 
 ```powershell
-docker compose -f deployment/postgres/docker-compose.yml up -d
-.\scripts\run-flyway-locally.ps1 -UseCompose -DbPassword 'changeme'
+.\scripts\test-db-connections.ps1
 ```
 
-- Quick smoke test using Docker Compose (build & run services):
+- **Check service health**:
+
+```powershell
+.\scripts\health-check.ps1
+```
+
+- **Quick smoke test** using Docker Compose (build & run services):
 
 ```powershell
 docker compose -f deployment/docker/docker-compose.yml up --build -d
@@ -156,7 +172,13 @@ docker compose -f deployment/docker/docker-compose.yml logs -f notification-serv
 # then call endpoints listed under each service README
 ```
 
-See `DEV_GUIDE.md` for a slightly more detailed developer quickstart and `docs/POSTGRES_AND_MIGRATIONS.md` for Flyway examples.
+- **Full deployment verification**:
+
+```powershell
+.\scripts\verify-deployment.ps1
+```
+
+See `DEV_GUIDE.md` for a detailed developer quickstart and `POSTGRES_SETUP.md` for database setup details.
 
 ## Test Endpoints
 

@@ -40,14 +40,10 @@ Endpoints
 GET http://localhost:8080/api/notification/health
 ```
 
-Database migrations
+Database Schema
 
-Flyway migrations for this service live in `services/notification-service/src/main/resources/db/migration` (if present). Use the repo helper to run migrations:
-
-```powershell
-.\scripts\run-flyway-locally.ps1 -Service notification-service -DbPassword 'changeme'
-```
+The notification service uses PostgreSQL database `as_notification_service`. Tables are created automatically via `deployment/postgres/init-db.sql` on first startup. See `POSTGRES_SETUP.md` for database configuration.
 
 More
 
-See `DEV_GUIDE.md` and `docs/POSTGRES_AND_MIGRATIONS.md` for developer quickstarts and migration guidance.
+See `DEV_GUIDE.md` and `POSTGRES_SETUP.md` for developer quickstarts and database guidance.

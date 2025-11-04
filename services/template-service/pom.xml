@@ -45,18 +45,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Flyway Core (version managed by parent) -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
-
-        <!-- Flyway PostgreSQL Database Plugin (version managed by parent) -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
-        </dependency>
-
         <!-- Other dependencies as needed -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -71,28 +59,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-
-            <!-- Flyway Maven Plugin (consistent version with notification service) -->
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>${flyway.version}</version>
-                <configuration>
-                    <url>jdbc:postgresql://localhost:5432/as_template-service</url>
-                    <user>postgres</user>
-                    <password>your_password_here</password>
-                    <schemas>
-                        <schema>public</schema>
-                    </schemas>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.flywaydb</groupId>
-                        <artifactId>flyway-database-postgresql</artifactId>
-                        <version>${flyway.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
 
             <!-- Compiler Plugin -->

@@ -21,10 +21,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "notifications", indexes = {
-    @Index(name = "idx_user_id", columnList = "userId"),
-    @Index(name = "idx_user_read", columnList = "userId, isRead"),
-    @Index(name = "idx_created_at", columnList = "createdAt")
+@Table(name = "notification", indexes = {
+    @Index(name = "idx_notification_user_id", columnList = "user_id"),
+    @Index(name = "idx_notification_user_is_read", columnList = "user_id, is_read"),
+    @Index(name = "idx_notification_created_at", columnList = "created_at")
 })
 @Getter
 @Setter
@@ -35,46 +35,47 @@ public class Notification {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "notification_id")
     private Long id;
     
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false, length = 128)
     private String userId; // Firebase UID
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String title;
     
     @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private NotificationType type;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private NotificationPriority priority;
     
     @Builder.Default
-    @Column(nullable = false)
+    @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
     
-    @Column
+    @Column(name = "related_entity_id", length = 100)
     private String relatedEntityId; // e.g., invoice ID, task ID
     
-    @Column
+    @Column(name = "related_entity_type", length = 50)
     private String relatedEntityType; // e.g., "INVOICE", "TASK"
     
-    @Column
+    @Column(name = "action_url", length = 500)
     private String actionUrl; // Deep link for frontend navigation
     
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
     @UpdateTimestamp
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
     
-    @Column
+    @Column(name = "read_at")
     private LocalDateTime readAt;
 }
