@@ -1,58 +1,537 @@
-# GearUp Automobile Service Backend
+# GearUp Backend - Microservices Infrastructure
 
-Secure Spring Boot backend with Firebase Authentication and environment-based secret management.
+Production-ready Spring Boot microservices architecture with service discovery, centralized configuration, API gateway, and PostgreSQL database-per-service pattern.
 
-## Features
+## 🏗️ Architecture Overview
 
-- Firebase Admin SDK initialization from `.env` (no secrets in repo)
-- Stateless Spring Security with custom `FirebaseFilter`
-- CORS configuration for local frontend
-- Layered package structure (`config`, `security`, `controller`)
+```
+GearUp Backend
+├── Infrastructure Services
+│   ├── api-gateway/           # Spring Cloud Gateway (Port 8080)
+│   ├── service-discovery/     # Eureka Server (Port 8761)
+│   └── config-server/         # Spring Cloud Config (Port 8888)
+├── Business Services
+│   ├── automobile-service/    # Vehicle management (Port 8082)
+│   ├── notification-service/  # Notifications & alerts (Port 8081)
+│   └── user-auth-service/     # Authentication (Port 8083)
+├── Shared Libraries
+│   ├── security-lib/          # Firebase auth utilities
+│   ├── common-dto/            # Shared data models
+│   ├── common-utils/          # Utility classes
+│   └── event-models/          # Event-driven patterns
+└── Infrastructure
+    ├── deployment/            # Docker & PostgreSQL
+    ├── k8s/                   # Kubernetes manifests
+    └── config-repo/           # Centralized configs
+```
 
-## Requirements
+## ✨ Key Features
+
+### Infrastructure
+
+- **Service Discovery**: Eureka-based auto-discovery and load balancing
+- **API Gateway**: Centralized routing, authentication, and rate limiting
+- **Config Server**: Git-backed configuration management
+- **Database**: PostgreSQL 15 with database-per-service pattern
+- **Security**: Firebase Authentication integration
+- **Caching**: Caffeine cache for rate limiting
+- **Health Checks**: Comprehensive health monitoring
+
+### Development
+
+- **Multi-module Maven**: Centralized dependency management
+- **Docker Compose**: One-command local deployment
+- **Automated Scripts**: Deploy, test, and verify scripts
+- **Shared Libraries**: Reusable components across services
+
+## 🚀 Quick Start (30 seconds)
+
+### Prerequisites
 
 - Java 21
-- Use Maven Wrapper (`mvnw.cmd`) if Maven not installed
+- Docker Desktop
+- Maven (or use included Maven Wrapper)
 
-## Monorepo layout (new)
+### 1. Environment Setup
 
-This repository has been reorganized into a monorepo-style microservice layout. Top-level folders now include:
+```powershell
+# Copy environment template
+Copy-Item .env.example .env
 
-```
-api-gateway/
-service-discovery/
-config-server/
-services/
-	├─ automobile-service/   # previously `main`
-	└─ notification-service/ # previously `notification-service`
-shared-libs/
-deployment/
-docs/
+# Edit .env with your Firebase credentials
+notepad .env
 ```
 
-Local docker-compose for quick dev is at `deployment/docker/docker-compose.yml` and has been updated to reference the services under `services/`.
+### 2. Deploy Everything
 
-## Setup
-
-1. Copy `.env.example` to `.env` at the repository root and set the required values.
-
-2. Provide your Firebase service account JSON file on the host and set its absolute path in `.env`:
-
-```
-# Example (Windows)
-FIREBASE_CREDENTIALS_HOST_PATH=C:\\SecureKeys\\gear-up\\firebase-service-account.json
-
-# Example (Linux/macOS)
-FIREBASE_CREDENTIALS_HOST_PATH=/run/secrets/firebase-service-account.json
+```powershell
+# Builds all services, starts PostgreSQL + all microservices
+.\scripts\deploy.ps1
 ```
 
-3. Optionally adjust the container path where the file will be mounted (default is `/run/secrets/firebase-service-account.json`):
+### 3. Verify Deployment
+
+```powershell
+# Check all services health
+.\scripts\health-check.ps1
+
+# Test database connections
+.\scripts\test-db-connections.ps1
+```
+
+### 4. Access Services
+
+- **API Gateway**: http://localhost:8080
+- **Eureka Dashboard**: http://localhost:8761
+- **Config Server**: http://localhost:8888
+- **Notification Service**: http://localhost:8081
+- **Automobile Service**: http://localhost:8082
+
+## 📋 Requirements
+
+- **Java**: 21 (LTS)
+- **Maven**: 3.8+ (or use `mvnw.cmd`)
+- **Docker**: 24.0+ with Docker Compose
+- **PostgreSQL**: 15-alpine (via Docker)
+- **Firebase**: Service account JSON for authentication
+
+## 🏗️ For Teammates: Building New Services
+
+### Service Template Structure
 
 ```
-FIREBASE_CREDENTIALS_CONTAINER_PATH=/run/secrets/firebase-service-account.json
+your-service/
+├── src/
+│   ├── main/
+│   │   ├── java/com/gearup/yourservice/
+│   │   │   ├── YourServiceApplication.java  # @EnableDiscoveryClient
+│   │   │   ├── controller/                  # REST endpoints
+│   │   │   ├── service/                     # Business logic
+│   │   │   ├── repository/                  # Data access
+│   │   │   ├── model/                       # JPA entities
+│   │   │   ├── dto/                         # Data transfer objects
+│   │   │   └── config/                      # Service configuration
+│   │   └── resources/
+│   │       └── application.properties       # Service config
+│   └── test/
+│       └── java/                            # Unit tests
+├── pom.xml                                  # Dependencies
+└── Dockerfile                               # Container build
 ```
 
-4. The docker-compose services will expose the mounted file inside the container and set the environment variable `APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH}` so Spring Boot picks it up.
+### Step-by-Step: Adding a New Service
+
+#### 1. Create Service Module
+
+```powershell
+# Create directory structure
+mkdir services/your-service/src/main/java/com/gearup/yourservice
+mkdir services/your-service/src/main/resources
+mkdir services/your-service/src/test/java
+```
+
+#### 2. Create pom.xml
+
+```xml
+<project>
+    <parent>
+        <groupId>com.gearup</groupId>
+        <artifactId>gearup-root</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>your-service</artifactId>
+    <version>1.0.0</version>
+
+    <dependencies>
+        <!-- Spring Boot Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Service Discovery -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+
+        <!-- Config Client -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <!-- Database -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+
+        <!-- Shared Libraries -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-security-lib</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-common-utils</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+#### 3. Create Application Class
+
+```java
+package com.gearup.yourservice;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+public class YourServiceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(YourServiceApplication.class, args);
+    }
+}
+```
+
+#### 4. Configure application.properties
+
+```properties
+# Service Identity
+spring.application.name=your-service
+server.port=8084
+
+# Config Server
+spring.config.import=optional:configserver:http://localhost:8888
+spring.cloud.config.name=your-service
+
+# Database
+spring.datasource.url=${YOUR_SERVICE_DB_URL}
+spring.datasource.username=${YOUR_SERVICE_DB_USER}
+spring.datasource.password=${YOUR_SERVICE_DB_PASSWORD}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.show-sql=false
+
+# HikariCP Connection Pool
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=2
+spring.datasource.hikari.connection-timeout=30000
+
+# Actuator
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.show-details=always
+```
+
+#### 5. Add Database to PostgreSQL
+
+Edit `deployment/postgres/init-db.sql`:
+
+```sql
+-- Create database
+CREATE DATABASE as_your_service;
+
+-- Create user
+CREATE USER your_service_user WITH PASSWORD 'your_secure_password';
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON DATABASE as_your_service TO your_service_user;
+
+-- Connect and create schema
+\c as_your_service;
+CREATE SCHEMA IF NOT EXISTS public;
+GRANT ALL ON SCHEMA public TO your_service_user;
+
+-- Create your tables
+CREATE TABLE your_table (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### 6. Add to Docker Compose
+
+Edit `deployment/docker/docker-compose.yml`:
+
+```yaml
+your-service:
+  build:
+    context: ../../
+    dockerfile: ./services/your-service/Dockerfile
+  container_name: gearup-your-service
+  ports:
+    - "8084:8084"
+  env_file:
+    - ../../.env
+  environment:
+    - SPRING_DATASOURCE_URL=${YOUR_SERVICE_DB_URL}
+    - SPRING_DATASOURCE_USERNAME=${YOUR_SERVICE_DB_USER}
+    - SPRING_DATASOURCE_PASSWORD=${YOUR_SERVICE_DB_PASSWORD}
+  depends_on:
+    db:
+      condition: service_healthy
+    service-discovery:
+      condition: service_started
+  restart: unless-stopped
+```
+
+#### 7. Create Dockerfile
+
+Copy from `services/notification-service/Dockerfile` and adjust:
+
+```dockerfile
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY services/your-service/target/your-service-1.0.0.jar app.jar
+EXPOSE 8084
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+#### 8. Add to API Gateway Routes
+
+Edit `api-gateway/src/main/resources/application.yml`:
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: your-service
+          uri: lb://your-service
+          predicates:
+            - Path=/api/your-service/**
+          filters:
+            - StripPrefix=2
+```
+
+#### 9. Create Config in config-repo
+
+Create `config-repo/your-service.yml`:
+
+```yaml
+server:
+  port: 8084
+
+spring:
+  application:
+    name: your-service
+
+# Service-specific configurations
+your-service:
+  feature:
+    enabled: true
+```
+
+#### 10. Add to Root pom.xml
+
+Edit root `pom.xml` modules section:
+
+```xml
+<modules>
+    <!-- ... existing modules ... -->
+    <module>services/your-service</module>
+</modules>
+```
+
+#### 11. Build and Deploy
+
+```powershell
+# Build your service
+.\mvnw.cmd clean package -pl services/your-service -am
+
+# Deploy with Docker
+docker compose -f deployment/docker/docker-compose.yml up -d your-service
+
+# Check logs
+docker logs -f gearup-your-service
+```
+
+### Testing Your Service
+
+```powershell
+# Health check
+curl http://localhost:8084/actuator/health
+
+# Via API Gateway
+curl http://localhost:8080/api/your-service/your-endpoint
+
+# Check Eureka registration
+# Visit http://localhost:8761 - your service should appear
+```
+
+## 📚 Module Documentation
+
+### Infrastructure Services
+
+#### api-gateway/
+
+**Purpose**: Single entry point for all client requests
+
+- **Port**: 8080
+- **Features**:
+  - Firebase authentication
+  - Route management
+  - Rate limiting (Caffeine cache)
+  - Load balancing
+  - Circuit breaker ready
+- **Key Files**:
+  - `application.yml`: Route configuration
+  - `FirebaseGatewayFilter.java`: Auth filter
+  - `RateLimitConfig.java`: Rate limiting setup
+
+#### service-discovery/
+
+**Purpose**: Service registration and discovery (Eureka)
+
+- **Port**: 8761
+- **Features**:
+  - Automatic service registration
+  - Health monitoring
+  - Client-side load balancing
+  - Service catalog
+- **Dashboard**: http://localhost:8761
+- **Usage**: All services auto-register on startup
+
+#### config-server/
+
+**Purpose**: Centralized configuration management
+
+- **Port**: 8888
+- **Features**:
+  - Git-backed configurations
+  - Environment-specific profiles
+  - Encryption support
+  - Dynamic config refresh
+- **Config Location**: `config-repo/`
+- **Test**: http://localhost:8888/notification-service/default
+
+### Shared Libraries
+
+#### shared-libs/security-lib/
+
+**Purpose**: Firebase authentication utilities
+
+- `FirebaseAuthService.java`: Token verification
+- `FirebaseConfig.java`: SDK initialization
+- Used by: API Gateway, all secured services
+
+#### shared-libs/common-dto/
+
+**Purpose**: Shared data transfer objects
+
+- Cross-service communication models
+- API request/response DTOs
+- Prevents code duplication
+
+#### shared-libs/common-utils/
+
+**Purpose**: Utility classes and helpers
+
+- Date/time utilities
+- String validators
+- Common converters
+- Used by: All services
+
+#### shared-libs/event-models/
+
+**Purpose**: Event-driven architecture models
+
+- Event definitions
+- Message payloads
+- RabbitMQ integration models
+- Used by: Services publishing/consuming events
+
+### Business Services
+
+#### services/automobile-service/
+
+**Purpose**: Vehicle management and tracking
+
+- **Port**: 8082
+- **Database**: `as_automobile_service`
+- **Tables**: `vehicles`
+- **Features**:
+  - Vehicle CRUD operations
+  - Vehicle tracking
+  - PostgreSQL persistence
+
+#### services/notification-service/
+
+**Purpose**: User notifications and alerts
+
+- **Port**: 8081
+- **Database**: `as_notification_service`
+- **Tables**: `notifications`
+- **Features**:
+  - Email/SMS notifications
+  - Event-driven triggers
+  - Firebase Cloud Messaging ready
+  - RabbitMQ consumer
+
+#### services/user-auth-service/
+
+**Purpose**: User authentication and authorization
+
+- **Port**: 8083
+- **Database**: `as_user_auth_service`
+- **Tables**: `users`, `user_sessions`
+- **Status**: ⚠️ Scaffold only - needs implementation
+- **Planned Features**:
+  - User registration
+  - JWT token management
+  - Session handling
+  - Role-based access control
+
+## 🗄️ Database Architecture
+
+### Database-per-Service Pattern
+
+Each service has its own isolated PostgreSQL database:
+
+```
+PostgreSQL Server (Port 5432)
+├── as_automobile_service (user: auto_user)
+├── as_notification_service (user: notification_user)
+└── as_user_auth_service (user: auth_user)
+```
+
+### Adding a Database for Your Service
+
+1. **Edit** `deployment/postgres/init-db.sql`
+2. **Add database creation**:
+   ```sql
+   CREATE DATABASE as_your_service;
+   CREATE USER your_user WITH PASSWORD 'password';
+   GRANT ALL PRIVILEGES ON DATABASE as_your_service TO your_user;
+   ```
+3. **Add to** `.env`:
+   ```
+   YOUR_SERVICE_DB_URL=jdbc:postgresql://db:5432/as_your_service
+   YOUR_SERVICE_DB_USER=your_user
+   YOUR_SERVICE_DB_PASSWORD=password
+   ```
+4. **Restart** PostgreSQL container:
+   ```powershell
+   docker compose -f deployment/docker/docker-compose.yml restart db
+   ```
+
+See `POSTGRES_SETUP.md` for detailed database documentation.
 
 ## Run
 
@@ -136,74 +615,491 @@ This will:
 
 For detailed setup information, see `POSTGRES_SETUP.md`.
 
-## How to test
+## 🧪 Testing
 
-Short test guide and quick commands (PowerShell):
-
-- **Run unit tests** for the whole repo:
+### Run All Tests
 
 ```powershell
+# Unit tests for all modules
 .\mvnw.cmd test
+
+# Generate coverage report
+.\mvnw.cmd clean verify
+# View report: target/site/jacoco/index.html
 ```
 
-- **Run tests for a single service** (from repo root):
+### Test Specific Service
 
 ```powershell
-.\mvnw.cmd -pl services/automobile-service -am test
+# Test single service
+.\mvnw.cmd -pl services/notification-service -am test
+
+# Skip tests during build
+.\mvnw.cmd clean package -DskipTests
 ```
 
-- **Verify database connections**:
+### Integration Testing
 
 ```powershell
+# Verify database connections
 .\scripts\test-db-connections.ps1
-```
 
-- **Check service health**:
-
-```powershell
+# Check all service health endpoints
 .\scripts\health-check.ps1
-```
 
-- **Quick smoke test** using Docker Compose (build & run services):
-
-```powershell
-docker compose -f deployment/docker/docker-compose.yml up --build -d
-docker compose -f deployment/docker/docker-compose.yml logs -f notification-service
-# then call endpoints listed under each service README
-```
-
-- **Full deployment verification**:
-
-```powershell
+# Full deployment verification
 .\scripts\verify-deployment.ps1
 ```
 
-See `DEV_GUIDE.md` for a detailed developer quickstart and `POSTGRES_SETUP.md` for database setup details.
+### Manual Testing
 
-## Test Endpoints
+```powershell
+# Test public endpoint
+curl http://localhost:8080/api/public/hello
 
-Public: `GET http://localhost:8080/api/public/hello`
-Secure: `GET http://localhost:8080/api/secure/hello` with header:
+# Test secured endpoint (requires Firebase token)
+curl -H "Authorization: Bearer YOUR_FIREBASE_TOKEN" http://localhost:8080/api/secure/hello
+
+# Test via API Gateway routing
+curl http://localhost:8080/api/notification-service/health
+curl http://localhost:8080/api/automobile-service/vehicles
+```
+
+## 🛠️ Development Workflow
+
+### Local Development (Maven)
+
+```powershell
+# Start infrastructure first
+docker compose -f deployment/docker/docker-compose.yml up -d db service-discovery config-server
+
+# Run your service locally
+cd services/your-service
+..\..\mvnw.cmd spring-boot:run
+
+# Or build and run JAR
+..\..\mvnw.cmd clean package
+java -jar target/your-service-1.0.0.jar
+```
+
+### Docker Development
+
+```powershell
+# Build and start all services
+docker compose -f deployment/docker/docker-compose.yml up --build -d
+
+# View logs for specific service
+docker logs -f gearup-notification-service
+
+# Restart single service
+docker compose -f deployment/docker/docker-compose.yml restart notification-service
+
+# Stop all services
+docker compose -f deployment/docker/docker-compose.yml down
+```
+
+### Hot Reload Development
+
+```powershell
+# Add to pom.xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-devtools</artifactId>
+    <scope>runtime</scope>
+    <optional>true</optional>
+</dependency>
+
+# Run with dev profile
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+## 📦 Building & Deployment
+
+### Build All Modules
+
+```powershell
+# Clean build with tests
+.\mvnw.cmd clean package
+
+# Skip tests (faster)
+.\mvnw.cmd clean package -DskipTests
+
+# Build specific module
+.\mvnw.cmd -pl services/notification-service -am clean package
+```
+
+### Docker Build
+
+```powershell
+# Build images for all services
+docker compose -f deployment/docker/docker-compose.yml build
+
+# Build specific service
+docker compose -f deployment/docker/docker-compose.yml build notification-service
+
+# No cache rebuild
+docker compose -f deployment/docker/docker-compose.yml build --no-cache
+```
+
+### Deploy to Kubernetes
+
+```powershell
+# Apply all manifests
+kubectl apply -f k8s/namespaces/
+kubectl apply -f k8s/configmaps/
+kubectl apply -f k8s/secrets/
+kubectl apply -f k8s/deployments/
+kubectl apply -f k8s/services/
+
+# Verify deployment
+kubectl get pods -n auto-service-system
+kubectl get services -n auto-service-system
+
+# Check logs
+kubectl logs -f deployment/notification-service -n auto-service-system
+```
+
+See `deployment/README.md` for detailed deployment guides.
+
+## 🔧 Configuration Management
+
+### Environment Variables (.env)
+
+```bash
+# Firebase Authentication
+FIREBASE_CREDENTIALS_HOST_PATH=C:\\path\\to\\firebase-service-account.json
+FIREBASE_CREDENTIALS_CONTAINER_PATH=/run/secrets/firebase-service-account.json
+
+# PostgreSQL Databases
+AUTOMOBILE_DB_URL=jdbc:postgresql://db:5432/as_automobile_service
+AUTOMOBILE_DB_USER=auto_user
+AUTOMOBILE_DB_PASSWORD=auto_secure_pass_123
+
+NOTIFICATION_DB_URL=jdbc:postgresql://db:5432/as_notification_service
+NOTIFICATION_DB_USER=notification_user
+NOTIFICATION_DB_PASSWORD=notif_secure_pass_456
+
+USER_AUTH_DB_URL=jdbc:postgresql://db:5432/as_user_auth_service
+USER_AUTH_DB_USER=auth_user
+USER_AUTH_DB_PASSWORD=auth_secure_pass_789
+
+# Message Queue (RabbitMQ)
+SPRING_RABBITMQ_HOST=rabbitmq
+SPRING_RABBITMQ_PORT=5672
+SPRING_RABBITMQ_USERNAME=guest
+SPRING_RABBITMQ_PASSWORD=guest
+
+# Cache (Redis)
+SPRING_REDIS_HOST=redis
+SPRING_REDIS_PORT=6379
+```
+
+### Config Server (config-repo/)
+
+Centralized configuration for all services:
 
 ```
-Authorization: Bearer <firebase-id-token>
+config-repo/
+├── application.yml          # Global config
+├── api-gateway.yml          # Gateway-specific
+├── notification-service.yml # Service-specific
+└── shared/
+    └── logging.yml          # Shared logging config
 ```
 
-## Troubleshooting
+### Profile-Based Configuration
 
-| Symptom                  | Cause                   | Fix                       |
-| ------------------------ | ----------------------- | ------------------------- |
-| 401 Unauthorized         | Invalid / expired token | Refresh Firebase ID token |
-| Firebase not initialized | Empty `.env`            | Populate JSON correctly   |
-| mvn not recognized       | Maven not installed     | Use `mvnw.cmd`            |
-
-## Next Steps (Optional)
-
-- Add SLF4J logging instead of `printStackTrace()`
-- Add `spring-boot-starter-actuator`
-- Externalize CORS origins via env var
-- Write tests for `FirebaseFilter`
+```yaml
+# application.yml
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
 ---
+# application-dev.yml
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    hikari:
+      maximum-pool-size: 5
 
-Professional, secure, and ready for review.
+---
+# application-prod.yml
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+```
+
+## 🔒 Security
+
+### Firebase Authentication Flow
+
+1. Client obtains Firebase ID token
+2. Client sends request to API Gateway with token in header
+3. API Gateway validates token using `FirebaseGatewayFilter`
+4. Valid requests are routed to backend services
+5. Services can access user info from request headers
+
+### Protected Endpoints
+
+```java
+// In your controller
+@GetMapping("/secure/data")
+public ResponseEntity<?> getSecureData(
+    @RequestHeader("X-User-Email") String userEmail,
+    @RequestHeader("X-User-UID") String userId
+) {
+    // User info injected by API Gateway after auth
+    return ResponseEntity.ok(yourService.getData(userId));
+}
+```
+
+### Adding Security to Your Service
+
+```xml
+<!-- Add dependency -->
+<dependency>
+    <groupId>com.gearup</groupId>
+    <artifactId>shared-security-lib</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+```java
+// Use in your service
+@Autowired
+private FirebaseAuthService firebaseAuth;
+
+public void verifyToken(String token) {
+    FirebaseToken decoded = firebaseAuth.verifyToken(token);
+    String uid = decoded.getUid();
+}
+```
+
+## 📊 Monitoring & Health Checks
+
+### Service Health Endpoints
+
+All services expose Spring Boot Actuator endpoints:
+
+```
+GET /actuator/health          # Overall health status
+GET /actuator/info            # Service information
+GET /actuator/metrics         # Performance metrics
+```
+
+### Check Service Health
+
+```powershell
+# Via API Gateway
+curl http://localhost:8080/api/notification-service/actuator/health
+
+# Direct to service
+curl http://localhost:8081/actuator/health
+
+# Automated health check
+.\scripts\health-check.ps1
+```
+
+### Eureka Dashboard
+
+Monitor all registered services:
+
+- URL: http://localhost:8761
+- Shows: Service status, instances, health
+
+### Database Health
+
+```powershell
+# Test all database connections
+.\scripts\test-db-connections.ps1
+
+# Check PostgreSQL directly
+docker exec -it gearup-postgres psql -U auto_user -d as_automobile_service
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+| Problem                    | Solution                                                        |
+| -------------------------- | --------------------------------------------------------------- |
+| Service won't start        | Check if Eureka/Config Server are running first                 |
+| Database connection failed | Verify credentials in `.env`, ensure PostgreSQL is healthy      |
+| Service not in Eureka      | Check `@EnableDiscoveryClient` annotation, network connectivity |
+| Config not loading         | Ensure config-server is running, check `spring.config.import`   |
+| Port already in use        | Change port in `application.properties`                         |
+| Firebase auth fails        | Verify `FIREBASE_CREDENTIALS_HOST_PATH` points to valid JSON    |
+
+### Debug Commands
+
+```powershell
+# Check Docker containers
+docker ps -a
+
+# View service logs
+docker logs gearup-notification-service
+
+# Check network connectivity
+docker network inspect gearup-backend_default
+
+# Database connection
+docker exec -it gearup-postgres psql -U postgres
+
+# Rebuild from scratch
+docker compose -f deployment/docker/docker-compose.yml down -v
+.\scripts\deploy.ps1
+```
+
+### Enable Debug Logging
+
+```properties
+# application.properties
+logging.level.root=INFO
+logging.level.com.gearup=DEBUG
+logging.level.org.springframework.cloud=DEBUG
+```
+
+## 📁 Project Structure
+
+```
+GearUp-backend/
+├── api-gateway/                      # API Gateway service
+│   ├── src/main/java/                # Gateway filters, config
+│   ├── src/main/resources/           # Routes configuration
+│   └── pom.xml
+├── service-discovery/                # Eureka Server
+│   └── src/main/java/                # Discovery server config
+├── config-server/                    # Config Server
+│   └── src/main/java/                # Config server setup
+├── services/                         # Business services
+│   ├── automobile-service/           # Vehicle management
+│   ├── notification-service/         # Notifications
+│   ├── template-service/             # Service template
+│   └── user-auth-service/            # Authentication
+├── shared-libs/                      # Shared libraries
+│   ├── security-lib/                 # Firebase utilities
+│   ├── common-dto/                   # Data models
+│   ├── common-utils/                 # Utilities
+│   └── event-models/                 # Event patterns
+├── deployment/                       # Deployment configs
+│   ├── docker/
+│   │   └── docker-compose.yml        # Local deployment
+│   └── postgres/
+│       ├── init-db.sql               # Database init
+│       └── README.md                 # Database guide
+├── k8s/                              # Kubernetes manifests
+│   ├── deployments/                  # Deployment configs
+│   ├── services/                     # Service definitions
+│   ├── configmaps/                   # ConfigMaps
+│   └── secrets/                      # Secrets templates
+├── config-repo/                      # Centralized configs
+│   ├── application.yml               # Global config
+│   ├── api-gateway.yml               # Per-service configs
+│   └── shared/                       # Shared configs
+├── scripts/                          # Automation scripts
+│   ├── deploy.ps1                    # Full deployment
+│   ├── test-db-connections.ps1       # DB testing
+│   ├── health-check.ps1              # Health monitoring
+│   └── verify-deployment.ps1         # Verification
+├── .env.example                      # Environment template
+├── pom.xml                           # Root POM
+└── README.md                         # This file
+```
+
+## 🔗 Useful Links
+
+- **Eureka Dashboard**: http://localhost:8761
+- **Config Server**: http://localhost:8888
+- **API Gateway**: http://localhost:8080
+- **Notification Service**: http://localhost:8081/actuator/health
+- **Automobile Service**: http://localhost:8082/actuator/health
+
+## 📖 Additional Documentation
+
+- `POSTGRES_SETUP.md` - Database setup and management
+- `INFRASTRUCTURE_STATUS.md` - Infrastructure readiness checklist
+- `deployment/README.md` - Deployment guides
+- `docs/DEV_GUIDE.md` - Developer quickstart
+- `docs/CONTAINERS.md` - Container management
+- Individual service READMEs in `services/*/README.md`
+
+## 🤝 Contributing
+
+### For Team Members
+
+1. **Clone and setup**:
+
+   ```powershell
+   git clone <repository-url>
+   cd GearUp-backend
+   Copy-Item .env.example .env
+   # Edit .env with your credentials
+   ```
+
+2. **Start infrastructure**:
+
+   ```powershell
+   .\scripts\deploy.ps1
+   ```
+
+3. **Create your service** (see "Building New Services" section above)
+
+4. **Test your changes**:
+
+   ```powershell
+   .\mvnw.cmd test
+   .\scripts\verify-deployment.ps1
+   ```
+
+5. **Submit**:
+   ```powershell
+   git checkout -b feature/your-service
+   git add .
+   git commit -m "Add: your service implementation"
+   git push origin feature/your-service
+   ```
+
+### Code Standards
+
+- Java 21 language features
+- Spring Boot 3.5.7 conventions
+- RESTful API design
+- Comprehensive JavaDoc for public methods
+- Unit tests with >70% coverage
+- Follow existing service structure
+
+## 📞 Support
+
+### Getting Help
+
+1. Check this README and module-specific documentation
+2. Review `docs/` directory for guides
+3. Check Eureka dashboard for service status
+4. Review service logs: `docker logs gearup-<service-name>`
+5. Contact team lead for infrastructure questions
+
+### Quick Reference
+
+```powershell
+# Full deployment
+.\scripts\deploy.ps1
+
+# Health check
+.\scripts\health-check.ps1
+
+# Database test
+.\scripts\test-db-connections.ps1
+
+# Build all
+.\mvnw.cmd clean package
+
+# Run tests
+.\mvnw.cmd test
+```
