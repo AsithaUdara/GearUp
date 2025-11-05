@@ -34,7 +34,9 @@
 
 ### Database:
 ```powershell
-$env:PGPASSWORD='Niro'
+# Set your PostgreSQL password
+$env:POSTGRES_PASSWORD='your_password_here'
+$env:PGPASSWORD=$env:POSTGRES_PASSWORD
 & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -p 5434 -d as_user_auth_service
 ```
 
@@ -45,6 +47,8 @@ $env:PGPASSWORD='Niro'
 **Start here**: [`docs/DEPLOYMENT_COMPLETE.md`](./docs/DEPLOYMENT_COMPLETE.md) 👈 **MAIN GUIDE**
 
 Other guides:
+- [`docs/ADMIN_BACKEND_COMPLETE.md`](./docs/ADMIN_BACKEND_COMPLETE.md) - ✨ **NEW! Admin User Management**
+- [`docs/ADMIN_USER_MANAGEMENT_API.md`](./docs/ADMIN_USER_MANAGEMENT_API.md) - Admin API Reference
 - [`docs/USER_AUTH_SETUP_COMPLETE.md`](./docs/USER_AUTH_SETUP_COMPLETE.md) - Technical details
 - [`docs/SETUP_COMPLETE.md`](./docs/SETUP_COMPLETE.md) - Quick overview
 
