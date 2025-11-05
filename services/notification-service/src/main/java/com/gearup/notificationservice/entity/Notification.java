@@ -68,6 +68,15 @@ public class Notification {
     @Column(name = "action_url", length = 500)
     private String actionUrl; // Deep link for frontend navigation
     
+    @Column(name = "delivery_channels", columnDefinition = "jsonb")
+    private String deliveryChannels; // JSON array: ['EMAIL', 'SMS', 'PUSH', 'IN_APP']
+    
+    @Column(name = "metadata", columnDefinition = "jsonb")
+    private String metadata; // Additional metadata in JSON format
+    
+    @Column(name = "sent_at")
+    private LocalDateTime sentAt; // When notification was sent/delivered
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -77,5 +86,5 @@ public class Notification {
     private LocalDateTime updatedAt;
     
     @Column(name = "read_at")
-    private LocalDateTime readAt;
+    private LocalDateTime readAt; // When user marked as read
 }
