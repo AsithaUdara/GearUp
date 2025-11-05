@@ -46,6 +46,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/bookings/**").permitAll() // Allow public access for testing
+                        .requestMatchers("/actuator/**").permitAll() // Allow health checks
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(firebaseFilter(), UsernamePasswordAuthenticationFilter.class);

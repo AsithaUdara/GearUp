@@ -491,4 +491,91 @@ docker exec -it gearup-postgres psql -U postgres -d as_automobile_service
 
 ---
 
+## 🔄 Test Cross-Service Communication (NEW!)
+
+### Quick Test: automobile-service → RabbitMQ → notification-service
+
+This demonstrates the complete event-driven flow using PostgreSQL, Redis, and RabbitMQ.
+
+#### Step 1: Start Both Services
+
+```powershell
+# Terminal 1: Start automobile-service
+./mvnw spring-boot:run -pl services/automobile-service
+
+# Terminal 2: Start notification-service
+./mvnw spring-boot:run -pl services/notification-service
+
+# Wait 30 seconds for services to fully start
+```
+
+#### Step 2: Run Automated Test
+
+```powershell
+# Terminal 3: Run test script
+.\scripts\test-cross-service-flow.ps1
+```
+
+**What the test does:**
+
+1. ✅ Creates a vehicle booking (automobile-service)
+2. ✅ Saves to PostgreSQL database
+3. ✅ Caches in Redis for fast retrieval
+4. ✅ Publishes event to RabbitMQ
+5. ✅ notification-service consumes the event
+6. ✅ Creates notification in database
+7. ✅ Verifies complete flow worked
+
+#### Manual Test (Alternative)
+
+```powershell
+# Create a test booking
+curl -X POST "http://localhost:8080/api/bookings/test?userId=test-user-123"
+
+# Wait 2 seconds for event processing
+
+# Check if notification was created
+curl "http://localhost:8081/api/notifications/user/test-user-123"
+```
+
+**Expected Response:** You should see a notification with type `VEHICLE_BOOKING_CREATED`!
+
+#### Verify Components
+
+**RabbitMQ Management UI:**
+
+```
+http://localhost:15672
+Username: guest
+Password: guest
+```
+
+**Redis Cache:**
+
+```powershell
+docker exec -it gearup-redis redis-cli KEYS "*"
+```
+
+**PostgreSQL automobile database:**
+
+```powershell
+docker exec -it gearup-postgres psql -U postgres -d automobile_db -c "SELECT * FROM vehicle_bookings;"
+```
+
+**PostgreSQL notification database:**
+
+```powershell
+docker exec -it gearup-postgres psql -U postgres -d notification_db -c "SELECT * FROM notifications;"
+```
+
+### Detailed Testing Guide
+
+For complete testing instructions and troubleshooting, see:
+
+- **[CROSS_SERVICE_TEST_GUIDE.md](./CROSS_SERVICE_TEST_GUIDE.md)** - Complete testing guide
+- **[CROSS_SERVICE_COMMUNICATION.md](./CROSS_SERVICE_COMMUNICATION.md)** - Architecture overview
+- **[RABBITMQ_GUIDE.md](./RABBITMQ_GUIDE.md)** - RabbitMQ specifics
+
+---
+
 **That's it! You're ready to develop on GearUp Backend! 🚀**
