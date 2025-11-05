@@ -47,7 +47,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Cache Maven local repository
         uses: actions/cache@v4
@@ -61,9 +61,101 @@ jobs:
         run: |
           ./mvnw -B -U -DskipTests clean install
 
+  # ==========================================
+  # Flyway Database Migrations
+  # ==========================================
+  flyway-migrate:
+    name: Run database migrations
+    needs: build-root
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/microservice-initialization')
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        service:
+          - name: automobile-service
+            module: services/automobile-service
+            db: as_automobile_service
+            user: svc_automobile_service
+            password: auto_svc_pass_2024
+          - name: notification-service
+            module: services/notification-service
+            db: as_notification_service
+            user: svc_notification_service
+            password: notif_svc_pass_2024
+          - name: user-auth-service
+            module: services/user-auth-service
+            db: as_user_auth_service
+            user: svc_user_auth_service
+            password: auth_svc_pass_2024
+          - name: template-service
+            module: services/template-service
+            db: as_template_service
+            user: svc_template_service
+            password: template_svc_pass_2024
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: "maven"
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
+      - name: Setup database for ${{ matrix.service.name }}
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
+        run: |
+          psql -h localhost -U postgres <<EOF
+          CREATE DATABASE ${{ matrix.service.db }};
+          CREATE USER ${{ matrix.service.user }} WITH PASSWORD '${{ matrix.service.password }}';
+          GRANT ALL PRIVILEGES ON DATABASE ${{ matrix.service.db }} TO ${{ matrix.service.user }};
+          \c ${{ matrix.service.db }}
+          GRANT ALL ON SCHEMA public TO ${{ matrix.service.user }};
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${{ matrix.service.user }};
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${{ matrix.service.user }};
+          EOF
+
+      - name: Run Flyway migration for ${{ matrix.service.name }}
+        run: |
+          ./mvnw -pl ${{ matrix.service.module }} \
+            -Dflyway.url=jdbc:postgresql://localhost:5432/${{ matrix.service.db }} \
+            -Dflyway.user=postgres \
+            -Dflyway.password=${{ secrets.POSTGRES_PASSWORD || 'postgres123' }} \
+            flyway:migrate
+
+      - name: Verify migration status
+        run: |
+          ./mvnw -pl ${{ matrix.service.module }} \
+            -Dflyway.url=jdbc:postgresql://localhost:5432/${{ matrix.service.db }} \
+            -Dflyway.user=postgres \
+            -Dflyway.password=${{ secrets.POSTGRES_PASSWORD || 'postgres123' }} \
+            flyway:info
+
   build-modules:
     name: Build individual microservices
-    needs: build-root
+    needs: [build-root, flyway-migrate]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -87,7 +179,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Cache Maven local repository
         uses: actions/cache@v4
@@ -96,6 +188,11 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
+      - name: Install shared dependencies
+        run: |
+          # Install parent POM and shared libraries first
+          ./mvnw -B -DskipTests install -pl shared-libs/security-lib,shared-libs/common-dto,shared-libs/common-utils,shared-libs/event-models
 
       - name: Build module jar
         run: |
@@ -115,7 +212,7 @@ jobs:
           # Use 'latest' to avoid failures when a specific patch isn't available
           # on the action runner. If you prefer a pinned version, replace with
           # a known available version string like '1.29.7'.
-          version: 'latest'
+          version: "latest"
 
       - name: Install Helm
         uses: azure/setup-helm@v1

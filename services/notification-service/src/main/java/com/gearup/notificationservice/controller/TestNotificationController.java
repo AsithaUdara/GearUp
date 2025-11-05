@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gearup.notificationservice.config.RabbitMQConfig;
 import com.gearup.shared.event.InvoiceCreatedEvent;
 import com.gearup.shared.event.InvoicePaidEvent;
 import com.gearup.shared.event.TaskAssignedEvent;
+import com.gearup.shared.messaging.RabbitMQConfig;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

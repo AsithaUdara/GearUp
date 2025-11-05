@@ -1,27 +1,65 @@
-# PostgreSQL provisioning — templates
+# PostgreSQL Database Configuration
 
-This folder contains templates and examples for provisioning PostgreSQL for the microservices.
+This folder contains PostgreSQL setup for the GearUp microservices.
 
-## Recommended production approach
+## Files
 
-- Use a managed Postgres service (RDS, Cloud SQL, Azure Database for PostgreSQL) when possible. It offloads backups, HA, and maintenance.
-- If self-hosting on Kubernetes, use a statefulset + persistent volume(s) and a proper backup/restore plan.
+- **init-db.sql**: Database initialization script (creates databases, users, tables, and indexes)
+- **secret-postgres.yml**: Kubernetes secret template for PostgreSQL credentials
+- **statefulset-postgres.yml**: Kubernetes StatefulSet template for PostgreSQL deployment
 
-## Per-service databases
+## Database Architecture
 
-The recommended naming policy:
+Following the **Database-per-Service** pattern:
 
-- Database name: as\_<service> (e.g. as_user, as_trip)
-- DB user: svc\_<service> (e.g. svc_user)
-- Keep credentials in Kubernetes Secrets or the cloud provider's secret store.
+| Service      | Database                  | User                       | Password (Env Var)         |
+| ------------ | ------------------------- | -------------------------- | -------------------------- |
+| Automobile   | `as_automobile_service`   | `svc_automobile_service`   | `AUTOMOBILE_DB_PASSWORD`   |
+| Notification | `as_notification_service` | `svc_notification_service` | `NOTIFICATION_DB_PASSWORD` |
+| User Auth    | `as_user_auth_service`    | `svc_user_auth_service`    | `USER_AUTH_DB_PASSWORD`    |
 
-## Files in this folder
+## Local Development
 
-- `secret-postgres.yml` - example Secret template (fill values and create per-service)
-- `statefulset-postgres.yml` - a reusable StatefulSet template for self-hosted Postgres (replace names per service)
-- `init-sql/` - optional bootstrap SQL to run when container first starts (local development)
+For local development, use Docker Compose:
 
-## Notes
+```powershell
+cd deployment/docker
+docker-compose up -d
+```
 
-- These manifests are templates and must be adapted to your cluster (storage class, sizing, anti-affinity, resource limits).
-- For production, prefer a managed DB and use the manifests here only for local clusters or non-critical environments.
+The `init-db.sql` script runs automatically on first startup.
+
+## Production Deployment
+
+**Recommended**: Use managed PostgreSQL services:
+
+- AWS RDS
+- Azure Database for PostgreSQL
+- Google Cloud SQL
+
+For self-hosted Kubernetes deployment:
+
+1. Update `secret-postgres.yml` with your credentials
+2. Adjust `statefulset-postgres.yml` for your cluster (storage class, resources, etc.)
+3. Apply manifests: `kubectl apply -f secret-postgres.yml -f statefulset-postgres.yml`
+
+## Database Initialization
+
+The `init-db.sql` script:
+
+- Creates separate databases for each microservice
+- Creates dedicated database users with restricted permissions
+- Creates initial table schemas with proper indexes
+- Sets default privileges for future tables
+
+## Connection Details
+
+Services connect using environment variables from `.env`:
+
+```properties
+AUTOMOBILE_DB_URL=jdbc:postgresql://db:5432/as_automobile_service
+AUTOMOBILE_DB_USER=svc_automobile_service
+AUTOMOBILE_DB_PASSWORD=auto_svc_pass_2024
+```
+
+See root `POSTGRES_SETUP.md` for complete setup instructions.

@@ -1,20 +1,23 @@
 package com.gearup.notificationservice.service;
 
-import com.gearup.notificationservice.dto.NotificationRequest;
-import com.gearup.notificationservice.dto.NotificationResponse;
-import com.gearup.notificationservice.dto.UnreadCountResponse;
-import com.gearup.notificationservice.entity.Notification;
-import com.gearup.notificationservice.repository.NotificationRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.gearup.notificationservice.dto.NotificationRequest;
+import com.gearup.notificationservice.dto.NotificationResponse;
+import com.gearup.notificationservice.dto.UnreadCountResponse;
+import com.gearup.notificationservice.entity.Notification;
+import com.gearup.notificationservice.repository.NotificationRepository;
+import com.gearup.shared.cache.RedisNotificationCache;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor

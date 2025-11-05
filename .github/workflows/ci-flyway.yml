@@ -68,6 +68,9 @@ jobs:
           ./mvnw "-Dflyway.url=$FLYWAY_URL" "-Dflyway.user=$FLYWAY_USER" "-Dflyway.password=$FLYWAY_PASSWORD" -pl services/notification-service flyway:migrate
 
       - name: Run integration tests
+        env:
+          APP_FIREBASE_CONFIGURATION_FILE: ""
+          FIREBASE_CONFIG_PATH: ""
         run: |
           ./mvnw -DskipTests=false -pl services/notification-service test
 

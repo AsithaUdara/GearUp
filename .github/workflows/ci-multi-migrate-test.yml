@@ -10,7 +10,6 @@ jobs:
   migrate-and-test-all:
     runs-on: ubuntu-latest
     env:
-      # Use repo secret or fallback for CI jobs which don't set the secret
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
     services:
       postgres:
@@ -98,5 +97,8 @@ jobs:
           done < services.txt
 
       - name: Run integration tests across modules
+        env:
+          APP_FIREBASE_CONFIGURATION_FILE: ""
+          FIREBASE_CONFIG_PATH: ""
         run: |
           ./mvnw -DskipTests=false test

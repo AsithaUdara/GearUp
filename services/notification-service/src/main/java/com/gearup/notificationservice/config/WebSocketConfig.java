@@ -19,6 +19,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +76,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                 SecurityContextHolder.getContext().setAuthentication(authentication);
                                 
                                 log.debug("WebSocket authenticated for user: {}", uid);
-                            } catch (Exception e) {
+                            } catch (FirebaseAuthException e) {
                                 log.error("WebSocket authentication failed", e);
                             }
                         }
