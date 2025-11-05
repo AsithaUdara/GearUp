@@ -74,6 +74,26 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  tracking-service:
+    build:
+      context: ../../
+      dockerfile: ./services/tracking-service/Dockerfile
+    container_name: gearup-tracking-service
+    ports:
+      - "8086:8086"
+    env_file:
+      - ../../.env
+    environment:
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+      - SPRING_DATASOURCE_URL=${TRACKING_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${TRACKING_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${TRACKING_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   db:
     image: postgres:15-alpine
     container_name: gearup-postgres
@@ -88,6 +108,7 @@ services:
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
       TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
+      TRACKING_DB_PASSWORD: ${TRACKING_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
