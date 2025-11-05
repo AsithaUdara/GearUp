@@ -5,15 +5,24 @@ services:
       context: ../../
       # Dockerfile for this service, path relative to the build context
       dockerfile: ./services/automobile-service/Dockerfile
+    container_name: gearup-automobile-service
     ports:
       - "8080:8080"
     # point env_file to repo root so variables are picked from the top-level .env
     env_file:
       - ../../.env
     environment:
-      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
+      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH}
+      - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${AUTOMOBILE_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
     volumes:
       - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   notification-service:
     build:
@@ -21,16 +30,17 @@ services:
       context: ../../
       # Dockerfile for this service, path relative to the build context
       dockerfile: ./services/notification-service/Dockerfile
+    container_name: gearup-notification-service
     ports:
       - "8081:8081"
     env_file:
       - ../../.env
     environment:
-      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH:-/run/secrets/firebase-service-account.json}
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/notification_db
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - SPRING_FLYWAY_ENABLED=false
+      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH}
+      - SPRING_DATASOURCE_URL=${NOTIFICATION_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${NOTIFICATION_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${NOTIFICATION_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
       - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
       - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
       - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
@@ -40,23 +50,60 @@ services:
     volumes:
       - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
     depends_on:
+      db:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      db:
-        condition: service_started
       redis:
         condition: service_started
+    restart: unless-stopped
+
+  user-auth-service:
+    build:
+      context: ../../
+      dockerfile: ./services/user-auth-service/Dockerfile
+    container_name: gearup-user-auth-service
+    ports:
+      - "8082:8082"
+    env_file:
+      - ../../.env
+    environment:
+      - APP_FIREBASE_CONFIGURATION_FILE=file:${FIREBASE_CREDENTIALS_CONTAINER_PATH}
+      - SPRING_DATASOURCE_URL=${USER_AUTH_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${USER_AUTH_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${USER_AUTH_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+    volumes:
+      - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   db:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: gearup-postgres
+    env_file:
+      - ../../.env
     environment:
-      POSTGRES_DB: notification_db
-      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
-      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Pass service passwords to init script
+      AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
+      NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
+      TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ../postgres/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -76,6 +123,19 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: gearup-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gearup.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    restart: unless-stopped
 
 volumes:
   db-data:

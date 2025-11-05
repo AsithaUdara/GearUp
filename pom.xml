@@ -120,7 +120,7 @@
                 <version>3.13.0</version>
             </plugin>
 
-            <!-- ✅ Fixed Flyway plugin configuration -->
+            <!-- Flyway Maven Plugin for database migrations -->
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>

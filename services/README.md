@@ -46,11 +46,12 @@ Conventions
 - Logging: use the shared logging config in `config-repo/shared/logging.yml` where possible.
 - Shared libraries: prefer `shared-libs/*` for reusable DTOs, auth code and event models.
 
-## Database migrations
+## Database Schema
 
-If your service needs a relational schema, place Flyway SQL migrations under `src/main/resources/db/migration`.
+Each microservice has its own PostgreSQL database following the Database-per-Service pattern:
 
-- Follow Flyway naming: `V1__init.sql`, `V2__...`.
-- The repo includes a helper script and compose file to run Postgres and apply migrations: see `docs/POSTGRES_AND_MIGRATIONS.md` for step-by-step instructions (`scripts/run-flyway-locally.ps1` and `deployment/postgres/docker-compose.yml`).
+- Database initialization scripts are in `deployment/postgres/init-db.sql`
+- Tables are created automatically on first container startup
+- See `POSTGRES_SETUP.md` for database configuration details
 
 If you want, I can create a service template skeleton under `services/template-service/` to speed up adding new services. Say "create template" and I'll add one.

@@ -62,12 +62,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Flyway for runtime migrations (Spring Boot auto-run) -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
-
         <!-- Shared security & event libraries -->
         <dependency>
             <groupId>com.gearup</groupId>
@@ -78,6 +72,13 @@
         <dependency>
             <groupId>com.gearup</groupId>
             <artifactId>shared-event-models</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <!-- shared common utilities: Redis and RabbitMQ config + helpers -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-common-utils</artifactId>
             <version>1.0.0</version>
         </dependency>
 
@@ -99,35 +100,45 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Flyway for database migrations -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Flyway Maven plugin (CI/CD database migrations) -->
+            <!-- Flyway Maven Plugin for migrations -->
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>11.7.2</version>
-                <configuration>
-                    <url>jdbc:postgresql://localhost:5432/as_notification-service</url>
-                    <user>postgres</user>
-                    <password>postgres</password>
-                    <schemas>
-                        <schema>public</schema>
-                    </schemas>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.flywaydb</groupId>
-                        <artifactId>flyway-database-postgresql</artifactId>
-                        <version>11.7.2</version>
-                    </dependency>
-                </dependencies>
             </plugin>
 
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
 
             <plugin>

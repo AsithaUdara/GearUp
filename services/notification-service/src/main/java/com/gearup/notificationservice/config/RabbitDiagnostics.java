@@ -2,6 +2,7 @@ package com.gearup.notificationservice.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -29,13 +30,10 @@ public class RabbitDiagnostics implements CommandLineRunner {
         logger.info("RabbitDiagnostics: AmqpAdmin present = {}", amqpAdmin != null);
         logger.info("RabbitDiagnostics: RabbitTemplate present = {}", rabbitTemplate != null);
         try {
-            Connection conn = connectionFactory.createConnection();
-            try {
+            try (Connection conn = connectionFactory.createConnection()) {
                 logger.info("RabbitDiagnostics: Successfully opened connection to RabbitMQ: {}", conn);
-            } finally {
-                conn.close();
             }
-        } catch (Throwable t) {
+        } catch (AmqpException t) {
             logger.error("RabbitDiagnostics: Failed to open connection to RabbitMQ", t);
         }
     }

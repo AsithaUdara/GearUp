@@ -57,14 +57,14 @@ jobs:
             pg_isready -h localhost -p 5432 -U postgres && break || sleep 2
           done
         env:
-          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
       - name: Create DB and user for template-service
         run: |
           psql -h localhost -U postgres -c "CREATE USER svc_template_service WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';" || true
           psql -h localhost -U postgres -c "CREATE DATABASE as_template_service OWNER svc_template_service;" || true
         env:
-          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
       - name: Run Flyway migrate for template-service
         run: |
