@@ -14,8 +14,8 @@ spring:
   # Database Configuration
   datasource:
     url: jdbc:postgresql://localhost:5434/as_user_auth_service
-    username: postgres
-    password: Niro
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   
   # JPA Configuration
@@ -46,8 +46,8 @@ spring:
   rabbitmq:
     host: localhost
     port: 5672
-    username: automobile_admin
-    password: 123456
+    username: ${RABBITMQ_USERNAME:automobile_admin}
+    password: ${RABBITMQ_PASSWORD:123456}
 
 server:
   port: 8082

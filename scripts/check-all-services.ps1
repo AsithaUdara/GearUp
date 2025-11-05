@@ -53,7 +53,9 @@ try {
 Write-Host ""
 Write-Host "[4] PostgreSQL Database (port 5434)" -ForegroundColor Yellow
 try {
-    $env:PGPASSWORD='Niro'
+    # Use environment variable or fallback to default
+    $pgPassword = if ($env:POSTGRES_PASSWORD) { $env:POSTGRES_PASSWORD } else { 'postgres' }
+    $env:PGPASSWORD = $pgPassword
     $dbTest = & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -p 5434 -d as_user_auth_service -c "SELECT COUNT(*) FROM users;" 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✅ Status: Connected" -ForegroundColor Green

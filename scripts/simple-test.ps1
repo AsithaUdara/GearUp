@@ -42,7 +42,9 @@ try {
 # Test 3: Check database
 Write-Host "`nTest 3: Database Connection..." -ForegroundColor Yellow
 try {
-    $env:PGPASSWORD='Niro'
+    # Use environment variable or fallback to default
+    $pgPassword = if ($env:POSTGRES_PASSWORD) { $env:POSTGRES_PASSWORD } else { 'postgres' }
+    $env:PGPASSWORD = $pgPassword
     $userCount = & "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
         -U postgres -p 5434 -d as_user_auth_service `
         -t -c "SELECT COUNT(*) FROM users;" 2>&1
