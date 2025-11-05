@@ -35,6 +35,20 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Event models for testing -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-event-models</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <!-- Testing dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>

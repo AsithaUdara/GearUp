@@ -28,6 +28,9 @@ public class RabbitMQConfig {
     public static final String INVOICE_PAID_KEY = "invoice.paid";
     public static final String TASK_ASSIGNED_KEY = "task.assigned";
     public static final String TASK_COMPLETED_KEY = "task.completed";
+    public static final String VEHICLE_BOOKING_CREATED_KEY = "vehicle.booking.created";
+    public static final String VEHICLE_BOOKING_CONFIRMED_KEY = "vehicle.booking.confirmed";
+    public static final String VEHICLE_MAINTENANCE_SCHEDULED_KEY = "vehicle.maintenance.scheduled";
 
     /**
      * RabbitAdmin - CRITICAL for auto-declaration of exchanges, queues, and bindings
@@ -96,6 +99,30 @@ public class RabbitMQConfig {
                 .bind(notificationQueue())
                 .to(notificationExchange())
                 .with(TASK_COMPLETED_KEY);
+    }
+
+    @Bean
+    public Binding vehicleBookingCreatedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(notificationExchange())
+                .with(VEHICLE_BOOKING_CREATED_KEY);
+    }
+
+    @Bean
+    public Binding vehicleBookingConfirmedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(notificationExchange())
+                .with(VEHICLE_BOOKING_CONFIRMED_KEY);
+    }
+
+    @Bean
+    public Binding vehicleMaintenanceScheduledBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(notificationExchange())
+                .with(VEHICLE_MAINTENANCE_SCHEDULED_KEY);
     }
 
     /**

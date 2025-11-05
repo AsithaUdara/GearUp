@@ -12,6 +12,9 @@ import com.gearup.shared.event.InvoicePaidEvent;
 import com.gearup.shared.event.InvoiceUpdatedEvent;
 import com.gearup.shared.event.TaskAssignedEvent;
 import com.gearup.shared.event.TaskCompletedEvent;
+import com.gearup.shared.event.VehicleBookingConfirmedEvent;
+import com.gearup.shared.event.VehicleBookingCreatedEvent;
+import com.gearup.shared.event.VehicleMaintenanceScheduledEvent;
 import com.gearup.shared.messaging.RabbitMQConfig;
 
 import lombok.RequiredArgsConstructor;
@@ -156,6 +159,91 @@ public class NotificationEventListener {
             log.info("Successfully created notification for TaskCompletedEvent");
         } catch (Exception e) {
             log.error("Error processing TaskCompletedEvent", e);
+        }
+    }
+
+    /**
+     * Listen to vehicle booking created events
+     */
+    @RabbitListener(queues = RabbitMQConfig.NOTIFICATION_QUEUE)
+    public void handleVehicleBookingCreatedEvent(VehicleBookingCreatedEvent event) {
+        log.info("Received VehicleBookingCreatedEvent: {}", event);
+        
+        try {
+            NotificationRequest request = NotificationRequest.builder()
+                    .userId(event.getUserId())
+                    .title("Booking Created")
+                    .message(String.format("Your booking for %s has been created. Total: $%.2f. Pickup: %s", 
+                            event.getVehicleName(), event.getTotalAmount(), 
+                            event.getBookingStartDate().toLocalDate()))
+                    .type(NotificationType.BOOKING_CREATED)
+                    .priority(NotificationPriority.HIGH)
+                    .relatedEntityId(event.getBookingId())
+                    .relatedEntityType("BOOKING")
+                    .actionUrl("/bookings/" + event.getBookingId())
+                    .build();
+            
+            notificationService.createNotification(request);
+            log.info("Successfully created notification for VehicleBookingCreatedEvent");
+        } catch (Exception e) {
+            log.error("Error processing VehicleBookingCreatedEvent", e);
+        }
+    }
+
+    /**
+     * Listen to vehicle booking confirmed events
+     */
+    @RabbitListener(queues = RabbitMQConfig.NOTIFICATION_QUEUE)
+    public void handleVehicleBookingConfirmedEvent(VehicleBookingConfirmedEvent event) {
+        log.info("Received VehicleBookingConfirmedEvent: {}", event);
+        
+        try {
+            NotificationRequest request = NotificationRequest.builder()
+                    .userId(event.getUserId())
+                    .title("Booking Confirmed")
+                    .message(String.format("Your booking for %s is confirmed! Confirmation #: %s. Pickup at %s on %s", 
+                            event.getVehicleName(), event.getConfirmationNumber(),
+                            event.getPickupLocation(), event.getPickupTime().toLocalDate()))
+                    .type(NotificationType.BOOKING_CONFIRMED)
+                    .priority(NotificationPriority.HIGH)
+                    .relatedEntityId(event.getBookingId())
+                    .relatedEntityType("BOOKING")
+                    .actionUrl("/bookings/" + event.getBookingId())
+                    .build();
+            
+            notificationService.createNotification(request);
+            log.info("Successfully created notification for VehicleBookingConfirmedEvent");
+        } catch (Exception e) {
+            log.error("Error processing VehicleBookingConfirmedEvent", e);
+        }
+    }
+
+    /**
+     * Listen to vehicle maintenance scheduled events
+     */
+    @RabbitListener(queues = RabbitMQConfig.NOTIFICATION_QUEUE)
+    public void handleVehicleMaintenanceScheduledEvent(VehicleMaintenanceScheduledEvent event) {
+        log.info("Received VehicleMaintenanceScheduledEvent: {}", event);
+        
+        try {
+            NotificationRequest request = NotificationRequest.builder()
+                    .userId(event.getUserId())
+                    .title("Maintenance Scheduled")
+                    .message(String.format("Maintenance scheduled for %s: %s on %s at %s. Estimated cost: $%.2f", 
+                            event.getVehicleName(), event.getMaintenanceType(),
+                            event.getScheduledDate().toLocalDate(), event.getServiceCenter(),
+                            event.getEstimatedCost()))
+                    .type(NotificationType.MAINTENANCE_SCHEDULED)
+                    .priority(NotificationPriority.MEDIUM)
+                    .relatedEntityId(event.getMaintenanceId())
+                    .relatedEntityType("MAINTENANCE")
+                    .actionUrl("/maintenance/" + event.getMaintenanceId())
+                    .build();
+            
+            notificationService.createNotification(request);
+            log.info("Successfully created notification for VehicleMaintenanceScheduledEvent");
+        } catch (Exception e) {
+            log.error("Error processing VehicleMaintenanceScheduledEvent", e);
         }
     }
 

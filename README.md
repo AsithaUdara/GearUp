@@ -46,6 +46,31 @@ GearUp Backend
 
 ## 📚 Documentation
 
+### Getting Started
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running in minutes
+- **[Commands Reference](docs/COMMANDS.md)** - All verified commands
+- **[Development Guide](docs/DEV_GUIDE.md)** - Development workflows
+
+### Cross-Service Communication 🆕
+
+- **[Cross-Service Communication Guide](CROSS_SERVICE_COMMUNICATION.md)** - Complete guide for microservice communication
+- **[RabbitMQ Setup & Usage](RABBITMQ_GUIDE.md)** - Event-driven messaging patterns
+- **Topics Covered:**
+  - ✅ Asynchronous messaging with RabbitMQ
+  - ✅ Synchronous communication with Feign + Eureka
+  - ✅ API Gateway routing patterns
+  - ✅ Service discovery and load balancing
+  - ✅ Event publishing and consumption
+  - ✅ Error handling and resilience patterns
+
+### Infrastructure
+
+- **[PostgreSQL Setup](docs/POSTGRES_SETUP.md)** - Database configuration
+- **[PgAdmin Setup](docs/PGADMIN_SETUP.md)** - Database management UI
+- **[Infrastructure Status](docs/INFRASTRUCTURE_STATUS.md)** - Service health
+- **[Backup & Restore](docs/backup-and-restore.md)** - Data management
+
 ### For Beginners
 
 - **[Quick Start Guide](QUICK_START.md)** - Step-by-step setup for new developers
