@@ -27,20 +27,36 @@ public class FirebaseConfig {
 
     @PostConstruct
     public void initialize() {
-        String envPath = System.getenv("FIREBASE_CONFIG_PATH");
+        String activeProfile = System.getenv("SPRING_PROFILES_ACTIVE");
+        boolean isDev = "dev".equals(activeProfile) || activeProfile == null;
+        
         try {
             InputStream in = null;
+            
+            // Option 1: Try to read from FIREBASE_SERVICE_ACCOUNT_JSON env variable (for dev/CI)
+            String jsonCredentials = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+            if (jsonCredentials != null && !jsonCredentials.trim().isEmpty()) {
+                log.info("Using Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON environment variable");
+                // Replace escaped newlines with actual newlines for private key
+                String processedJson = jsonCredentials.replace("\\n", "\n");
+                in = new java.io.ByteArrayInputStream(processedJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
 
-            if (envPath != null && !envPath.trim().isEmpty()) {
-                File f = new File(envPath);
-                if (f.exists()) {
-                    log.info("Using Firebase service account from environment path: {}", envPath);
-                    in = new FileInputStream(f);
-                } else {
-                    log.warn("FIREBASE_CONFIG_PATH is set but file does not exist: {}", envPath);
+            // Option 2: Try environment path
+            if (in == null) {
+                String envPath = System.getenv("FIREBASE_CONFIG_PATH");
+                if (envPath != null && !envPath.trim().isEmpty()) {
+                    File f = new File(envPath);
+                    if (f.exists()) {
+                        log.info("Using Firebase service account from environment path: {}", envPath);
+                        in = new FileInputStream(f);
+                    } else {
+                        log.warn("FIREBASE_CONFIG_PATH is set but file does not exist: {}", envPath);
+                    }
                 }
             }
 
+            // Option 3: Try property file
             if (in == null && serviceAccount != null) {
                 try {
                     if (serviceAccount.exists()) {
@@ -52,6 +68,7 @@ public class FirebaseConfig {
                 }
             }
 
+            // Option 4: Try classpath
             if (in == null) {
                 InputStream cp = FirebaseConfig.class.getClassLoader().getResourceAsStream("firebase-service-account.json");
                 if (cp != null) {
@@ -61,10 +78,10 @@ public class FirebaseConfig {
             }
 
             if (in == null) {
-                if ("prod".equals(System.getenv("SPRING_PROFILES_ACTIVE"))) {
+                if ("prod".equals(activeProfile)) {
                     throw new IllegalStateException("Firebase credentials required in production");
                 }
-                log.warn("No Firebase service account found; skipping initialization.");
+                log.warn("No Firebase service account found; skipping initialization. Running in {} mode.", isDev ? "dev" : "test");
                 return;
             }
 
@@ -80,7 +97,12 @@ public class FirebaseConfig {
             }
         } catch (IOException e) {
             log.error("Failed to initialize Firebase", e);
-            throw new RuntimeException("Failed to initialize Firebase: " + e.getMessage(), e);
+            // In dev mode, log warning but don't fail startup
+            if (isDev) {
+                log.warn("Continuing without Firebase in dev mode");
+            } else {
+                throw new RuntimeException("Failed to initialize Firebase: " + e.getMessage(), e);
+            }
         }
     }
 }

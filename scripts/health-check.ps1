@@ -1,4 +1,4 @@
-# ========================================
+﻿# ========================================
 # GearUp Backend - Service Health Check Script
 # ========================================
 
@@ -20,16 +20,16 @@ function Test-ServiceHealth {
         $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
         
         if ($response.StatusCode -eq 200) {
-            Write-Host "✓ $ServiceName is healthy (HTTP $($response.StatusCode))" -ForegroundColor Green
+            Write-Host " $ServiceName is healthy (HTTP $($response.StatusCode))" -ForegroundColor Green
             return $true
         }
         else {
-            Write-Host "✗ $ServiceName returned HTTP $($response.StatusCode)" -ForegroundColor Red
+            Write-Host " $ServiceName returned HTTP $($response.StatusCode)" -ForegroundColor Red
             return $false
         }
     }
     catch {
-        Write-Host "✗ $ServiceName is not responding" -ForegroundColor Red
+        Write-Host " $ServiceName is not responding" -ForegroundColor Red
         Write-Host "  Error: $($_.Exception.Message)" -ForegroundColor Red
         return $false
     }
