@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: tracking-service
+  redis:
+    host: ${SPRING_REDIS_HOST:redis}
+    port: ${SPRING_REDIS_PORT:6379}
+
+# Tracking uses streaming/messaging
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+
+messaging:
+  rabbitmq:
+    exchange: ${RABBIT_EXCHANGE:tracking}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: notification-service
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+
+messaging:
+  smtp:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:25}
+  rabbitmq:
+    exchange: ${RABBIT_EXCHANGE:notification.exchange}
+
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}

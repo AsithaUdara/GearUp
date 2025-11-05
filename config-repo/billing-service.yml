@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: billing-service
+
+datasource:
+  url: ${DB_URL:jdbc:postgresql://localhost:5432/billing}
+  username: ${DB_USER:}
+  password: ${DB_PASSWORD:}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}

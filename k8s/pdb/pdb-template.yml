@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: REPLACE_SERVICE_NAME-pdb
+  namespace: auto-service-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: REPLACE_SERVICE_NAME

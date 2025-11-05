@@ -1,72 +1,180 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.6</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>21</java.version>
-	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+﻿<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-        <dependency>
-            <groupId>com.google.firebase</groupId>
-            <artifactId>firebase-admin</artifactId>
-            <version>9.2.0</version>
-        </dependency>
-		<dependency>
-			<groupId>me.paulschwarz</groupId>
-			<artifactId>spring-dotenv</artifactId>
-			<version>4.0.0</version>
-		</dependency>
-	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.gearup</groupId>
+    <artifactId>gearup-root</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>services/automobile-service</module>
+        <module>services/notification-service</module>
+        <module>services/template-service</module>
+        <module>services/user-auth-service</module>
+
+        <!-- Infra modules -->
+        <module>service-discovery</module>
+        <module>config-server</module>
+        <module>api-gateway</module>
+        <module>shared-libs/common-dto</module>
+        <module>shared-libs/common-utils</module>
+        <module>shared-libs/event-models</module>
+        <module>shared-libs/security-lib</module>
+    </modules>
+
+    <properties>
+        <!-- Central Spring Boot version for all modules -->
+        <spring-boot.version>3.5.7</spring-boot.version>
+        <java.version>21</java.version>
+
+        <!-- Centralized dependency versions -->
+        <postgresql.version>42.7.8</postgresql.version>
+        <flyway.version>11.7.2</flyway.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot BOM -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2025.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <release>21</release>
+                    </configuration>
+                </plugin>
+
+                <!-- JaCoCo for coverage -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.10</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Common plugin versions -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+
+            <!-- Flyway Maven Plugin for database migrations -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-database-postgresql</artifactId>
+                        <version>${flyway.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>${postgresql.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>firebase-integration</id>
+            <!-- Activate when FIREBASE_CONFIG_PATH is present in the environment (set by CI when secret is provided) -->
+            <activation>
+                <property>
+                    <name>env.FIREBASE_CONFIG_PATH</name>
+                </property>
+            </activation>
+            <properties>
+                <firebase.integration.active>true</firebase.integration.active>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- When this profile is active, run integration tests matching *IT.java via Surefire -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.1.2</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*IT.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

@@ -1,0 +1,26 @@
+# Global defaults for all services (non-sensitive)
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+
+# Common timeouts
+http:
+  client:
+    connect-timeout: 5s
+    read-timeout: 30s
+
+# Tracing tags (placeholders, will be extended if tracing is added)
+tracing:
+  service:
+    name: gearup
+
+# Default backing services for local/dev (use Docker Compose service names)
+spring:
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+  redis:
+    host: ${SPRING_REDIS_HOST:redis}
+    port: ${SPRING_REDIS_PORT:6379}
