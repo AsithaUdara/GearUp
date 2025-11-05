@@ -24,6 +24,9 @@ public class NotificationResponse {
     private String relatedEntityId;
     private String relatedEntityType;
     private String actionUrl;
+    private String deliveryChannels; // JSON array of delivery channels
+    private String metadata; // Additional metadata in JSON format
+    private LocalDateTime sentAt; // When notification was sent
     private LocalDateTime createdAt;
     private LocalDateTime readAt;
 }

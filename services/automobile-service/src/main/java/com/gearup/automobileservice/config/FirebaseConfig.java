@@ -28,25 +28,38 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         // Resolution order:
-        // 1. FIREBASE_CONFIG_PATH env var (preferred for CI)
-        // 2. app.firebase-configuration-file property (file: or classpath:)
-        // 3. classpath resource 'firebase-service-account.json'
-
-        String envPath = System.getenv("FIREBASE_CONFIG_PATH");
+        // 1. FIREBASE_SERVICE_ACCOUNT_JSON env var (preferred for Docker/CI)
+        // 2. FIREBASE_CONFIG_PATH env var
+        // 3. app.firebase-configuration-file property (file: or classpath:)
+        // 4. classpath resource 'firebase-service-account.json'
 
         try {
             InputStream in = null;
 
-        if (envPath != null && !envPath.trim().isEmpty()) {
-                File f = new File(envPath);
-                if (f.exists()) {
-                    log.info("Using Firebase service account from environment path: {}", envPath);
-                    in = new FileInputStream(f);
-                } else {
-                    log.warn("FIREBASE_CONFIG_PATH is set but file does not exist: {}", envPath);
+            // Option 1: Try to read from FIREBASE_SERVICE_ACCOUNT_JSON env variable
+            String jsonCredentials = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+            if (jsonCredentials != null && !jsonCredentials.trim().isEmpty()) {
+                log.info("Using Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON environment variable");
+                // Replace escaped newlines with actual newlines for private key
+                String processedJson = jsonCredentials.replace("\\n", "\n");
+                in = new java.io.ByteArrayInputStream(processedJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+
+            // Option 2: Try FIREBASE_CONFIG_PATH env var
+            if (in == null) {
+                String envPath = System.getenv("FIREBASE_CONFIG_PATH");
+                if (envPath != null && !envPath.trim().isEmpty()) {
+                    File f = new File(envPath);
+                    if (f.exists()) {
+                        log.info("Using Firebase service account from environment path: {}", envPath);
+                        in = new FileInputStream(f);
+                    } else {
+                        log.warn("FIREBASE_CONFIG_PATH is set but file does not exist: {}", envPath);
+                    }
                 }
             }
 
+            // Option 3: Try property file
             if (in == null && serviceAccount != null) {
                 try {
                     if (serviceAccount.exists()) {
