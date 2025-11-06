@@ -1,0 +1,58 @@
+# ========================================
+# Payment Service Configuration
+# ========================================
+# Configuration for payment-service microservice
+# Served by Spring Cloud Config Server
+
+server:
+  port: 8083
+
+spring:
+  application:
+    name: payment-service
+  
+  # JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  
+  # Flyway
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+# Management / Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,flyway
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.gearup.paymentservice: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+
+# Application Specific
+payment:
+  tax:
+    rate: 0.10
+  currency: USD

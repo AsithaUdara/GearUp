@@ -74,6 +74,26 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  payment-service:
+    build:
+      context: ../../
+      dockerfile: ./services/payment-service/Dockerfile
+    container_name: gearup-payment-service
+    ports:
+      - "8083:8083"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_DATASOURCE_URL=${PAYMENT_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${PAYMENT_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${PAYMENT_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   db:
     image: postgres:15-alpine
     container_name: gearup-postgres
@@ -88,6 +108,7 @@ services:
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
       TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
+      PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
