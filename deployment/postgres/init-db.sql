@@ -13,12 +13,12 @@ CREATE DATABASE as_notification_service;
 CREATE DATABASE as_user_auth_service;
 CREATE DATABASE as_template_service;
 
--- Create dedicated service users with strong passwords from environment variables
--- Docker will pass these via POSTGRES_INITDB_ARGS
-CREATE USER svc_automobile_service WITH PASSWORD :'AUTOMOBILE_DB_PASSWORD';
-CREATE USER svc_notification_service WITH PASSWORD :'NOTIFICATION_DB_PASSWORD';
-CREATE USER svc_user_auth_service WITH PASSWORD :'USER_AUTH_DB_PASSWORD';
-CREATE USER svc_template_service WITH PASSWORD :'TEMPLATE_DB_PASSWORD';
+-- Create dedicated service users with strong passwords
+-- Note: Using development passwords. In production, use secure password management.
+CREATE USER svc_automobile_service WITH PASSWORD 'auto_svc_pass_2024';
+CREATE USER svc_notification_service WITH PASSWORD 'notif_svc_pass_2024';
+CREATE USER svc_user_auth_service WITH PASSWORD 'auth_svc_pass_2024';
+CREATE USER svc_template_service WITH PASSWORD 'template_svc_pass_2024';
 
 -- Grant all privileges on respective databases to service users
 GRANT ALL PRIVILEGES ON DATABASE as_automobile_service TO svc_automobile_service;
