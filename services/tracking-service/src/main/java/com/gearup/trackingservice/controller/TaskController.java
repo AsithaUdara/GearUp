@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gearup.trackingservice.dto.request.CreateTaskRequest;
 import com.gearup.trackingservice.dto.request.UpdateTaskRequest;
-import com.gearup.trackingservice.dto.response.TaskListResponse;
 import com.gearup.trackingservice.dto.response.TaskResponse;
 import com.gearup.trackingservice.service.TaskService;
 

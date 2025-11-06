@@ -3,7 +3,6 @@ package com.gearup.trackingservice.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 public class TrackingService {
     
     private final WorkTaskRepository workTaskRepository;
-    private final TaskService taskService;
     
     @Transactional(readOnly = true)
     public DailySummaryResponse getDailySummary(String employeeId) {
