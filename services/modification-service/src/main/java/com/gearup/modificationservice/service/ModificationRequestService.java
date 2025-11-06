@@ -1,0 +1,175 @@
+package com.gearup.modificationservice.service;
+
+import com.gearup.modificationservice.dto.*;
+import com.gearup.modificationservice.entity.Customer;
+import com.gearup.modificationservice.entity.ModificationRequest;
+import com.gearup.modificationservice.entity.ModificationService;
+import com.gearup.modificationservice.entity.RequestStatus;
+import com.gearup.modificationservice.repository.CustomerRepository;
+import com.gearup.modificationservice.repository.ModificationRequestRepository;
+import com.gearup.modificationservice.repository.ModificationServiceRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ModificationRequestService {
+    
+    private final ModificationRequestRepository modificationRequestRepository;
+    private final ModificationServiceRepository modificationServiceRepository;
+    private final CustomerRepository customerRepository;
+    
+    @Transactional
+    public ModificationRequestDTO createRequest(CreateModificationRequestDTO request) {
+        log.debug("Creating modification request for service: {}", request.getServiceId());
+        
+        // Validate service exists
+        ModificationService service = modificationServiceRepository.findById(request.getServiceId())
+                .orElseThrow(() -> new RuntimeException("Service not found"));
+        
+        // Create or get customer
+        String userId = UUID.randomUUID().toString(); // In real app, get from auth context
+        Customer customer = customerRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Customer newCustomer = new Customer();
+                    newCustomer.setUserId(userId);
+                    newCustomer.setName(request.getCustomerName());
+                    newCustomer.setEmail(request.getCustomerEmail());
+                    newCustomer.setPhone(request.getCustomerPhone());
+                    newCustomer.setAddress(request.getCustomerAddress());
+                    return customerRepository.save(newCustomer);
+                });
+        
+        // Create modification request
+        ModificationRequest modificationRequest = new ModificationRequest();
+        modificationRequest.setService(service);
+        modificationRequest.setCustomer(customer);
+        modificationRequest.setStatus(RequestStatus.PENDING);
+        modificationRequest.setRequestDate(LocalDateTime.now());
+        modificationRequest.setPreferredDate(request.getPreferredDate());
+        modificationRequest.setNotes(request.getNotes());
+        modificationRequest.setEstimatedCost(service.getBasePrice());
+        
+        modificationRequest = modificationRequestRepository.save(modificationRequest);
+        
+        log.info("Modification request created successfully with id: {}", modificationRequest.getId());
+        return convertToDTO(modificationRequest);
+    }
+    
+    public List<ModificationRequestDTO> getRequestsByServiceId(Long serviceId) {
+        log.debug("Fetching modification requests for service: {}", serviceId);
+        List<ModificationRequest> requests = modificationRequestRepository.findByServiceIdOrderByRequestDateDesc(serviceId);
+        return requests.stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+    
+    public Optional<ModificationRequestDTO> getRequestById(Long id) {
+        log.debug("Fetching modification request with id: {}", id);
+        return modificationRequestRepository.findById(id)
+                .map(this::convertToDTO);
+    }
+    
+    @Transactional
+    public ModificationRequestDTO updateRequest(Long id, UpdateModificationRequestDTO updateDTO) {
+        log.debug("Updating modification request with id: {}", id);
+        
+        ModificationRequest request = modificationRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Modification request not found"));
+        
+        if (updateDTO.getStatus() != null) {
+            RequestStatus oldStatus = request.getStatus();
+            request.setStatus(updateDTO.getStatus());
+            
+            // Update timestamp based on status
+            if (updateDTO.getStatus() == RequestStatus.APPROVED && oldStatus != RequestStatus.APPROVED) {
+                request.setApprovedAt(LocalDateTime.now());
+            } else if (updateDTO.getStatus() == RequestStatus.REJECTED && oldStatus != RequestStatus.REJECTED) {
+                request.setRejectedAt(LocalDateTime.now());
+            } else if (updateDTO.getStatus() == RequestStatus.COMPLETED && oldStatus != RequestStatus.COMPLETED) {
+                request.setCompletedAt(LocalDateTime.now());
+            }
+        }
+        
+        if (updateDTO.getNotes() != null) {
+            request.setNotes(updateDTO.getNotes());
+        }
+        if (updateDTO.getAdminNotes() != null) {
+            request.setAdminNotes(updateDTO.getAdminNotes());
+        }
+        if (updateDTO.getEstimatedCost() != null) {
+            request.setEstimatedCost(updateDTO.getEstimatedCost());
+        }
+        if (updateDTO.getFinalCost() != null) {
+            request.setFinalCost(updateDTO.getFinalCost());
+        }
+        
+        request = modificationRequestRepository.save(request);
+        log.info("Modification request updated successfully with id: {}", request.getId());
+        return convertToDTO(request);
+    }
+    
+    @Transactional
+    public void deleteRequest(Long id) {
+        log.debug("Deleting modification request with id: {}", id);
+        
+        if (!modificationRequestRepository.existsById(id)) {
+            throw new RuntimeException("Modification request not found");
+        }
+        
+        modificationRequestRepository.deleteById(id);
+        log.info("Modification request deleted successfully with id: {}", id);
+    }
+    
+    public List<ModificationServiceDTO> getServicesByCustomerId(String customerId) {
+        log.debug("Fetching services for customer: {}", customerId);
+        
+        Customer customer = customerRepository.findByUserId(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        
+        List<ModificationRequest> requests = modificationRequestRepository.findByCustomerId(customer.getId());
+        
+        return requests.stream()
+                .map(req -> {
+                    ModificationService service = req.getService();
+                    return new ModificationServiceDTO(
+                            service.getId(),
+                            service.getName(),
+                            service.getDescription(),
+                            service.getBasePrice(),
+                            service.getEstimatedDurationHours(),
+                            service.getIsActive()
+                    );
+                })
+                .distinct()
+                .toList();
+    }
+    
+    private ModificationRequestDTO convertToDTO(ModificationRequest request) {
+        return new ModificationRequestDTO(
+                request.getId(),
+                request.getService().getId(),
+                request.getService().getName(),
+                request.getCustomer().getId(),
+                request.getCustomer().getName(),
+                request.getStatus(),
+                request.getRequestDate(),
+                request.getPreferredDate(),
+                request.getNotes(),
+                request.getAdminNotes(),
+                request.getEstimatedCost(),
+                request.getFinalCost(),
+                request.getApprovedAt(),
+                request.getRejectedAt(),
+                request.getCompletedAt()
+        );
+    }
+}
