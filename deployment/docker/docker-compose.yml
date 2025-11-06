@@ -1,4 +1,45 @@
 services:
+  service-discovery:
+    build:
+      context: ../../
+      dockerfile: ./service-discovery/Dockerfile
+    container_name: gearup-service-discovery
+    ports:
+      - "8761:8761"
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  api-gateway:
+    build:
+      context: ../../
+      dockerfile: ./api-gateway/Dockerfile
+    container_name: gearup-api-gateway
+    ports:
+      - "9090:8080"
+    env_file:
+      - ./.env
+    environment:
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
+      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
   automobile-service:
     build:
       # Use repository root as build context so the Docker build can access shared modules
@@ -17,7 +58,10 @@ services:
       - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${AUTOMOBILE_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
     depends_on:
+      service-discovery:
+        condition: service_healthy
       db:
         condition: service_healthy
     restart: unless-stopped
@@ -45,7 +89,10 @@ services:
       - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
       - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
       - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
+      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
     depends_on:
+      service-discovery:
+        condition: service_healthy
       db:
         condition: service_healthy
       rabbitmq:
@@ -69,7 +116,10 @@ services:
       - SPRING_DATASOURCE_USERNAME=${USER_AUTH_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${USER_AUTH_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
     depends_on:
+      service-discovery:
+        condition: service_healthy
       db:
         condition: service_healthy
     restart: unless-stopped
@@ -93,7 +143,10 @@ services:
       - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
       - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
       - OLLAMA_BASE_URL=http://ollama:11434
+      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
     depends_on:
+      service-discovery:
+        condition: service_healthy
       db:
         condition: service_healthy
       rabbitmq:

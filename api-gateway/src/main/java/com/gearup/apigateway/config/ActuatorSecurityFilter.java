@@ -22,6 +22,12 @@ public class ActuatorSecurityFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
+        
+        // Allow chatbot endpoints without any checks
+        if (path != null && path.startsWith("/api/chat")) {
+            return chain.filter(exchange);
+        }
+        
         if (path != null && path.startsWith("/actuator")) {
             if (actuatorToken == null || actuatorToken.isBlank()) {
                 // no token configured -> deny access in production scenarios

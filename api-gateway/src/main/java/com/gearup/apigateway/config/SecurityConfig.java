@@ -7,7 +7,8 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
 /**
  * Minimal reactive security configuration: disable default login page and
- * let the Gateway's authentication filter handle auth. Permit actuator endpoints.
+ * let the Gateway's authentication filter handle auth. Permit actuator endpoints
+ * and public endpoints like chatbot.
  */
 @Configuration
 public class SecurityConfig {
@@ -15,13 +16,16 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
-                .csrf(csrf -> csrf.disable()
-                        .authorizeExchange(ex -> ex
-                                        .pathMatchers("/actuator/**").permitAll()
-                                        .anyExchange().permitAll()
-                        )
-                        .httpBasic(basic -> basic.disable()
-                                .formLogin(login -> login.disable())));
+                .csrf(csrf -> csrf.disable())
+                .authorizeExchange(ex -> ex
+                        // Public endpoints - no authentication required
+                        .pathMatchers("/api/chat/**").permitAll()
+                        .pathMatchers("/actuator/**").permitAll()
+                        // All other endpoints - authentication handled by FirebaseGatewayFilter
+                        .anyExchange().permitAll()
+                )
+                .httpBasic(basic -> basic.disable())
+                .formLogin(login -> login.disable());
 
         return http.build();
     }

@@ -7,6 +7,33 @@ spring:
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
+  
+  cloud:
+    gateway:
+      routes:
+        # Chatbot Service - Public Access (No Authentication Required)
+        - id: chatbot-service
+          uri: lb://chatbot-service
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - StripPrefix=0
+      
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false
+            maxAge: 3600
 
 server:
   port: ${PORT:8080}

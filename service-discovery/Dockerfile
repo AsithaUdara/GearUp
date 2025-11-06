@@ -1,10 +1,12 @@
 ## Multi-stage Dockerfile — service-discovery
 FROM eclipse-temurin:21-jre-alpine
+# Install wget for healthcheck
+RUN apk add --no-cache wget
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 
-# Copy the prebuilt jar produced by the CI/root build into the image
-COPY target/*.jar /app/app.jar
+# Copy the prebuilt jar from service-discovery/target (build context is repo root)
+COPY service-discovery/target/*.jar /app/app.jar
 RUN chown -R app:app /app
 USER app
 EXPOSE 8761
