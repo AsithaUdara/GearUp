@@ -14,8 +14,8 @@ CREATE DATABASE as_user_auth_service;
 CREATE DATABASE as_template_service;
 CREATE DATABASE as_parts_service;
 
--- Create dedicated service users with strong passwords from environment variables
--- Docker will pass these via POSTGRES_INITDB_ARGS
+-- Create dedicated service users with strong passwords
+-- Note: Using development passwords. In production, use secure password management.
 CREATE USER svc_automobile_service WITH PASSWORD 'auto_svc_pass_2024';
 CREATE USER svc_notification_service WITH PASSWORD 'notif_svc_pass_2024';
 CREATE USER svc_user_auth_service WITH PASSWORD 'auth_svc_pass_2024';
