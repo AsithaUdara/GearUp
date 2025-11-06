@@ -75,6 +75,56 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  vehicle-service:
+    build:
+      context: ../../
+      dockerfile: ./services/vehicle-service/Dockerfile
+    container_name: gearup-vehicle-service
+    ports:
+      - "8083:8083"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_DATASOURCE_URL=${VEHICLE_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${VEHICLE_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${VEHICLE_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  customer-service:
+    build:
+      context: ../../
+      dockerfile: ./services/customer-service/Dockerfile
+    container_name: gearup-customer-service
+    ports:
+      - "8084:8084"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_DATASOURCE_URL=${CUSTOMER_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${CUSTOMER_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${CUSTOMER_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
   db:
     image: postgres:15-alpine
     container_name: gearup-postgres
@@ -89,6 +139,8 @@ services:
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
       TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
+      VEHICLE_DB_PASSWORD: ${VEHICLE_DB_PASSWORD}
+      CUSTOMER_DB_PASSWORD: ${CUSTOMER_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:

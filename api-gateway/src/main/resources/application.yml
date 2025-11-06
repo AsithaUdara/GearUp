@@ -19,6 +19,14 @@ spring:
                   args:
                     redis-rate-limiter.replenishRate: 10
                     redis-rate-limiter.burstCapacity: 20
+            - id: vehicle-service
+              uri: lb://vehicle-service
+              predicates:
+                - Path=/api/vehicles/**
+            - id: customer-service
+              uri: lb://customer-service
+              predicates:
+                - Path=/api/customers/**
             - id: api-gateway-root
               uri: lb://api-gateway
               predicates:
