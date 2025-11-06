@@ -23,12 +23,12 @@ public class VehicleController {
     private final VehicleService service;
 
     @GetMapping("/user/{userId}")
-    public List<Vehicle> getByUser(@PathVariable String userId) {
+    public List<Vehicle> getByUser(@PathVariable("userId") String userId) {
         return service.getByUser(userId);
     }
 
     @GetMapping("/{vehicleId}")
-    public ResponseEntity<Vehicle> get(@PathVariable UUID vehicleId) {
+    public ResponseEntity<Vehicle> get(@PathVariable("vehicleId") UUID vehicleId) {
         Optional<Vehicle> v = service.getById(vehicleId);
         return v.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -52,7 +52,7 @@ public class VehicleController {
     }
 
     @PutMapping("/{vehicleId}")
-    public Vehicle update(@PathVariable UUID vehicleId, @RequestBody VehicleRequest body) {
+    public Vehicle update(@PathVariable("vehicleId") UUID vehicleId, @RequestBody VehicleRequest body) {
         Vehicle incoming = Vehicle.builder()
                 .make(body.getMake())
                 .model(body.getModel())
@@ -65,12 +65,12 @@ public class VehicleController {
 
     @DeleteMapping("/{vehicleId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID vehicleId) {
+    public void delete(@PathVariable("vehicleId") UUID vehicleId) {
         service.delete(vehicleId);
     }
 
     @PatchMapping("/{vehicleId}/status")
-    public Vehicle changeStatus(@PathVariable UUID vehicleId, @RequestParam("status") String status) {
+    public Vehicle changeStatus(@PathVariable("vehicleId") UUID vehicleId, @RequestParam("status") String status) {
         VehicleStatus newStatus = VehicleStatus.valueOf(status);
         return service.changeStatus(vehicleId, newStatus);
     }

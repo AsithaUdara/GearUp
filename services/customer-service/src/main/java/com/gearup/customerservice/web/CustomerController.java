@@ -22,7 +22,7 @@ public class CustomerController {
     private final CustomerService service;
 
     @GetMapping("/{firebaseUid}")
-    public ResponseEntity<Customer> get(@PathVariable String firebaseUid) {
+    public ResponseEntity<Customer> get(@PathVariable("firebaseUid") String firebaseUid) {
         Optional<Customer> c = service.get(firebaseUid);
         return c.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -44,7 +44,7 @@ public class CustomerController {
     }
 
     @PutMapping("/{firebaseUid}")
-    public Customer update(@PathVariable String firebaseUid, @RequestBody UpdateRequest body) {
+    public Customer update(@PathVariable("firebaseUid") String firebaseUid, @RequestBody UpdateRequest body) {
         Customer incoming = Customer.builder()
                 .email(body.getEmail())
                 .displayName(body.getDisplayName())
@@ -58,7 +58,7 @@ public class CustomerController {
     }
 
     @PatchMapping("/{firebaseUid}/kyc")
-    public Customer updateKyc(@PathVariable String firebaseUid, @RequestParam("status") String status) {
+    public Customer updateKyc(@PathVariable("firebaseUid") String firebaseUid, @RequestParam("status") String status) {
         KycStatus newStatus = KycStatus.valueOf(status);
         return service.updateKyc(firebaseUid, newStatus);
     }
