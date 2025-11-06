@@ -47,6 +47,18 @@ public class UserController {
     }
 
     /**
+     * Get current user profile (alias for /me)
+     */
+    @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserProfile(
+            @RequestAttribute("firebaseUid") String firebaseUid) {
+        logger.info("Get user profile request for: {}", firebaseUid);
+        UserResponse userResponse = userService.getUserResponseByFirebaseUid(firebaseUid);
+        return ResponseEntity.ok(ApiResponse.success(userResponse));
+    }
+
+    /**
      * Update current user profile
      */
     @PutMapping("/me")

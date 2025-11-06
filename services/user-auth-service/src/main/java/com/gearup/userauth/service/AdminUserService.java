@@ -168,6 +168,33 @@ public class AdminUserService {
         
         Map<String, Object> oldValues = userService.userToMap(user);
 
+        // Update email if provided
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            // Check if email already exists for another user
+            if (!user.getEmail().equals(request.getEmail()) && 
+                userRepository.existsByEmail(request.getEmail())) {
+                throw new IllegalArgumentException("Email already in use by another user");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        // Update first name if provided
+        if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+            user.setFirstName(request.getFirstName());
+        }
+
+        // Update last name if provided
+        if (request.getLastName() != null && !request.getLastName().isBlank()) {
+            user.setLastName(request.getLastName());
+        }
+
+        // Update display name based on first and last name
+        if ((request.getFirstName() != null && !request.getFirstName().isBlank()) || 
+            (request.getLastName() != null && !request.getLastName().isBlank())) {
+            String displayName = user.getFirstName() + " " + user.getLastName();
+            user.setDisplayName(displayName.trim());
+        }
+
         // Update role
         Role newRole = roleService.getRoleByName(request.getRole());
         user.setRoles(Collections.singleton(newRole));

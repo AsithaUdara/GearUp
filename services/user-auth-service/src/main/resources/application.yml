@@ -50,7 +50,7 @@ spring:
     password: ${RABBITMQ_PASSWORD:123456}
 
 server:
-  port: 8082
+  port: 8080
 
 # Firebase Configuration
 app:
