@@ -44,6 +44,8 @@ public class NotificationService {
                 .relatedEntityId(request.getRelatedEntityId())
                 .relatedEntityType(request.getRelatedEntityType())
                 .actionUrl(request.getActionUrl())
+                .deliveryChannels(request.getDeliveryChannels())
+                .metadata(request.getMetadata())
                 .isRead(false)
                 .build();
 
@@ -190,6 +192,9 @@ public class NotificationService {
                 .relatedEntityId(notification.getRelatedEntityId())
                 .relatedEntityType(notification.getRelatedEntityType())
                 .actionUrl(notification.getActionUrl())
+                .deliveryChannels(notification.getDeliveryChannels())
+                .metadata(notification.getMetadata())
+                .sentAt(notification.getSentAt())
                 .createdAt(notification.getCreatedAt())
                 .readAt(notification.getReadAt())
                 .build();

@@ -34,4 +34,8 @@ public class NotificationRequest {
     private String relatedEntityId;
     private String relatedEntityType;
     private String actionUrl;
+    
+    // New fields for enhanced notification support
+    private String deliveryChannels; // JSON array: ["EMAIL", "SMS", "PUSH", "IN_APP"]
+    private String metadata; // Additional metadata in JSON format
 }
