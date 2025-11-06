@@ -19,6 +19,15 @@ spring:
                   args:
                     redis-rate-limiter.replenishRate: 10
                     redis-rate-limiter.burstCapacity: 20
+            - id: tracking-service-route
+              uri: lb://tracking-service
+              predicates:
+                - Path=/api/tracking/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
             - id: api-gateway-root
               uri: lb://api-gateway
               predicates:

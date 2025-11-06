@@ -41,7 +41,8 @@ Start-Sleep -Seconds 10
 $services = @(
     @{Name = "Automobile Service"; Url = "http://localhost:8080/actuator/health" },
     @{Name = "Notification Service"; Url = "http://localhost:8081/actuator/health" },
-    @{Name = "User Auth Service"; Url = "http://localhost:8082/actuator/health" }
+    @{Name = "User Auth Service"; Url = "http://localhost:8082/actuator/health" },
+    @{Name = "Tracking Service"; Url = "http://localhost:8086/actuator/health" }
 )
 
 $healthyCount = 0
