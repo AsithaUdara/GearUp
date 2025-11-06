@@ -1,6 +1,7 @@
 package com.gearup.userauth.config;
 
-import com.gearup.security.FirebaseAuthenticationFilter;
+import com.gearup.userauth.repository.UserRepository;
+import com.gearup.userauth.security.UserAuthFirebaseFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,14 +24,17 @@ import java.util.List;
 public class SecurityConfig {
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final UserRepository userRepository;
 
-    public SecurityConfig(CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
+    public SecurityConfig(CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+                          UserRepository userRepository) {
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.userRepository = userRepository;
     }
 
     @Bean
-    public FirebaseAuthenticationFilter firebaseAuthenticationFilter() {
-        return new FirebaseAuthenticationFilter();
+    public UserAuthFirebaseFilter userAuthFirebaseFilter() {
+        return new UserAuthFirebaseFilter(userRepository);
     }
 
     @Bean
@@ -55,7 +59,7 @@ public class SecurityConfig {
             )
             .exceptionHandling(exception -> 
                 exception.authenticationEntryPoint(customAuthenticationEntryPoint))
-            .addFilterBefore(firebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(userAuthFirebaseFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -67,7 +71,6 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

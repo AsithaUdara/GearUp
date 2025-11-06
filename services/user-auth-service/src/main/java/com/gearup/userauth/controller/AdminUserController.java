@@ -36,13 +36,13 @@ public class AdminUserController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<AdminUserListResponse>>> getAllUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String role,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDir) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "role", required = false) String role,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "sortBy", defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = "DESC") String sortDir) {
         
         logger.info("Admin get all users - page: {}, size: {}, search: {}, role: {}, status: {}", 
                 page, size, search, role, status);
