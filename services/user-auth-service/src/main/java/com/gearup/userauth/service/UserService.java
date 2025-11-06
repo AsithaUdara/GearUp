@@ -148,7 +148,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    private Map<String, Object> userToMap(User user) {
+    public Map<String, Object> userToMap(User user) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", user.getId());
         map.put("email", user.getEmail());
