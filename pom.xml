@@ -11,29 +11,35 @@
     <packaging>pom</packaging>
 
     <modules>
+        <!-- Shared Libraries -->
+        <module>shared-libs/common-dto</module>
+        <module>shared-libs/common-utils</module>
+        <module>shared-libs/event-models</module>
+        <module>shared-libs/security-lib</module>
+
+        <!-- Services -->
         <module>services/automobile-service</module>
         <module>services/notification-service</module>
         <module>services/template-service</module>
         <module>services/user-auth-service</module>
+        <module>services/parts-service</module>
 
         <!-- Infra modules -->
         <module>service-discovery</module>
         <module>config-server</module>
         <module>api-gateway</module>
-        <module>shared-libs/common-dto</module>
-        <module>shared-libs/common-utils</module>
-        <module>shared-libs/event-models</module>
-        <module>shared-libs/security-lib</module>
     </modules>
 
     <properties>
         <!-- Central Spring Boot version for all modules -->
         <spring-boot.version>3.5.7</spring-boot.version>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
 
         <!-- Centralized dependency versions -->
         <postgresql.version>42.7.8</postgresql.version>
-        <flyway.version>11.7.2</flyway.version>
+        <flyway.version>8.5.13</flyway.version>
     </properties>
 
     <dependencyManagement>
@@ -66,7 +72,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.13.0</version>
                     <configuration>
-                        <release>21</release>
+                        <release>17</release>
                     </configuration>
                 </plugin>
 
@@ -143,6 +149,15 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>

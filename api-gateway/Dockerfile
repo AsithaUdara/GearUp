@@ -4,7 +4,7 @@ RUN addgroup --system app && adduser --system --ingroup app app
 WORKDIR /app
 
 # Copy the prebuilt jar produced by CI (workflow builds the module before docker build)
-COPY target/*.jar /app/app.jar
+COPY api-gateway/target/*.jar /app/app.jar
 RUN chown -R app:app /app
 USER app
 EXPOSE 8080

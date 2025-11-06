@@ -12,13 +12,15 @@ CREATE DATABASE as_automobile_service;
 CREATE DATABASE as_notification_service;
 CREATE DATABASE as_user_auth_service;
 CREATE DATABASE as_template_service;
+CREATE DATABASE as_parts_service;
 
 -- Create dedicated service users with strong passwords from environment variables
 -- Docker will pass these via POSTGRES_INITDB_ARGS
-CREATE USER svc_automobile_service WITH PASSWORD :'AUTOMOBILE_DB_PASSWORD';
-CREATE USER svc_notification_service WITH PASSWORD :'NOTIFICATION_DB_PASSWORD';
-CREATE USER svc_user_auth_service WITH PASSWORD :'USER_AUTH_DB_PASSWORD';
-CREATE USER svc_template_service WITH PASSWORD :'TEMPLATE_DB_PASSWORD';
+CREATE USER svc_automobile_service WITH PASSWORD 'auto_svc_pass_2024';
+CREATE USER svc_notification_service WITH PASSWORD 'notif_svc_pass_2024';
+CREATE USER svc_user_auth_service WITH PASSWORD 'auth_svc_pass_2024';
+CREATE USER svc_parts_service WITH PASSWORD 'parts_svc_pass_2024';
+CREATE USER svc_template_service WITH PASSWORD 'template_svc_pass_2024';
 
 -- Grant all privileges on respective databases to service users
 GRANT ALL PRIVILEGES ON DATABASE as_automobile_service TO svc_automobile_service;
@@ -81,6 +83,20 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_template_service;
 -- Set default privileges for future tables (created by Flyway)
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_template_service;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_template_service;
+
+-- ========================================
+-- Parts Service Database Setup
+-- ========================================
+\c as_parts_service;
+
+-- Grant schema privileges
+GRANT ALL ON SCHEMA public TO svc_parts_service;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_parts_service;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_parts_service;
+
+-- Set default privileges for future tables (created by Flyway)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_parts_service;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_parts_service;
 
 -- Log completion
 \c postgres;

@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: parts-service
+  flyway:
+    enabled: false
+    baselineOnMigrate: false
+    validateOnMigrate: false
+    check-location: false
+    locations: classpath:/DISABLE_MIGRATIONS
+  datasource:
+    url: jdbc:postgresql://localhost:5433/as_parts_service
+    username: svc_parts_service
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        show_sql: true
+        generate_statistics: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/your-firebase-project-id
+  cors:
+    allowed-origins: http://localhost:3000
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    enabled: false
+    serviceUrl:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+  instance:
+    preferIpAddress: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
