@@ -8,9 +8,9 @@ services:
     container_name: gearup-automobile-service
     ports:
       - "8080:8080"
-    # point env_file to repo root so variables are picked from the top-level .env
+    # Use local .env file in deployment/docker directory for Docker-specific variables
     env_file:
-      - ../../.env
+      - ./.env
     environment:
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
       - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL}
@@ -32,7 +32,7 @@ services:
     ports:
       - "8081:8081"
     env_file:
-      - ../../.env
+      - ./.env
     environment:
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
       - SPRING_DATASOURCE_URL=${NOTIFICATION_DB_URL}
@@ -62,7 +62,7 @@ services:
     ports:
       - "8082:8082"
     env_file:
-      - ../../.env
+      - ./.env
     environment:
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
       - SPRING_DATASOURCE_URL=${USER_AUTH_DB_URL}
@@ -74,11 +74,56 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  chatbot-service:
+    build:
+      context: ../../
+      dockerfile: ./services/chatbot-service/Dockerfile
+    container_name: gearup-chatbot-service
+    ports:
+      - "8084:8084"
+    env_file:
+      - ./.env
+    environment:
+      - SPRING_DATASOURCE_URL=${CHATBOT_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${CHATBOT_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${CHATBOT_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+      - OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: gearup-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    # Uncomment below if you have NVIDIA GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: gearup-postgres
     env_file:
-      - ../../.env
+      - ./.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -88,11 +133,12 @@ services:
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
       TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
+      CHATBOT_DB_PASSWORD: ${CHATBOT_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ../postgres/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ../postgres/init-db.sh:/docker-entrypoint-initdb.d/01-init.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -133,3 +179,4 @@ services:
 
 volumes:
   db-data:
+  ollama-data:

@@ -19,11 +19,12 @@ Set-Location $projectRoot
 Write-Host "Project root: $projectRoot" -ForegroundColor Gray
 Write-Host ""
 
-# Check if .env file exists
-if (-not (Test-Path ".env")) {
-    Write-Host "ERROR: .env file not found in project root!" -ForegroundColor Red
+# Check if deployment/docker/.env file exists
+if (-not (Test-Path "deployment\docker\.env")) {
+    Write-Host "ERROR: .env file not found in deployment/docker directory!" -ForegroundColor Red
     Write-Host "Current location: $(Get-Location)" -ForegroundColor Gray
-    Write-Host "Please ensure .env file exists in: $projectRoot" -ForegroundColor Yellow
+    Write-Host "Please ensure .env file exists in: $projectRoot\deployment\docker" -ForegroundColor Yellow
+    Write-Host "You can copy from .env.example: Copy-Item deployment\docker\.env.example deployment\docker\.env" -ForegroundColor Yellow
     exit 1
 }
 
@@ -40,11 +41,11 @@ Write-Host ""
 Write-Host "[2/3] Starting services..." -ForegroundColor Yellow
 Set-Location "deployment\docker"
 
-# Stop any existing containers (with env file)
-docker-compose --env-file ../../.env down 2>$null
+# Stop any existing containers
+docker-compose down 2>$null
 
-# Start all services (with env file)
-docker-compose --env-file ../../.env up -d
+# Start all services
+docker-compose up -d
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Failed to start services!" -ForegroundColor Red
@@ -75,7 +76,7 @@ while ($attempt -lt $maxAttempts) {
 
 if ($attempt -ge $maxAttempts) {
     Write-Host "WARNING: Database health check timed out" -ForegroundColor Yellow
-    Write-Host "Check logs: docker-compose --env-file ../../.env logs db" -ForegroundColor Gray
+    Write-Host "Check logs: docker-compose logs db" -ForegroundColor Gray
 }
 
 # Wait a bit more for services to start
@@ -87,8 +88,7 @@ Write-Host " Services Status" -ForegroundColor Cyan
 Write-Host "===========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Use env file for ps command too
-docker-compose --env-file ../../.env ps
+docker-compose ps
 
 Write-Host ""
 Write-Host "===========================================" -ForegroundColor Cyan
@@ -102,7 +102,7 @@ Write-Host "pgAdmin:           " -NoNewline; Write-Host "http://localhost:5050" 
 Write-Host "  └─ Email:        " -NoNewline; Write-Host "admin@gearup.com" -ForegroundColor Cyan
 Write-Host "  └─ Password:     " -NoNewline; Write-Host "admin123" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "To view logs: " -NoNewline; Write-Host "docker-compose --env-file ../../.env logs -f" -ForegroundColor Yellow
-Write-Host "To stop all:  " -NoNewline; Write-Host "docker-compose --env-file ../../.env down" -ForegroundColor Yellow
+Write-Host "To view logs: " -NoNewline; Write-Host "docker-compose logs -f" -ForegroundColor Yellow
+Write-Host "To stop all:  " -NoNewline; Write-Host "docker-compose down" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "v Startup complete!" -ForegroundColor Green

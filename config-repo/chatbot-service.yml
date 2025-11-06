@@ -1,0 +1,91 @@
+# Chatbot Service Configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/gearup
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        show_sql: false
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3000
+          max-attempts: 3
+          multiplier: 2.0
+
+# Ollama Configuration
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+  chat-model: ${OLLAMA_CHAT_MODEL:llama3.2:3b}
+  embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+  timeout: 60000
+  max-retries: 3
+
+# Chatbot Configuration
+chatbot:
+  rag:
+    enabled: true
+    top-k: 3
+    similarity-threshold: 0.7
+  session:
+    max-active-per-user: 5
+    timeout-hours: 24
+  knowledge-base:
+    auto-load: true
+
+# WebSocket Configuration
+websocket:
+  allowed-origins: ${WEBSOCKET_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}
+
+# Logging
+logging:
+  level:
+    com.gearup.chatbotservice: DEBUG
+    org.springframework.web: INFO
+    org.springframework.messaging: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Management and Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+server:
+  port: 8084
