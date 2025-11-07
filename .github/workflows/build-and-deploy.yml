@@ -211,8 +211,10 @@ jobs:
 
       - name: Install shared dependencies
         run: |
-          # Install parent POM and shared libraries first
-          ./mvnw -B -DskipTests install -pl shared-libs/security-lib,shared-libs/common-dto,shared-libs/common-utils,shared-libs/event-models
+          # Install parent POM first
+          ./mvnw -B -DskipTests install -N
+          # Install shared libraries
+          ./mvnw -B -DskipTests install -pl shared-libs/common-dto,shared-libs/common-utils,shared-libs/event-models,shared-libs/security-lib
 
       - name: Build module jar
         run: |

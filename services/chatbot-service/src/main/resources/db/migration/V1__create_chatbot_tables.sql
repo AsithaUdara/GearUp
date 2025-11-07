@@ -1,5 +1,12 @@
--- Enable pgvector extension for vector similarity search
-CREATE EXTENSION IF NOT EXISTS vector;
+-- Enable pgvector extension for vector similarity search (if available)
+-- In CI/CD environments without pgvector, this will be handled by V2 migration
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS vector;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'pgvector extension not available, will use TEXT fallback in V2 migration';
+END $$;
 
 -- Table for storing knowledge base documents with embeddings
 CREATE TABLE knowledge_documents (
@@ -8,14 +15,19 @@ CREATE TABLE knowledge_documents (
     metadata JSONB,
     source VARCHAR(255) NOT NULL,
     category VARCHAR(100),
-    embedding vector(768),  -- Dimension for nomic-embed-text model
+    embedding TEXT,  -- Will be converted to vector(768) if pgvector is available
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create index for vector similarity search using HNSW (better performance than IVFFlat)
-CREATE INDEX idx_knowledge_documents_embedding ON knowledge_documents 
-USING hnsw (embedding vector_cosine_ops);
+-- Create index for vector similarity search only if pgvector is available
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'vector') THEN
+        CREATE INDEX idx_knowledge_documents_embedding ON knowledge_documents 
+        USING hnsw (embedding vector_cosine_ops);
+    END IF;
+END $$;
 
 -- Create indexes for filtering
 CREATE INDEX idx_knowledge_documents_source ON knowledge_documents(source);

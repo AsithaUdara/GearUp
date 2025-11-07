@@ -1,18 +1,23 @@
--- Conditional migration that handles environments without pgvector
--- This migration runs after V1 and adds compatibility for testing
+-- Conditional migration that handles pgvector availability
+-- This migration converts TEXT to vector(768) if pgvector is available
 
--- Check if vector type exists and create alternative if not
 DO $$
 BEGIN
-    -- Try to detect if we're in a test environment
-    -- If the vector type doesn't exist, we'll handle it gracefully
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'vector') THEN
-        -- Alter the column to TEXT for compatibility
-        ALTER TABLE knowledge_documents ALTER COLUMN embedding TYPE TEXT;
-        RAISE NOTICE 'Running in non-pgvector environment: embedding column converted to TEXT';
+    -- If pgvector extension exists, convert TEXT to vector type
+    IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'vector') THEN
+        -- Convert embedding column from TEXT to vector(768)
+        ALTER TABLE knowledge_documents ALTER COLUMN embedding TYPE vector(768) USING embedding::vector(768);
+        
+        -- Create vector similarity search index
+        CREATE INDEX IF NOT EXISTS idx_knowledge_documents_embedding ON knowledge_documents 
+        USING hnsw (embedding vector_cosine_ops);
+        
+        RAISE NOTICE 'pgvector available: embedding column converted to vector(768) with index';
+    ELSE
+        -- Keep as TEXT for environments without pgvector (CI/CD)
+        RAISE NOTICE 'pgvector not available: keeping embedding as TEXT for compatibility';
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        -- If any error occurs, log it but continue
-        RAISE NOTICE 'Migration V2 completed with compatibility mode';
+        RAISE NOTICE 'Migration V2 completed with current configuration';
 END $$;
