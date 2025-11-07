@@ -13,8 +13,8 @@ public interface CustomerAnalyticsRepository extends JpaRepository<CustomerAnaly
     
     Optional<CustomerAnalytics> findByRecordDate(LocalDate recordDate);
     
-    @Query("SELECT ca FROM CustomerAnalytics ca ORDER BY ca.recordDate DESC LIMIT 1")
-    Optional<CustomerAnalytics> findLatest();
+    // Use Spring Data JPA method naming convention instead of JPQL LIMIT
+    Optional<CustomerAnalytics> findFirstByOrderByRecordDateDesc();
     
     @Query("SELECT SUM(ca.newCustomers) FROM CustomerAnalytics ca WHERE ca.recordDate BETWEEN :startDate AND :endDate")
     Integer getTotalNewCustomers(LocalDate startDate, LocalDate endDate);
