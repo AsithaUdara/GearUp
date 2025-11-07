@@ -1,13 +1,13 @@
-# Vehicle Service Configuration
+# Customer Service Configuration
 spring:
   application:
-    name: vehicle-service
+    name: customer-service
 
   # Database Configuration
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/as_vehicle_service}
-    username: ${SPRING_DATASOURCE_USERNAME:svc_vehicle_service}
-    password: ${SPRING_DATASOURCE_PASSWORD:vehicle_svc_pass_2024}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/as_customer_service}
+    username: ${SPRING_DATASOURCE_USERNAME:svc_customer_service}
+    password: ${SPRING_DATASOURCE_PASSWORD:customer_svc_pass_2024}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -58,7 +58,7 @@ spring:
           multiplier: 2.0
 
 server:
-  port: 8090
+  port: 8088
 
 # Eureka Client Configuration
 eureka:
