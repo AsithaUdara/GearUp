@@ -26,6 +26,13 @@ import jakarta.servlet.http.HttpServletResponse;
 public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // Skip filter for actuator endpoints and public paths
+        return path.startsWith("/actuator/") || path.startsWith("/api/public/");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 

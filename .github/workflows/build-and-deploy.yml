@@ -4,11 +4,15 @@ on:
   push:
     branches:
       - main
+      - development
       - microservice-initialization
+      - chatbot
   pull_request:
     branches:
       - main
+      - development
       - microservice-initialization
+      - chatbot
 
 env:
   HELM_NAMESPACE: staging
@@ -68,7 +72,10 @@ jobs:
     name: Run database migrations
     needs: build-root
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/microservice-initialization')
+    # Run on both push and pull_request events to ensure all dependent jobs execute
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development' || github.ref == 'refs/heads/microservice-initialization' || github.ref == 'refs/heads/chatbot')) ||
+      (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'development' || github.base_ref == 'microservice-initialization' || github.base_ref == 'chatbot'))
 
     services:
       postgres:
@@ -108,6 +115,11 @@ jobs:
             db: as_template_service
             user: svc_template_service
             password: template_svc_pass_2024
+          - name: chatbot-service
+            module: services/chatbot-service
+            db: as_chatbot_service
+            user: svc_chatbot_service
+            password: chatbot_svc_pass_2024
 
     steps:
       - name: Checkout
@@ -123,23 +135,75 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
 
+      - name: Build parent POM and shared libraries
+        run: |
+          # Install parent POM first
+          ./mvnw -B -DskipTests install -N
+          # Install all shared libraries
+          ./mvnw -B -DskipTests clean install -pl shared-libs/security-lib,shared-libs/event-models,shared-libs/common-utils,shared-libs/common-dto -am
+
+      - name: Wait for PostgreSQL to be ready
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
       - name: Setup database for ${{ matrix.service.name }}
         env:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
         run: |
-          psql -h localhost -U postgres <<EOF
-          CREATE DATABASE ${{ matrix.service.db }};
+          echo "Creating database and user for ${{ matrix.service.name }}..."
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<EOF
+          -- Drop and recreate database to ensure clean state
+          DROP DATABASE IF EXISTS ${{ matrix.service.db }};
+          DROP USER IF EXISTS ${{ matrix.service.user }};
+
+          -- Create user first
           CREATE USER ${{ matrix.service.user }} WITH PASSWORD '${{ matrix.service.password }}';
-          GRANT ALL PRIVILEGES ON DATABASE ${{ matrix.service.db }} TO ${{ matrix.service.user }};
+
+          -- Create database with the user as owner
+          CREATE DATABASE ${{ matrix.service.db }} OWNER ${{ matrix.service.user }};
+
+          -- Connect to the database and grant permissions
           \c ${{ matrix.service.db }}
+
+          -- Grant schema permissions
           GRANT ALL ON SCHEMA public TO ${{ matrix.service.user }};
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${{ matrix.service.user }};
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${{ matrix.service.user }};
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO ${{ matrix.service.user }};
           EOF
+          echo "Database setup completed for ${{ matrix.service.name }}"
+
+      - name: Install pgvector extension for chatbot-service
+        if: matrix.service.name == 'chatbot-service'
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
+        run: |
+          echo "Attempting to install pgvector extension for chatbot-service..."
+          # PostgreSQL 15-alpine may not have pgvector pre-installed
+          # We'll try to create it, but if it fails, the migration will handle it
+          psql -h localhost -U postgres -d ${{ matrix.service.db }} -v ON_ERROR_STOP=0 <<EOF || echo "pgvector not available, skipping extension creation"
+          CREATE EXTENSION IF NOT EXISTS vector;
+          EOF
+
+      - name: Build service module
+        run: |
+          echo "Building ${{ matrix.service.name }} module..."
+          ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am
 
       - name: Run Flyway migration for ${{ matrix.service.name }}
         run: |
-          ./mvnw -pl ${{ matrix.service.module }} \
+          echo "Running Flyway migration for ${{ matrix.service.name }}..."
+          ./mvnw -B -pl ${{ matrix.service.module }} \
             -Dflyway.url=jdbc:postgresql://localhost:5432/${{ matrix.service.db }} \
             -Dflyway.user=postgres \
             -Dflyway.password=${{ secrets.POSTGRES_PASSWORD || 'postgres123' }} \
@@ -147,7 +211,8 @@ jobs:
 
       - name: Verify migration status
         run: |
-          ./mvnw -pl ${{ matrix.service.module }} \
+          echo "Verifying migration status for ${{ matrix.service.name }}..."
+          ./mvnw -B -pl ${{ matrix.service.module }} \
             -Dflyway.url=jdbc:postgresql://localhost:5432/${{ matrix.service.db }} \
             -Dflyway.user=postgres \
             -Dflyway.password=${{ secrets.POSTGRES_PASSWORD || 'postgres123' }} \
@@ -155,7 +220,8 @@ jobs:
 
   build-modules:
     name: Build individual microservices
-    needs: [build-root, flyway-migrate]
+    needs: [build-root]
+    if: always() && needs.build-root.result == 'success'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -168,6 +234,8 @@ jobs:
             module: services/user-auth-service
           - name: automobile-service
             module: services/automobile-service
+          - name: chatbot-service
+            module: services/chatbot-service
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -191,12 +259,18 @@ jobs:
 
       - name: Install shared dependencies
         run: |
-          # Install parent POM and shared libraries first
-          ./mvnw -B -DskipTests install -pl shared-libs/security-lib,shared-libs/common-dto,shared-libs/common-utils,shared-libs/event-models
+          # Install parent POM first
+          ./mvnw -B -DskipTests install -N
+          # Install all shared libraries with proper dependency resolution
+          # Use wildcard to include all shared-libs modules
+          ./mvnw -B -DskipTests clean install -pl shared-libs/security-lib -am
+          ./mvnw -B -DskipTests clean install -pl shared-libs/event-models -am
+          ./mvnw -B -DskipTests clean install -pl shared-libs/common-utils -am
+          ./mvnw -B -DskipTests clean install -pl shared-libs/common-dto -am
 
       - name: Build module jar
         run: |
-          ./mvnw -B -DskipTests package -pl ${{ matrix.service.module }} -am
+          ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am
 
   deploy:
     name: Deploy Helm charts
