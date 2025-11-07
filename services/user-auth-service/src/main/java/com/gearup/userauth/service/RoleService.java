@@ -1,0 +1,44 @@
+package com.gearup.userauth.service;
+
+import com.gearup.userauth.dto.RoleResponse;
+import com.gearup.userauth.exception.ResourceNotFoundException;
+import com.gearup.userauth.model.Role;
+import com.gearup.userauth.repository.RoleRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class RoleService {
+
+    private static final Logger logger = LoggerFactory.getLogger(RoleService.class);
+
+    private final RoleRepository roleRepository;
+
+    public RoleService(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoleResponse> getAllRoles() {
+        return roleRepository.findAll().stream()
+                .map(RoleResponse::fromRole)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public RoleResponse getRoleResponseByName(String name) {
+        Role role = getRoleByName(name);
+        return RoleResponse.fromRole(role);
+    }
+
+    @Transactional(readOnly = true)
+    public Role getRoleByName(String name) {
+        return roleRepository.findByNameWithPermissions(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", name));
+    }
+}
