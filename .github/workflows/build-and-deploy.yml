@@ -72,7 +72,10 @@ jobs:
     name: Run database migrations
     needs: build-root
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development' || github.ref == 'refs/heads/microservice-initialization' || github.ref == 'refs/heads/chatbot')
+    # Run on both push and pull_request events to ensure all dependent jobs execute
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development' || github.ref == 'refs/heads/microservice-initialization' || github.ref == 'refs/heads/chatbot')) ||
+      (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'development' || github.base_ref == 'microservice-initialization' || github.base_ref == 'chatbot'))
 
     services:
       postgres:
