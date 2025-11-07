@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.gearup.apigateway.service.FirebaseAuthProvider;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseToken;
 
 import reactor.core.publisher.Mono;
@@ -40,6 +41,12 @@ public class FirebaseGatewayFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
+        // If Firebase is not initialized (e.g., in local dev where gateway auth is disabled),
+        // skip verification here and let downstream services handle token verification.
+        if (FirebaseApp.getApps().isEmpty()) {
+            return chain.filter(exchange);
+        }
+
         String token = auth.substring(7);
 
         // perform verification off the event-loop thread
@@ -47,7 +54,10 @@ public class FirebaseGatewayFilter implements GlobalFilter, Ordered {
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap((FirebaseToken decoded) -> {
                     ServerWebExchange mutated = exchange.mutate()
-                            .request(r -> r.headers(headers -> headers.add(HEADER_USER_ID, decoded.getUid())))
+                            .request(r -> r.headers(headers -> {
+                                headers.add(HEADER_USER_ID, decoded.getUid());
+                                headers.add("X-Forwarded-Uid", decoded.getUid());
+                            }))
                             .build();
                     return chain.filter(mutated);
                 })

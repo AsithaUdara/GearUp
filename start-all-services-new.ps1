@@ -11,18 +11,18 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptDir
 
 # Function to start a service in a new window
-function Start-Service {
+function Start-ServiceWindow {
     param(
         [string]$ServiceName,
-        [string]$ServicePath,
-        [string]$Command = "mvn spring-boot:run"
+        [string]$ServicePath
     )
     
     Write-Host "Starting $ServiceName..." -ForegroundColor Yellow
     $fullPath = Join-Path $scriptDir $ServicePath
     
     if (Test-Path $fullPath) {
-        Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$fullPath'; Write-Host 'Starting $ServiceName...' -ForegroundColor Green; $Command"
+        $command = "cd '$fullPath'; Write-Host 'Starting $ServiceName...' -ForegroundColor Green; mvn spring-boot:run"
+        Start-Process powershell -ArgumentList "-NoExit", "-Command", $command
         Write-Host "✓ $ServiceName started in new window" -ForegroundColor Green
     } else {
         Write-Host "✗ Path not found: $fullPath" -ForegroundColor Red
@@ -33,46 +33,46 @@ function Start-Service {
 
 # Start services in order
 Write-Host "Step 1: Starting Config Server..." -ForegroundColor Cyan
-Start-Service -ServiceName "Config Server" -ServicePath "config-server"
+Start-ServiceWindow -ServiceName "Config Server" -ServicePath "config-server"
 Start-Sleep -Seconds 10
 
 Write-Host "`nStep 2: Starting Service Discovery (Eureka)..." -ForegroundColor Cyan
-Start-Service -ServiceName "Service Discovery" -ServicePath "service-discovery"
+Start-ServiceWindow -ServiceName "Service Discovery" -ServicePath "service-discovery"
 Start-Sleep -Seconds 10
 
 Write-Host "`nStep 3: Starting User Auth Service..." -ForegroundColor Cyan
-Start-Service -ServiceName "User Auth Service" -ServicePath "services\user-auth-service"
+Start-ServiceWindow -ServiceName "User Auth Service" -ServicePath "services\user-auth-service"
 Start-Sleep -Seconds 10
 
 Write-Host "`nStep 4: Starting API Gateway..." -ForegroundColor Cyan
-Start-Service -ServiceName "API Gateway" -ServicePath "api-gateway"
+Start-ServiceWindow -ServiceName "API Gateway" -ServicePath "api-gateway"
 Start-Sleep -Seconds 5
 
 # Optional: Start other services
 Write-Host "`nStarting other services (if available)..." -ForegroundColor Cyan
 
 if (Test-Path "services\vehicle-service") {
-    Start-Service -ServiceName "Vehicle Service" -ServicePath "services\vehicle-service"
+    Start-ServiceWindow -ServiceName "Vehicle Service" -ServicePath "services\vehicle-service"
     Start-Sleep -Seconds 5
 }
 
 if (Test-Path "services\trip-service") {
-    Start-Service -ServiceName "Trip Service" -ServicePath "services\trip-service"
+    Start-ServiceWindow -ServiceName "Trip Service" -ServicePath "services\trip-service"
     Start-Sleep -Seconds 5
 }
 
 if (Test-Path "services\billing-service") {
-    Start-Service -ServiceName "Billing Service" -ServicePath "services\billing-service"
+    Start-ServiceWindow -ServiceName "Billing Service" -ServicePath "services\billing-service"
     Start-Sleep -Seconds 5
 }
 
 if (Test-Path "services\notification-service") {
-    Start-Service -ServiceName "Notification Service" -ServicePath "services\notification-service"
+    Start-ServiceWindow -ServiceName "Notification Service" -ServicePath "services\notification-service"
     Start-Sleep -Seconds 5
 }
 
 if (Test-Path "services\tracking-service") {
-    Start-Service -ServiceName "Tracking Service" -ServicePath "services\tracking-service"
+    Start-ServiceWindow -ServiceName "Tracking Service" -ServicePath "services\tracking-service"
     Start-Sleep -Seconds 5
 }
 
@@ -87,5 +87,5 @@ Write-Host "  API Gateway:         http://localhost:8080" -ForegroundColor White
 Write-Host "  User Auth Service:   http://localhost:8081" -ForegroundColor White
 Write-Host ""
 Write-Host "Tip: Check each window to see if services started successfully" -ForegroundColor Cyan
-Write-Host "Press any key to exit this window..." -ForegroundColor Gray
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+Write-Host "Press any key to exit..." -ForegroundColor Gray
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')

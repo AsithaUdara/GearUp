@@ -39,6 +39,9 @@ public class TokenService {
 
     private final UserSessionRepository sessionRepository;
     private SecretKey secretKey;
+    
+    @Value("${jwt.password-change-expiration-seconds:900}") // 15 minutes default
+    private long passwordChangeExpirationSeconds;
 
     public TokenService(UserSessionRepository sessionRepository) {
         this.sessionRepository = sessionRepository;
@@ -88,6 +91,25 @@ public class TokenService {
         claims.put("roles", user.getRoles().stream()
                 .map(role -> role.getName())
                 .toArray());
+
+        return Jwts.builder()
+                .subject(user.getFirebaseUid())
+                .claims(claims)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public String generateScopedToken(User user, String scope, long ttlSeconds) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + ttlSeconds * 1000);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getId());
+        claims.put("email", user.getEmail());
+        claims.put("firebaseUid", user.getFirebaseUid());
+        claims.put("scope", scope);
 
         return Jwts.builder()
                 .subject(user.getFirebaseUid())

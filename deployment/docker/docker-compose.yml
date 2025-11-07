@@ -1,17 +1,79 @@
 services:
-  automobile-service:
+  # External entrypoint for the frontend and API consumers
+  api-gateway:
     build:
-      # Use repository root as build context so the Docker build can access shared modules
       context: ../../
-      # Dockerfile for this service, path relative to the build context
-      dockerfile: ./services/automobile-service/Dockerfile
-    container_name: gearup-automobile-service
+      dockerfile: ./api-gateway/Dockerfile
+    container_name: gearup-api-gateway
     ports:
-      - "8080:8080"
-    # point env_file to repo root so variables are picked from the top-level .env
+      - "8088:8080"
     env_file:
       - ../../.env
     environment:
+      # Config Server & Eureka service discovery
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:password@service-discovery:8761/eureka
+      - EUREKA_URL=http://admin:password@service-discovery:8761/eureka
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=false
+      # Ensure gateway doesn't try to parse malformed Firebase JSON from .env; fall back to skipping in dev
+      - FIREBASE_SERVICE_ACCOUNT_JSON=
+    # Redis connection used by gateway filters/rate-limits if enabled
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      service-discovery:
+        condition: service_started
+      config-server:
+        condition: service_started
+    restart: unless-stopped
+
+  # Centralized configuration (optionally disabled locally, but useful in container network)
+  config-server:
+    build:
+      context: ../../
+      dockerfile: ./config-server/Dockerfile
+    container_name: gearup-config-server
+    ports:
+      - "8888:8888"
+    env_file:
+      - ../../.env
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:password@service-discovery:8761/eureka
+      - SPRING_PROFILES_ACTIVE=native
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/app/config-repo
+    depends_on:
+      service-discovery:
+        condition: service_started
+    restart: unless-stopped
+    volumes:
+      - ../../config-repo:/app/config-repo:ro
+
+  # Service discovery (Eureka)
+  service-discovery:
+    build:
+      context: ../../
+      dockerfile: ./service-discovery/Dockerfile
+    container_name: gearup-service-discovery
+    ports:
+      - "8761:8761"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_SECURITY_USER_NAME=admin
+      - SPRING_SECURITY_USER_PASSWORD=password
+    restart: unless-stopped
+
+  # Automobile microservice (internal only - no host port mapping)
+  automobile-service:
+    build:
+      context: ../../
+      dockerfile: ./services/automobile-service/Dockerfile
+    container_name: gearup-automobile-service
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:password@service-discovery:8761/eureka
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
       - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER}
@@ -20,20 +82,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      service-discovery:
+        condition: service_started
     restart: unless-stopped
 
+  # Notification microservice (internal only)
   notification-service:
     build:
-      # Use repository root as build context so the Docker build can access shared modules
       context: ../../
-      # Dockerfile for this service, path relative to the build context
       dockerfile: ./services/notification-service/Dockerfile
     container_name: gearup-notification-service
-    ports:
-      - "8081:8081"
     env_file:
       - ../../.env
     environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:password@service-discovery:8761/eureka
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
       - SPRING_DATASOURCE_URL=${NOTIFICATION_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${NOTIFICATION_DB_USER}
@@ -52,26 +115,44 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      service-discovery:
+        condition: service_started
     restart: unless-stopped
 
+  # User authentication service (internal only)
   user-auth-service:
     build:
       context: ../../
       dockerfile: ./services/user-auth-service/Dockerfile
     container_name: gearup-user-auth-service
-    ports:
-      - "8082:8082"
     env_file:
       - ../../.env
     environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:password@service-discovery:8761/eureka
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
       - SPRING_DATASOURCE_URL=${USER_AUTH_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${USER_AUTH_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${USER_AUTH_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      # RabbitMQ & Redis override localhost defaults in application.yml
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_PROFILES_ACTIVE=dev
+      - DEV_ADMIN_KEY=${DEV_ADMIN_KEY:-dev-secret}
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      service-discovery:
+        condition: service_started
     restart: unless-stopped
 
   db:
