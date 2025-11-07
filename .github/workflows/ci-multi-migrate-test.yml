@@ -91,24 +91,25 @@ jobs:
           while read svc; do
             if [ -z "$svc" ]; then continue; fi
             echo "Creating DB and user for $svc"
-            dbname="as_${svc}"
-            dbuser="svc_${svc}"
+            # Replace hyphens with underscores for valid PostgreSQL identifiers
+            dbname="as_${svc//-/_}"
+            dbuser="svc_${svc//-/_}"
             
-            # Drop existing database and user if they exist
-            psql -h localhost -U postgres -v ON_ERROR_STOP=0 -c "DROP DATABASE IF EXISTS $dbname;" || true
-            psql -h localhost -U postgres -v ON_ERROR_STOP=0 -c "DROP USER IF EXISTS $dbuser;" || true
+            # Drop existing database and user if they exist (with quoted identifiers)
+            psql -h localhost -U postgres -v ON_ERROR_STOP=0 -c "DROP DATABASE IF EXISTS \"$dbname\";" || true
+            psql -h localhost -U postgres -v ON_ERROR_STOP=0 -c "DROP USER IF EXISTS \"$dbuser\";" || true
             
-            # Create user
-            psql -h localhost -U postgres -c "CREATE USER $dbuser WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';"
+            # Create user (with quoted identifiers)
+            psql -h localhost -U postgres -c "CREATE USER \"$dbuser\" WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';"
             
-            # Create database
-            psql -h localhost -U postgres -c "CREATE DATABASE $dbname OWNER $dbuser;"
+            # Create database (with quoted identifiers)
+            psql -h localhost -U postgres -c "CREATE DATABASE \"$dbname\" OWNER \"$dbuser\";"
             
-            # Grant permissions
-            psql -h localhost -U postgres -d $dbname -c "GRANT ALL ON SCHEMA public TO $dbuser;"
-            psql -h localhost -U postgres -d $dbname -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $dbuser;"
-            psql -h localhost -U postgres -d $dbname -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $dbuser;"
-            psql -h localhost -U postgres -d $dbname -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO $dbuser;"
+            # Grant permissions (with quoted identifiers)
+            psql -h localhost -U postgres -d "$dbname" -c "GRANT ALL ON SCHEMA public TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO \"$dbuser\";"
             
             echo "✓ Database $dbname created successfully"
           done < services.txt
@@ -121,8 +122,9 @@ jobs:
           while read svc; do
             if [ -z "$svc" ]; then continue; fi
             echo "Migrating $svc..."
-            dbname="as_${svc}"
-            dbuser="svc_${svc}"
+            # Replace hyphens with underscores for valid PostgreSQL identifiers
+            dbname="as_${svc//-/_}"
+            dbuser="svc_${svc//-/_}"
             ./mvnw -B -pl "services/$svc" \
               "-Dflyway.url=jdbc:postgresql://localhost:5432/${dbname}" \
               "-Dflyway.user=postgres" \
