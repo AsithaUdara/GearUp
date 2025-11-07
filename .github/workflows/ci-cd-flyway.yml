@@ -87,11 +87,6 @@ jobs:
                       db: as_user_auth_service
                       user: svc_user_auth_service
                       password: auth_svc_pass_2024
-                    - name: template-service
-                      module: services/template-service
-                      db: as_template_service
-                      user: svc_template_service
-                      password: template_svc_pass_2024
 
         steps:
             - name: Checkout repository
