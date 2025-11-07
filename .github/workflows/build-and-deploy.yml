@@ -213,8 +213,12 @@ jobs:
         run: |
           # Install parent POM first
           ./mvnw -B -DskipTests install -N
-          # Install all shared libraries
-          ./mvnw -B -DskipTests clean install -pl shared-libs/common-dto,shared-libs/common-utils,shared-libs/event-models,shared-libs/security-lib -am
+          # Install all shared libraries with proper dependency resolution
+          # Use wildcard to include all shared-libs modules
+          ./mvnw -B -DskipTests clean install -pl shared-libs/security-lib -am
+          ./mvnw -B -DskipTests clean install -pl shared-libs/event-models -am
+          ./mvnw -B -DskipTests clean install -pl shared-libs/common-utils -am
+          ./mvnw -B -DskipTests clean install -pl shared-libs/common-dto -am
 
       - name: Build module jar
         run: |

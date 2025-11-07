@@ -23,7 +23,7 @@ class IntentClassifierServiceTest {
     void testBookingIntent() {
         // When
         String intent1 = service.classifyIntent("I want to book an appointment");
-        String intent2 = service.classifyIntent("Can I schedule a service?");
+        String intent2 = service.classifyIntent("Can I reserve a service?");
         String intent3 = service.classifyIntent("Need to make an appointment");
 
         // Then

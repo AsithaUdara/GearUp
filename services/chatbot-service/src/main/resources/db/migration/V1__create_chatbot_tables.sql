@@ -40,7 +40,7 @@ CREATE TABLE conversation_history (
     session_id VARCHAR(255) NOT NULL,
     user_id VARCHAR(255),
     message TEXT NOT NULL,
-    sender VARCHAR(50) NOT NULL CHECK (sender IN ('user', 'bot', 'system')),
+    sender VARCHAR(50) NOT NULL CHECK (sender IN ('USER', 'BOT', 'SYSTEM', 'user', 'bot', 'system')),
     intent VARCHAR(255),
     metadata JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -56,7 +56,7 @@ CREATE TABLE chat_sessions (
     id BIGSERIAL PRIMARY KEY,
     session_id VARCHAR(255) UNIQUE NOT NULL,
     user_id VARCHAR(255),
-    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'closed', 'archived')),
+    status VARCHAR(50) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'CLOSED', 'ARCHIVED', 'active', 'closed', 'archived')),
     metadata JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
