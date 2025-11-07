@@ -6,8 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,6 +21,6 @@ public class CreateModificationRequestDTO {
     private String customerPhone;
     private String customerAddress;
     
-    private LocalDate preferredDate;
+    private String preferredDate; // Changed from LocalDate to String
     private String notes;
 }

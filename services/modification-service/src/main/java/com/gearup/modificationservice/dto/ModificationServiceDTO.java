@@ -15,5 +15,5 @@ public class ModificationServiceDTO {
     private String description;
     private BigDecimal basePrice;
     private Integer estimatedDurationHours;
-    private Boolean isActive;
+    private Boolean active;
 }

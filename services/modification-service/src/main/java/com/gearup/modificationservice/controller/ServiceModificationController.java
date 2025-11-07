@@ -21,6 +21,14 @@ public class ServiceModificationController {
     private final ModificationServiceService modificationServiceService;
     private final ModificationRequestService modificationRequestService;
     
+    // GET /api/service-modifications - List all services
+    @GetMapping
+    public ResponseEntity<List<ModificationServiceDTO>> getAllServices() {
+        log.info("GET /api/service-modifications - Fetching all active services");
+        List<ModificationServiceDTO> services = modificationServiceService.getAllActiveServices();
+        return ResponseEntity.ok(services);
+    }
+    
     // GET /api/service-modifications/:serviceId
     @GetMapping("/{serviceId}")
     public ResponseEntity<ServiceModificationResponse> getServiceWithModifications(@PathVariable Long serviceId) {

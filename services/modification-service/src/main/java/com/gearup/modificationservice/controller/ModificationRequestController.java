@@ -24,11 +24,12 @@ public class ModificationRequestController {
     
     // POST /api/service-modifications/:serviceId/requests
     @PostMapping("/service-modifications/{serviceId}/requests")
-    public ResponseEntity<ModificationRequestDTO> submitModificationRequest(
+    public ResponseEntity<?> submitModificationRequest(
             @PathVariable Long serviceId,
             @Valid @RequestBody CreateModificationRequestDTO request) {
         
         log.info("POST /api/service-modifications/{}/requests - Submitting new modification request", serviceId);
+        log.info("Request body: {}", request);
         
         // Set the service ID from path parameter
         request.setServiceId(serviceId);
@@ -36,9 +37,10 @@ public class ModificationRequestController {
         try {
             ModificationRequestDTO createdRequest = modificationRequestService.createRequest(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdRequest);
-        } catch (RuntimeException e) {
-            log.error("Error creating modification request: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error creating modification request: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(java.util.Map.of("error", e.getMessage(), "details", e.getClass().getSimpleName()));
         }
     }
     

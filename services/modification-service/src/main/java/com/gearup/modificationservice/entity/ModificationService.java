@@ -34,7 +34,7 @@ public class ModificationService {
     private Integer estimatedDurationHours;
     
     @Column(name = "is_active")
-    private Boolean isActive = true;
+    private Boolean active = true;
     
     @CreationTimestamp
     @Column(name = "created_at")
@@ -44,6 +44,7 @@ public class ModificationService {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ModificationRequest> modificationRequests;
+    // Removed OneToMany relationship to avoid lazy loading issues
+    // @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private List<ModificationRequest> modificationRequests;
 }

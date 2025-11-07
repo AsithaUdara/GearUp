@@ -10,8 +10,8 @@ import java.util.List;
 @Repository
 public interface ModificationServiceRepository extends JpaRepository<ModificationService, Long> {
     
-    List<ModificationService> findByIsActiveTrue();
+    List<ModificationService> findByActiveTrue();
     
-    @Query("SELECT s FROM ModificationService s WHERE s.isActive = true ORDER BY s.name")
+    @Query("SELECT s FROM ModificationService s WHERE s.active = true ORDER BY s.name")
     List<ModificationService> findActiveServicesOrderByName();
 }

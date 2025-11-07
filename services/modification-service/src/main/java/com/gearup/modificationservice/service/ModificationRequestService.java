@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,45 +32,67 @@ public class ModificationRequestService {
     public ModificationRequestDTO createRequest(CreateModificationRequestDTO request) {
         log.debug("Creating modification request for service: {}", request.getServiceId());
         
-        // Validate service exists
-        ModificationService service = modificationServiceRepository.findById(request.getServiceId())
-                .orElseThrow(() -> new RuntimeException("Service not found"));
-        
-        // Create or get customer
-        String userId = UUID.randomUUID().toString(); // In real app, get from auth context
-        Customer customer = customerRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    Customer newCustomer = new Customer();
-                    newCustomer.setUserId(userId);
-                    newCustomer.setName(request.getCustomerName());
-                    newCustomer.setEmail(request.getCustomerEmail());
-                    newCustomer.setPhone(request.getCustomerPhone());
-                    newCustomer.setAddress(request.getCustomerAddress());
-                    return customerRepository.save(newCustomer);
-                });
-        
-        // Create modification request
-        ModificationRequest modificationRequest = new ModificationRequest();
-        modificationRequest.setService(service);
-        modificationRequest.setCustomer(customer);
-        modificationRequest.setStatus(RequestStatus.PENDING);
-        modificationRequest.setRequestDate(LocalDateTime.now());
-        modificationRequest.setPreferredDate(request.getPreferredDate());
-        modificationRequest.setNotes(request.getNotes());
-        modificationRequest.setEstimatedCost(service.getBasePrice());
-        
-        modificationRequest = modificationRequestRepository.save(modificationRequest);
-        
-        log.info("Modification request created successfully with id: {}", modificationRequest.getId());
-        return convertToDTO(modificationRequest);
+        try {
+            // Validate service exists
+            ModificationService service = modificationServiceRepository.findById(request.getServiceId())
+                    .orElseThrow(() -> new RuntimeException("Service not found"));
+            
+            // Create or get customer
+            // For testing, use email as userId if no auth context
+            String userId = request.getCustomerEmail() != null ? request.getCustomerEmail() : "test-user-" + System.currentTimeMillis();
+            
+            Customer customer = customerRepository.findByUserId(userId)
+                    .orElseGet(() -> {
+                        Customer newCustomer = new Customer();
+                        newCustomer.setUserId(userId);
+                        newCustomer.setName(request.getCustomerName());
+                        newCustomer.setEmail(request.getCustomerEmail());
+                        newCustomer.setPhone(request.getCustomerPhone());
+                        newCustomer.setAddress(request.getCustomerAddress());
+                        return customerRepository.save(newCustomer);
+                    });
+            
+            // Create modification request
+            ModificationRequest modificationRequest = new ModificationRequest();
+            modificationRequest.setService(service);
+            modificationRequest.setCustomer(customer);
+            modificationRequest.setStatus(RequestStatus.PENDING);
+            modificationRequest.setRequestDate(LocalDateTime.now());
+            
+            // Parse preferred date if provided
+            if (request.getPreferredDate() != null && !request.getPreferredDate().isEmpty()) {
+                try {
+                    modificationRequest.setPreferredDate(LocalDate.parse(request.getPreferredDate()));
+                } catch (Exception e) {
+                    log.warn("Failed to parse preferred date: {}", request.getPreferredDate());
+                    // Continue without preferred date
+                }
+            }
+            
+            modificationRequest.setNotes(request.getNotes());
+            modificationRequest.setEstimatedCost(service.getBasePrice());
+            
+            modificationRequest = modificationRequestRepository.save(modificationRequest);
+            
+            log.info("Modification request created successfully with id: {}", modificationRequest.getId());
+            return convertToDTO(modificationRequest);
+        } catch (Exception e) {
+            log.error("Error creating modification request: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to create modification request: " + e.getMessage());
+        }
     }
     
     public List<ModificationRequestDTO> getRequestsByServiceId(Long serviceId) {
         log.debug("Fetching modification requests for service: {}", serviceId);
-        List<ModificationRequest> requests = modificationRequestRepository.findByServiceIdOrderByRequestDateDesc(serviceId);
-        return requests.stream()
-                .map(this::convertToDTO)
-                .toList();
+        try {
+            List<ModificationRequest> requests = modificationRequestRepository.findByServiceIdOrderByRequestDateDesc(serviceId);
+            return requests.stream()
+                    .map(this::convertToDTO)
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error fetching requests for service {}: {}", serviceId, e.getMessage());
+            return List.of(); // Return empty list on error
+        }
     }
     
     public Optional<ModificationRequestDTO> getRequestById(Long id) {
@@ -146,7 +169,7 @@ public class ModificationRequestService {
                             service.getDescription(),
                             service.getBasePrice(),
                             service.getEstimatedDurationHours(),
-                            service.getIsActive()
+                            service.getActive()
                     );
                 })
                 .distinct()

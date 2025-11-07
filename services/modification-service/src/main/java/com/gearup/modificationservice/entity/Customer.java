@@ -41,6 +41,7 @@ public class Customer {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ModificationRequest> modificationRequests;
+    // Removed OneToMany relationship to avoid lazy loading issues
+    // @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private List<ModificationRequest> modificationRequests;
 }
