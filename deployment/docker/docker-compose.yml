@@ -94,6 +94,25 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  analytical-service:
+    build:
+      context: ../../
+      dockerfile: ./services/analytical-service/Dockerfile
+    container_name: gearup-analytical-service
+    ports:
+      - "8087:8087"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_DATASOURCE_URL=${ANALYTICAL_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${ANALYTICAL_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${ANALYTICAL_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   db:
     image: postgres:15-alpine
     container_name: gearup-postgres
@@ -109,6 +128,7 @@ services:
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
       TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
       TRACKING_DB_PASSWORD: ${TRACKING_DB_PASSWORD}
+      ANALYTICAL_DB_PASSWORD: ${ANALYTICAL_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:

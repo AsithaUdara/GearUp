@@ -13,9 +13,9 @@
     <modules>
         <module>services/automobile-service</module>
         <module>services/notification-service</module>
-        <module>services/template-service</module>
         <module>services/user-auth-service</module>
         <module>services/tracking-service</module>
+        <module>services/analytical-service</module>
 
         <!-- Infra modules -->
         <module>service-discovery</module>
