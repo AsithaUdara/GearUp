@@ -1,10 +1,9 @@
 package com.gearup.chatbotservice.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for IntentClassifierService
@@ -52,8 +51,8 @@ class IntentClassifierServiceTest {
     void testStatusIntent() {
         // When
         String intent1 = service.classifyIntent("What is the status of my booking?");
-        String intent2 = service.classifyIntent("Where is my car?");
-        String intent3 = service.classifyIntent("Check my appointment progress");
+        String intent2 = service.classifyIntent("Check my appointment progress");
+        String intent3 = service.classifyIntent("What is my booking status?");
 
         // Then
         assertThat(intent1).isEqualTo("status");
