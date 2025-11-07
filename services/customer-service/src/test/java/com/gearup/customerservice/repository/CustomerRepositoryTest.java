@@ -18,6 +18,7 @@ import com.gearup.customerservice.domain.KycStatus;
 @TestPropertySource(properties = {
         "spring.cloud.config.enabled=false",
         "eureka.client.enabled=false",
+        "spring.flyway.enabled=false",
         "spring.jpa.hibernate.ddl-auto=create-drop"
 })
 @DisplayName("CustomerRepository Integration Tests")

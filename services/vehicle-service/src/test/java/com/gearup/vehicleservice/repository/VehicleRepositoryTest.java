@@ -21,6 +21,7 @@ import com.gearup.vehicleservice.domain.VehicleStatus;
 @TestPropertySource(properties = {
         "spring.cloud.config.enabled=false",
         "eureka.client.enabled=false",
+        "spring.flyway.enabled=false",
         "spring.jpa.hibernate.ddl-auto=create-drop"
 })
 @DisplayName("VehicleRepository Integration Tests")
