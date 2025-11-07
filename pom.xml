@@ -16,6 +16,8 @@
         <module>services/template-service</module>
         <module>services/user-auth-service</module>
         <module>services/chatbot-service</module>
+        <module>services/vehicle-service</module>
+        <module>services/customer-service</module>
 
         <!-- Infra modules -->
         <module>service-discovery</module>
