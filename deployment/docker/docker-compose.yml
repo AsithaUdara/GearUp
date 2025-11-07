@@ -76,7 +76,7 @@ services:
 
   appointment-service:
     build:
-      context: ../../
+      context: ../..
       dockerfile: ./services/appointment-service/Dockerfile
     container_name: gearup-appointment-service
     ports:
@@ -121,7 +121,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST_AUTH_METHOD: trust  # Allow all connections without password for local dev
+      POSTGRES_HOST_AUTH_METHOD: trust # Allow all connections without password for local dev
       # Pass service passwords to init script
       AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
