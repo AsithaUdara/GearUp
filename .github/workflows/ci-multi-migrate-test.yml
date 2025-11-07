@@ -133,6 +133,26 @@ jobs:
             echo "✓ Migration completed for $svc"
           done < services.txt
 
+      - name: Grant permissions on migrated tables
+        run: |
+          echo "Granting permissions on all tables to service users..."
+          while read svc; do
+            if [ -z "$svc" ]; then continue; fi
+            echo "Granting permissions for $svc..."
+            # Replace hyphens with underscores for valid PostgreSQL identifiers
+            dbname="as_${svc//-/_}"
+            dbuser="svc_${svc//-/_}"
+            
+            # Grant permissions on all existing tables, sequences, and functions
+            psql -h localhost -U postgres -d "$dbname" -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \"$dbuser\";"
+            
+            echo "✓ Permissions granted for $svc"
+          done < services.txt
+        env:
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+
       - name: Run integration tests across modules
         env:
           APP_FIREBASE_CONFIGURATION_FILE: ""
