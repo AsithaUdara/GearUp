@@ -1,4 +1,8 @@
 spring:
+  application:
+    name: api-gateway
+  config:
+    import: optional:configserver:${SPRING_CLOUD_CONFIG_URI:http://localhost:8888}
   cloud:
     gateway:
       server:
@@ -16,8 +20,8 @@ spring:
           filters:
             - name: StripPrefix
               args:
-                parts: 0  # Don't strip prefix, chatbot service expects /api/chat
-        
+                parts: 0 # Don't strip prefix, chatbot service expects /api/chat
+
         - id: user-auth-route
           uri: lb://user-auth-service
           predicates:
@@ -30,7 +34,7 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 10
                 redis-rate-limiter.burstCapacity: 20
-        
+
         - id: api-gateway-root
           uri: lb://api-gateway
           predicates:
@@ -39,11 +43,11 @@ spring:
             - name: StripPrefix
               args:
                 parts: 1
-      
+
       # Global CORS Configuration for all routes
       globalcors:
         cors-configurations:
-          '[/**]':
+          "[/**]":
             allowedOrigins:
               - "http://localhost:3000"
               - "http://localhost:3001"
@@ -54,9 +58,9 @@ spring:
               - DELETE
               - OPTIONS
             allowedHeaders: "*"
-            allowCredentials: false  # IMPORTANT: Must be false for public endpoints
+            allowCredentials: false # IMPORTANT: Must be false for public endpoints
             maxAge: 3600
-  
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -64,10 +68,12 @@ spring:
 
 eureka:
   client:
-    register-with-eureka: false
+    register-with-eureka: true
     fetch-registry: true
-    service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://admin:password@localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
 
 server:
   port: ${GATEWAY_PORT:8080}
