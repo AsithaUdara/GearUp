@@ -16,6 +16,27 @@ services:
       retries: 5
       start_period: 40s
 
+  config-server:
+    build:
+      context: ../../
+      dockerfile: ./config-server/Dockerfile
+    container_name: gearup-config-server
+    ports:
+      - "8888:8888"
+    env_file:
+      - ./.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+    volumes:
+      - ../../config-repo:/app/config-repo:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
   api-gateway:
     build:
       context: ../../
@@ -30,9 +51,18 @@ services:
       - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
       - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
       - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
+      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+    volumes:
+      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -54,13 +84,22 @@ services:
       - ./.env
     environment:
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
+      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
       - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${AUTOMOBILE_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
+      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+    volumes:
+      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
       db:
         condition: service_healthy
@@ -79,6 +118,8 @@ services:
       - ./.env
     environment:
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
+      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
       - SPRING_DATASOURCE_URL=${NOTIFICATION_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${NOTIFICATION_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${NOTIFICATION_DB_PASSWORD}
@@ -89,9 +130,16 @@ services:
       - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
       - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
       - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
+      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+    volumes:
+      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
       db:
         condition: service_healthy
@@ -112,13 +160,28 @@ services:
       - ./.env
     environment:
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
+      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
       - SPRING_DATASOURCE_URL=${USER_AUTH_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${USER_AUTH_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${USER_AUTH_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
+      - SPRING_DATA_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_DATA_REDIS_PORT=${SPRING_REDIS_PORT}
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
+      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+    volumes:
+      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
       db:
         condition: service_healthy
@@ -143,9 +206,14 @@ services:
       - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
       - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
       - OLLAMA_BASE_URL=http://ollama:11434
-      - EUREKA_DEFAULT_ZONE=${EUREKA_DEFAULT_ZONE}
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
+      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
     depends_on:
       service-discovery:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
       db:
         condition: service_healthy
@@ -181,6 +249,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust # Allow all connections without password for local dev
       # Pass service passwords to init script
       AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
@@ -220,9 +289,11 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: gearup-pgadmin
+    env_file:
+      - ../../.env
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@gearup.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@gearup.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
       PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
       - "5050:80"
