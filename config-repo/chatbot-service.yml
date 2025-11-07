@@ -46,7 +46,7 @@ ollama:
   base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
   chat-model: ${OLLAMA_CHAT_MODEL:llama3.2:3b}
   embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
-  timeout: 60000
+  timeout: 120000
   max-retries: 3
 
 # Chatbot Configuration
