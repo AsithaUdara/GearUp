@@ -2,7 +2,7 @@ name: CI - Flyway migrate (template-service)
 
 on:
   pull_request:
-    branches: [main, microservice-initialization]
+    branches: [main, development, microservice-initialization]
 
 jobs:
   flyway-template:
