@@ -27,3 +27,5 @@ COMMENT ON COLUMN time_log.employee_id IS 'Employee Firebase UID';
 COMMENT ON COLUMN time_log.status IS 'Time log status: active (running), completed (stopped), cancelled';
 COMMENT ON COLUMN time_log.duration_minutes IS 'Calculated duration in minutes when stopped';
 
+
+

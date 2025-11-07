@@ -34,3 +34,5 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
     List<TimeLog> findByTask_TaskIdAndStatusOrderByStartTimeDesc(String taskId, TimeLog.TimeLogStatus status);
 }
 
+
+
