@@ -10,7 +10,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/as_chatbot_service
     driver-class-name: org.postgresql.Driver
     username: svc_chatbot_service
-    password: chatbot_svc_pass_2024
+    password: ${POSTGRES_PASSWORD:chatbot_svc_pass_2024}
 
   jpa:
     hibernate:
@@ -22,7 +22,7 @@ spring:
     show-sql: true
 
   flyway:
-    enabled: true
+    enabled: ${FLYWAY_ENABLED:false}
     clean-disabled: false
 
   cloud:

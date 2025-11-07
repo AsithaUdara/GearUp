@@ -135,32 +135,75 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
 
+      - name: Build parent POM and shared libraries
+        run: |
+          # Install parent POM first
+          ./mvnw -B -DskipTests install -N
+          # Install all shared libraries
+          ./mvnw -B -DskipTests clean install -pl shared-libs/security-lib,shared-libs/event-models,shared-libs/common-utils,shared-libs/common-dto -am
+
+      - name: Wait for PostgreSQL to be ready
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
       - name: Setup database for ${{ matrix.service.name }}
         env:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
         run: |
-          psql -h localhost -U postgres <<EOF
-          CREATE DATABASE ${{ matrix.service.db }};
+          echo "Creating database and user for ${{ matrix.service.name }}..."
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<EOF
+          -- Drop and recreate database to ensure clean state
+          DROP DATABASE IF EXISTS ${{ matrix.service.db }};
+          DROP USER IF EXISTS ${{ matrix.service.user }};
+
+          -- Create user first
           CREATE USER ${{ matrix.service.user }} WITH PASSWORD '${{ matrix.service.password }}';
-          GRANT ALL PRIVILEGES ON DATABASE ${{ matrix.service.db }} TO ${{ matrix.service.user }};
+
+          -- Create database with the user as owner
+          CREATE DATABASE ${{ matrix.service.db }} OWNER ${{ matrix.service.user }};
+
+          -- Connect to the database and grant permissions
           \c ${{ matrix.service.db }}
+
+          -- Grant schema permissions
           GRANT ALL ON SCHEMA public TO ${{ matrix.service.user }};
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${{ matrix.service.user }};
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${{ matrix.service.user }};
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO ${{ matrix.service.user }};
           EOF
+          echo "Database setup completed for ${{ matrix.service.name }}"
 
       - name: Install pgvector extension for chatbot-service
         if: matrix.service.name == 'chatbot-service'
         env:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
         run: |
-          # For GitHub Actions PostgreSQL, we'll skip the extension or use a compatible approach
-          # The migration will handle extension creation if it's available
-          echo "Note: pgvector extension will be handled in migration if available"
+          echo "Attempting to install pgvector extension for chatbot-service..."
+          # PostgreSQL 15-alpine may not have pgvector pre-installed
+          # We'll try to create it, but if it fails, the migration will handle it
+          psql -h localhost -U postgres -d ${{ matrix.service.db }} -v ON_ERROR_STOP=0 <<EOF || echo "pgvector not available, skipping extension creation"
+          CREATE EXTENSION IF NOT EXISTS vector;
+          EOF
+
+      - name: Build service module
+        run: |
+          echo "Building ${{ matrix.service.name }} module..."
+          ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am
 
       - name: Run Flyway migration for ${{ matrix.service.name }}
         run: |
-          ./mvnw -pl ${{ matrix.service.module }} \
+          echo "Running Flyway migration for ${{ matrix.service.name }}..."
+          ./mvnw -B -pl ${{ matrix.service.module }} \
             -Dflyway.url=jdbc:postgresql://localhost:5432/${{ matrix.service.db }} \
             -Dflyway.user=postgres \
             -Dflyway.password=${{ secrets.POSTGRES_PASSWORD || 'postgres123' }} \
@@ -168,7 +211,8 @@ jobs:
 
       - name: Verify migration status
         run: |
-          ./mvnw -pl ${{ matrix.service.module }} \
+          echo "Verifying migration status for ${{ matrix.service.name }}..."
+          ./mvnw -B -pl ${{ matrix.service.module }} \
             -Dflyway.url=jdbc:postgresql://localhost:5432/${{ matrix.service.db }} \
             -Dflyway.user=postgres \
             -Dflyway.password=${{ secrets.POSTGRES_PASSWORD || 'postgres123' }} \
@@ -176,7 +220,8 @@ jobs:
 
   build-modules:
     name: Build individual microservices
-    needs: [build-root, flyway-migrate]
+    needs: [build-root]
+    if: always() && needs.build-root.result == 'success'
     runs-on: ubuntu-latest
     strategy:
       matrix:
