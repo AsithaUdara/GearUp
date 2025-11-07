@@ -1,14 +1,14 @@
 server:
-  port: 8091
+  port: 8087
 
 spring:
   application:
-    name: tracking-service
+    name: analytical-service
   
   datasource:
-    url: ${TRACKING_DB_URL:jdbc:postgresql://db:5432/as_tracking_service}
-    username: ${TRACKING_DB_USER:svc_tracking_service}
-    password: ${TRACKING_DB_PASSWORD:tracking_svc_pass_2024}
+    url: ${ANALYTICAL_DB_URL:jdbc:postgresql://db:5432/as_analytical_service}
+    username: ${ANALYTICAL_DB_USER:svc_analytical_service}
+    password: ${ANALYTICAL_DB_PASSWORD:analytical_svc_pass_2024}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -28,7 +28,8 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
     schemas: public
-  
+
+  # Redis Configuration
   redis:
     host: ${SPRING_REDIS_HOST:redis}
     port: ${SPRING_REDIS_PORT:6379}
@@ -39,7 +40,7 @@ spring:
         max-idle: 8
         min-idle: 0
 
-  # Tracking uses streaming/messaging
+  # RabbitMQ Configuration
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
@@ -53,10 +54,6 @@ spring:
           max-attempts: 3
           multiplier: 2.0
 
-messaging:
-  rabbitmq:
-    exchange: ${RABBIT_EXCHANGE:tracking}
-
 # Logging configuration
 logging:
   pattern:
@@ -64,17 +61,7 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   level:
     root: INFO
-    com.gearup.trackingservice: DEBUG
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL:http://admin:password@localhost:8761/eureka}
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    com.gearup.analyticalservice: DEBUG
 
 # Actuator endpoints
 management:
@@ -90,3 +77,12 @@ management:
       prometheus:
         enabled: true
 
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://admin:password@localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}

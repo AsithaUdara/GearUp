@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gearup_tracking_dev
+    username: postgres
+    password: postgres
+  
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.gearup.trackingservice: DEBUG
+    org.springframework.web: DEBUG
+
+server:
+  port: 8086
