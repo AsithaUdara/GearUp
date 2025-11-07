@@ -1,10 +1,15 @@
-## Simple runtime Dockerfile — api-gateway
+## Multi-stage Dockerfile — api-gateway
+# Builder
+FROM maven:3.9.5-eclipse-temurin-21 AS build
+WORKDIR /build
+COPY . .
+RUN mvn -q -pl api-gateway -am -DskipTests package
+
+# Runtime
 FROM eclipse-temurin:21-jre AS runtime
 RUN addgroup --system app && adduser --system --ingroup app app
 WORKDIR /app
-
-# Copy the prebuilt jar from api-gateway/target (build context is repo root)
-COPY api-gateway/target/*.jar /app/app.jar
+COPY --from=build /build/api-gateway/target/*.jar /app/app.jar
 RUN chown -R app:app /app
 USER app
 EXPOSE 8080

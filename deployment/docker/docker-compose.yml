@@ -59,7 +59,7 @@ services:
       - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
     volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+        - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -103,7 +103,7 @@ services:
       - SPRING_CLOUD_CONFIG_PASSWORD=change-me
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
     volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+        - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -151,7 +151,7 @@ services:
       - SPRING_CLOUD_CONFIG_PASSWORD=change-me
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
     volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+        - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -200,7 +200,7 @@ services:
       - SPRING_CLOUD_CONFIG_PASSWORD=change-me
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
     volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+        - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -239,6 +239,8 @@ services:
       - SPRING_CLOUD_CONFIG_USERNAME=configadmin
       - SPRING_CLOUD_CONFIG_PASSWORD=change-me
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+    volumes:
+      - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -306,7 +308,7 @@ services:
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
       - EUREKA_CLIENT_FETCH_REGISTRY=true
     volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+        - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -357,7 +359,7 @@ services:
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
       - EUREKA_CLIENT_FETCH_REGISTRY=true
     volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+        - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
