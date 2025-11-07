@@ -60,7 +60,7 @@ chatbot:
 
 ### WebSocket
 
-- **Connect**: `ws://localhost:8084/ws/chat`
+- **Connect**: `ws://localhost:8086/ws/chat`
 - **Subscribe**: `/user/queue/messages`
 - **Send**: `/app/chat.send`
 

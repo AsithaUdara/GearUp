@@ -1,5 +1,8 @@
 package com.gearup.apigateway.filter;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -12,9 +15,6 @@ import com.google.firebase.auth.FirebaseToken;
 
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Reactive global filter for validating Firebase ID tokens.

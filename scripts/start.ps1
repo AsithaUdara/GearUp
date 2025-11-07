@@ -1,8 +1,8 @@
 # GearUp Backend - Startup Script
-# This script builds services and starts all containers
+# This script starts all containers (no build step)
 
 Write-Host "===========================================" -ForegroundColor Cyan
-Write-Host " GearUp Backend - Build & Start Services" -ForegroundColor Cyan
+Write-Host " GearUp Backend - Start Services (no build)" -ForegroundColor Cyan
 Write-Host "===========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -38,27 +38,9 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "v Docker is running" -ForegroundColor Green
 Write-Host ""
 
-Write-Host "[2/3] Building services..." -ForegroundColor Yellow
-Write-Host "Running Maven build (this may take a few minutes)..." -ForegroundColor Gray
-
-# Build all services using Maven
-if (Test-Path "mvnw.cmd") {
-    .\mvnw.cmd clean package -DskipTests
-}
-else {
-    mvn clean package -DskipTests
-}
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: Maven build failed!" -ForegroundColor Red
-    Write-Host "Please fix build errors and try again." -ForegroundColor Yellow
-    Set-Location $projectRoot
-    exit 1
-}
-Write-Host "v Maven build completed successfully" -ForegroundColor Green
 Write-Host ""
 
-Write-Host "[3/3] Starting Docker containers..." -ForegroundColor Yellow
+Write-Host "[2/2] Starting Docker containers..." -ForegroundColor Yellow
 Set-Location "deployment\docker"
 
 # Stop any existing containers
@@ -76,7 +58,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "v Services started successfully" -ForegroundColor Green
 Write-Host ""
 
-Write-Host "[4/4] Waiting for services to be ready..." -ForegroundColor Yellow
+Write-Host "[3/3] Waiting for services to be ready..." -ForegroundColor Yellow
 Write-Host "This may take 30-60 seconds..." -ForegroundColor Gray
 
 # Wait for database to be healthy

@@ -42,4 +42,5 @@ eureka:
     lease-renewal-interval-in-seconds: 30
 
 server:
-  port: 8080
+  port: 8085
+

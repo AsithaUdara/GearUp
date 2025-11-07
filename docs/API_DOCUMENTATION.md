@@ -46,7 +46,7 @@ Authorization: Bearer <firebase-jwt-token>
 
 **Note**: Only for admin/developer use. Public users never access Eureka directly.
 
-### 3. Chatbot Service (`http://localhost:8084`)
+### 3. Chatbot Service (`http://localhost:8086`)
 
 **Purpose**: AI-powered chatbot for customer support
 
@@ -255,7 +255,7 @@ curl http://localhost:8080/actuator/health
 ### Chatbot WebSocket
 
 ```javascript
-const ws = new WebSocket("ws://localhost:8084/ws/chat");
+const ws = new WebSocket("ws://localhost:8086/ws/chat");
 
 ws.onmessage = (event) => {
   const message = JSON.parse(event.data);
