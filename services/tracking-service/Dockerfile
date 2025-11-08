@@ -13,12 +13,14 @@ COPY --from=build /build/services/tracking-service/target/tracking-service-*.jar
 
 RUN chown -R app:app /app
 USER app
-EXPOSE 8086
+EXPOSE 8091
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8086/actuator/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8091/actuator/health || exit 1
 
-LABEL maintainer="ops@company.com" \
-    org.opencontainers.image.version="0.1.0"
+LABEL maintainer="ops@gearup.com" \
+    org.opencontainers.image.version="1.0.0" \
+    org.opencontainers.image.title="GearUp Tracking Service" \
+    org.opencontainers.image.description="Service Tracking and Progress Management Service"
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

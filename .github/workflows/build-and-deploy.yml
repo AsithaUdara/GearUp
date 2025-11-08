@@ -120,6 +120,16 @@ jobs:
             db: as_payment_service
             user: svc_payment_service
             password: payment_pass_2024
+          - name: analytical-service
+            module: services/analytical-service
+            db: as_analytical_service
+            user: svc_analytical_service
+            password: analytical_svc_pass_2024
+          - name: tracking-service
+            module: services/tracking-service
+            db: as_tracking_service
+            user: svc_tracking_service
+            password: tracking_svc_pass_2024
 
     steps:
       - name: Checkout

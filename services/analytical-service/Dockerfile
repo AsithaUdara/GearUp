@@ -19,6 +19,8 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8087/actuator/health || exit 1
 
 LABEL maintainer="ops@gearup.com" \
-    org.opencontainers.image.version="0.1.0"
+    org.opencontainers.image.version="1.0.0" \
+    org.opencontainers.image.title="GearUp Analytical Service" \
+    org.opencontainers.image.description="Analytical Service for GearUp - provides analytics, reports, and insights"
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
