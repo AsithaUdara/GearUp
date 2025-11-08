@@ -120,6 +120,26 @@ jobs:
             db: as_payment_service
             user: svc_payment_service
             password: payment_pass_2024
+          - name: analytical-service
+            module: services/analytical-service
+            db: as_analytical_service
+            user: svc_analytical_service
+            password: analytical_svc_pass_2024
+          - name: tracking-service
+            module: services/tracking-service
+            db: as_tracking_service
+            user: svc_tracking_service
+            password: tracking_svc_pass_2024
+          - name: vehicle-service
+            module: services/vehicle-service
+            db: as_vehicle_service
+            user: svc_vehicle_service
+            password: vehicle_svc_pass_2024
+          - name: customer-service
+            module: services/customer-service
+            db: as_customer_service
+            user: svc_customer_service
+            password: customer_svc_pass_2024
 
     steps:
       - name: Checkout
@@ -236,6 +256,16 @@ jobs:
             module: services/automobile-service
           - name: chatbot-service
             module: services/chatbot-service
+          - name: payment-service
+            module: services/payment-service
+          - name: analytical-service
+            module: services/analytical-service
+          - name: tracking-service
+            module: services/tracking-service
+          - name: vehicle-service
+            module: services/vehicle-service
+          - name: customer-service
+            module: services/customer-service
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -417,9 +447,11 @@ jobs:
             "automobile-service:8085"
             "notification-service:8081"
             "chatbot-service:8086"
-            "customer-service:8083"
-            "vehicle-service:8084"
-            "tracking-service:8087"
+            "payment-service:8083"
+            "analytical-service:8089"
+            "tracking-service:8091"
+            "vehicle-service:8090"
+            "customer-service:8088"
           )
 
           for svc in "${services[@]}"; do

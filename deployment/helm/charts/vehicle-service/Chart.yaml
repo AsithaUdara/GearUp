@@ -1,0 +1,4 @@
+apiVersion: v2
+name: vehicle-service
+description: Helm chart for vehicle-service
+version: 0.1.0
