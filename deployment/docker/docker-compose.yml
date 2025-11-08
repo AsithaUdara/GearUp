@@ -84,9 +84,9 @@ services:
     env_file:
       - ../../.env
     environment:
-      - SPRING_DATASOURCE_URL=${APPOINTMENT_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${APPOINTMENT_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${APPOINTMENT_DB_PASSWORD}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/as_appointment_service
+      - SPRING_DATASOURCE_USERNAME=svc_appointment_service
+      - SPRING_DATASOURCE_PASSWORD=appointment_svc_pass_2024
       - SPRING_JPA_HIBERNATE_DDL_AUTO=none
     depends_on:
       db:

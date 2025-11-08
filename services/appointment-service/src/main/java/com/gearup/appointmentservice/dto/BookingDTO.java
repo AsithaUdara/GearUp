@@ -25,4 +25,5 @@ public class BookingDTO {
     private TimeSlotDTO timeSlot;
 
     private Long assignedEmployeeId;
+    private String assignedEmployeeName;
 }
