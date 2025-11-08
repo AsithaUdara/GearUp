@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${TRACKING_DB_URL}
+    username: ${TRACKING_DB_USER}
+    password: ${TRACKING_DB_PASSWORD}
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.gearup.trackingservice: DEBUG
+    org.springframework.web: DEBUG
+
+server:
+  port: 8091
