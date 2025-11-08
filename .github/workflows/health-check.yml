@@ -116,7 +116,7 @@ jobs:
         working-directory: deployment/docker
         run: |
           echo "Starting infrastructure services..."
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml -f docker-compose.yml -f docker-compose.ci.yml up -d db redis rabbitmq
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d db redis rabbitmq
           echo "Infrastructure services started. Waiting 30 seconds..."
           sleep 30
           echo "Checking running containers:"
