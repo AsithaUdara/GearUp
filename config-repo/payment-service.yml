@@ -1,12 +1,21 @@
+# ========================================
+# Payment Service Configuration
+# ========================================
+# Configuration for payment-service microservice
+# Served by Spring Cloud Config Server
+
+server:
+  port: 8083
+
 spring:
   application:
-    name: notification-service
-
+    name: payment-service
+  
   # Database configuration
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/as_notification_service}
-    username: ${SPRING_DATASOURCE_USERNAME:svc_notification_service}
-    password: ${SPRING_DATASOURCE_PASSWORD:notif_svc_pass_2024}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/as_payment_service}
+    username: ${SPRING_DATASOURCE_USERNAME:svc_payment_service}
+    password: ${SPRING_DATASOURCE_PASSWORD:payment_pass_2024}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -14,7 +23,7 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-
+  
   # JPA / Hibernate
   jpa:
     hibernate:
@@ -25,7 +34,7 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
-
+  
   # Flyway
   flyway:
     enabled: true
@@ -35,7 +44,7 @@ spring:
 
   # RabbitMQ
   rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+    host: ${SPRING_RABBITMQ_HOST:localhost}
     port: ${SPRING_RABBITMQ_PORT:5672}
     username: ${SPRING_RABBITMQ_USERNAME:guest}
     password: ${SPRING_RABBITMQ_PASSWORD:guest}
@@ -46,27 +55,12 @@ spring:
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
       timeout: 2000ms
-
+  
   # Cache configuration
   cache:
     type: redis
     redis:
       time-to-live: 3600000 # 1 hour in milliseconds
-
-# Messaging configuration
-messaging:
-  smtp:
-    host: ${SMTP_HOST:localhost}
-    port: ${SMTP_PORT:25}
-  rabbitmq:
-    exchange: ${RABBIT_EXCHANGE:notification.exchange}
-
-# Firebase configuration
-app:
-  firebase-configuration-file: ${APP_FIREBASE_CONFIGURATION_FILE:/app/secrets/firebase-service-account.json}
-
-server:
-  port: 8081
 
 # Eureka Client Configuration
 eureka:
@@ -102,6 +96,14 @@ management:
 logging:
   level:
     root: INFO
-    com.gearup.notificationservice: DEBUG
+    com.gearup.paymentservice: DEBUG
     org.springframework.web: INFO
     org.springframework.amqp: DEBUG
+    org.springframework.data.redis: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# Application Specific
+payment:
+  tax:
+    rate: 0.10
+  currency: USD

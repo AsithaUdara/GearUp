@@ -77,6 +77,20 @@ spring:
                     redis-rate-limiter.replenishRate: 20
                     redis-rate-limiter.burstCapacity: 40
 
+            # Payment Service Route
+            - id: payment-service-route
+              uri: lb://payment-service
+              predicates:
+                - Path=/api/payments/**,/api/bills/**,/api/payment-requests/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as payment service expects /api/payments
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 15
+                    redis-rate-limiter.burstCapacity: 30
+
             - id: api-gateway-root
               uri: lb://api-gateway
               predicates:

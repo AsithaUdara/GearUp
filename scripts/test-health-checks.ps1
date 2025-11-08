@@ -136,7 +136,7 @@ if (-not $gatewayHealthy) {
 
 # Start all microservices
 Write-Host "`nStarting all microservices..." -ForegroundColor Green
-docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service
+docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service payment-service
 Write-Host "Waiting 60 seconds for microservices..." -ForegroundColor Yellow
 Start-Sleep -Seconds 60
 
@@ -174,6 +174,7 @@ $allHealthy = $true
 
 $allHealthy = $allHealthy -and (Test-ServiceHealth "User Auth Service" 8082)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Notification Service" 8081)
+$allHealthy = $allHealthy -and (Test-ServiceHealth "Payment Service" 8083)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Chatbot Service" 8086)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Vehicle Service" 8090)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Customer Service" 8088)
@@ -201,6 +202,7 @@ if ($allHealthy) {
     Write-Host "  Microservices:" -ForegroundColor White
     Write-Host "    - User Auth:     http://localhost:8082/actuator/health" -ForegroundColor Gray
     Write-Host "    - Notification:  http://localhost:8081/actuator/health" -ForegroundColor Gray
+    Write-Host "    - Payment:       http://localhost:8083/actuator/health" -ForegroundColor Gray
     Write-Host "    - Chatbot:       http://localhost:8086/actuator/health" -ForegroundColor Gray
     Write-Host "    - Vehicle:       http://localhost:8090/actuator/health" -ForegroundColor Gray
     Write-Host "    - Customer:      http://localhost:8088/actuator/health" -ForegroundColor Gray
