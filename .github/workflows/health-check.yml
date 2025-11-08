@@ -47,44 +47,46 @@ jobs:
               run: |
                   cat > .env << 'EOF'
                   # PostgreSQL Configuration
-                  POSTGRES_HOST=postgres
-                  POSTGRES_PORT=5432
+                  POSTGRES_DB=postgres
+                  POSTGRES_USER=postgres
                   POSTGRES_PASSWORD=postgres123
+                  POSTGRES_HOST=db
+                  POSTGRES_PORT=5432
 
                   # Service-specific database URLs
-                  CUSTOMER_DB_URL=jdbc:postgresql://postgres:5432/as_customer_service
+                  CUSTOMER_DB_URL=jdbc:postgresql://db:5432/as_customer_service
                   CUSTOMER_DB_USER=svc_customer_service
                   CUSTOMER_DB_PASSWORD=customer_svc_pass_2024
 
-                  VEHICLE_DB_URL=jdbc:postgresql://postgres:5432/as_vehicle_service
+                  VEHICLE_DB_URL=jdbc:postgresql://db:5432/as_vehicle_service
                   VEHICLE_DB_USER=svc_vehicle_service
                   VEHICLE_DB_PASSWORD=vehicle_svc_pass_2024
 
-                  AUTOMOBILE_DB_URL=jdbc:postgresql://postgres:5432/as_automobile_service
+                  AUTOMOBILE_DB_URL=jdbc:postgresql://db:5432/as_automobile_service
                   AUTOMOBILE_DB_USER=svc_automobile_service
                   AUTOMOBILE_DB_PASSWORD=automobile_svc_pass_2024
 
-                  USER_AUTH_DB_URL=jdbc:postgresql://postgres:5432/as_user_auth_service
+                  USER_AUTH_DB_URL=jdbc:postgresql://db:5432/as_user_auth_service
                   USER_AUTH_DB_USER=svc_user_auth_service
                   USER_AUTH_DB_PASSWORD=user_auth_svc_pass_2024
 
-                  CHATBOT_DB_URL=jdbc:postgresql://postgres:5432/as_chatbot_service
+                  CHATBOT_DB_URL=jdbc:postgresql://db:5432/as_chatbot_service
                   CHATBOT_DB_USER=svc_chatbot_service
                   CHATBOT_DB_PASSWORD=chatbot_svc_pass_2024
 
-                  NOTIFICATION_DB_URL=jdbc:postgresql://postgres:5432/as_notification_service
+                  NOTIFICATION_DB_URL=jdbc:postgresql://db:5432/as_notification_service
                   NOTIFICATION_DB_USER=svc_notification_service
                   NOTIFICATION_DB_PASSWORD=notification_svc_pass_2024
 
-                  TRACKING_DB_URL=jdbc:postgresql://postgres:5432/as_tracking_service
+                  TRACKING_DB_URL=jdbc:postgresql://db:5432/as_tracking_service
                   TRACKING_DB_USER=svc_tracking_service
                   TRACKING_DB_PASSWORD=tracking_svc_pass_2024
 
-                  ANALYTICAL_DB_URL=jdbc:postgresql://postgres:5432/as_analytical_service
+                  ANALYTICAL_DB_URL=jdbc:postgresql://db:5432/as_analytical_service
                   ANALYTICAL_DB_USER=svc_analytical_service
                   ANALYTICAL_DB_PASSWORD=analytical_svc_pass_2024
 
-                  TRIP_DB_URL=jdbc:postgresql://postgres:5432/as_trip_service
+                  TRIP_DB_URL=jdbc:postgresql://db:5432/as_trip_service
                   TRIP_DB_USER=svc_trip_service
                   TRIP_DB_PASSWORD=trip_svc_pass_2024
 
@@ -105,7 +107,8 @@ jobs:
                   JWT_SECRET=your-256-bit-secret-key-for-jwt-token-generation-change-this-in-production
                   JWT_EXPIRATION=86400000
 
-                  # Firebase Configuration (optional)
+                  # Firebase Configuration (optional - set to empty to avoid warnings)
+                  FIREBASE_SERVICE_ACCOUNT_JSON=
                   FIREBASE_CONFIG_PATH=/app/config/firebase-service-account.json
                   EOF
 
@@ -113,7 +116,7 @@ jobs:
               working-directory: deployment/docker
               run: |
                   echo "Starting infrastructure services..."
-                  docker compose up -d postgres redis rabbitmq
+                  docker compose up -d db redis rabbitmq
                   echo "Infrastructure services started. Waiting 30 seconds..."
                   sleep 30
                   echo "Checking running containers:"
@@ -123,7 +126,7 @@ jobs:
               working-directory: deployment/docker
               run: |
                   echo "Checking PostgreSQL..."
-                  docker compose exec -T postgres pg_isready -U postgres || exit 1
+                  docker compose exec -T db pg_isready -U postgres || exit 1
                   echo "✅ PostgreSQL is ready"
 
                   echo "Checking Redis..."
