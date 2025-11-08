@@ -24,17 +24,35 @@ Compose files
 
 Environment variables and `.env`
 
-- The repo root contains `.env` with environment variables used by compose. The compose file references the file with a path relative to `deployment/docker/` so Docker Compose reads the repo-root `.env` correctly.
-- Always create `.env` locally and never commit secrets. Example variables:
+- The `deployment/docker/` directory contains `.env` with environment variables used by Docker Compose services.
+- **IMPORTANT CHANGE**: Environment variables have been reorganized:
+  - **`deployment/docker/.env`** — Docker-specific variables (database credentials, RabbitMQ, Redis, container paths)
+  - **Root `.env`** — Local development variables (Firebase host paths, IDE configs)
+- Always create `.env` locally and never commit secrets. Use `.env.example` as a template:
+  ```powershell
+  # In deployment/docker directory
+  Copy-Item .env.example .env
+  ```
+- Example Docker variables (in `deployment/docker/.env`):
   - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
-  - `FIREBASE_CREDENTIALS_HOST_PATH` — path on the Windows host to your Firebase JSON file (e.g. `C:\SecureKeys\gear-up\firebase-service-account.json`). This must be accessible to Docker Desktop.
+  - `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
+  - `SPRING_RABBITMQ_HOST`, `SPRING_RABBITMQ_PORT`, `SPRING_RABBITMQ_USERNAME`, `SPRING_RABBITMQ_PASSWORD`
+  - `SPRING_REDIS_HOST`, `SPRING_REDIS_PORT`
+  - Service-specific DB URLs and credentials (`AUTOMOBILE_DB_URL`, `NOTIFICATION_DB_URL`, etc.)
+- Example local development variables (in root `.env`):
+  - `FIREBASE_CREDENTIALS_HOST_PATH` — path on your host to Firebase JSON file (e.g., `C:\SecureKeys\gear-up\firebase-service-account.json`)
+  - `APP_FIREBASE_CONFIGURATION_FILE` — for local Spring Boot applications
 
 Firebase credentials and mounts
 
-- In local compose we mount the host Firebase JSON into containers as a file under `/run/secrets/...`. If the host path is blank you may see errors like "invalid spec: :/run/secrets/...:ro: empty section between colons" — this means the env var used for the host path is empty.
-- To fix:
-  1. Ensure `.env` has a valid `FIREBASE_CREDENTIALS_HOST_PATH` set.
-  2. Ensure Docker Desktop is allowed to mount the path (File Sharing on Windows / path is accessible).
+- In Docker Compose, we mount the host Firebase JSON into containers as a file under `/run/secrets/...`.
+- If the host path is blank, you may see errors like "invalid spec: :/run/secrets/...:ro: empty section between colons" — this means the env var used for the host path is empty.
+- **Note**: Firebase credentials are handled differently for Docker vs local development:
+  - **Docker**: Uses `FIREBASE_CREDENTIALS_CONTAINER_PATH` (defined in `deployment/docker/.env`)
+  - **Local development**: Uses `FIREBASE_CREDENTIALS_HOST_PATH` (defined in root `.env`)
+- To fix Docker errors:
+  1. Ensure `deployment/docker/.env` has valid Firebase configuration.
+  2. Ensure your Firebase JSON file is accessible to Docker Desktop (File Sharing settings on Windows).
 
 Production vs Dev compose flows
 
