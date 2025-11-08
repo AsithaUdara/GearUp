@@ -585,6 +585,45 @@ services:
       retries: 3
       start_period: 60s
 
+  appointment-service:
+    build:
+      context: ../../
+      dockerfile: ./services/appointment-service/Dockerfile
+    container_name: gearup-appointment-service
+    ports:
+      - "8084:8084"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_DATASOURCE_URL=${APPOINTMENT_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${APPOINTMENT_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${APPOINTMENT_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  modification-service:
+    build:
+      context: ../../
+      dockerfile: ./services/modification-service/Dockerfile
+    container_name: gearup-modification-service
+    ports:
+      - "8089:8089"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_DATASOURCE_URL=${MODIFICATION_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${MODIFICATION_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MODIFICATION_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SERVER_PORT=8089
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   db:
     image: pgvector/pgvector:pg15
     container_name: gearup-postgres
@@ -606,6 +645,8 @@ services:
       CUSTOMER_DB_PASSWORD: ${CUSTOMER_DB_PASSWORD}
       TRACKING_DB_PASSWORD: ${TRACKING_DB_PASSWORD}
       ANALYTICAL_DB_PASSWORD: ${ANALYTICAL_DB_PASSWORD}
+      APPOINTMENT_DB_PASSWORD: ${APPOINTMENT_DB_PASSWORD}
+      MODIFICATION_DB_PASSWORD: ${MODIFICATION_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
