@@ -13,10 +13,10 @@ services:
       test:
         [
           "CMD",
-          "wget",
-          "--user=admin",
-          "--password=password",
-          "-qO-",
+          "curl",
+          "-f",
+          "-u",
+          "admin:password",
           "http://localhost:8761/actuator/health",
         ]
       interval: 10s
@@ -43,10 +43,10 @@ services:
       test:
         [
           "CMD",
-          "wget",
-          "--user=configadmin",
-          "--password=change-me",
-          "-qO-",
+          "curl",
+          "-f",
+          "-u",
+          "configadmin:change-me",
           "http://localhost:8888/actuator/health",
         ]
       interval: 10s

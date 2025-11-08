@@ -39,7 +39,7 @@ jobs:
       - name: Verify Docker and Docker Compose
         run: |
           docker --version
-          docker compose version
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml version
           docker info
 
       - name: Create .env file for docker compose
@@ -116,25 +116,25 @@ jobs:
         working-directory: deployment/docker
         run: |
           echo "Starting infrastructure services..."
-          docker compose up -d db redis rabbitmq
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml -f docker-compose.yml -f docker-compose.ci.yml up -d db redis rabbitmq
           echo "Infrastructure services started. Waiting 30 seconds..."
           sleep 30
           echo "Checking running containers:"
-          docker compose ps
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml ps
 
       - name: Check infrastructure health
         working-directory: deployment/docker
         run: |
           echo "Checking PostgreSQL..."
-          docker compose exec -T db pg_isready -U postgres || exit 1
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T db pg_isready -U postgres || exit 1
           echo "✅ PostgreSQL is ready"
 
           echo "Checking Redis..."
-          docker compose exec -T redis redis-cli ping || exit 1
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T redis redis-cli ping || exit 1
           echo "✅ Redis is ready"
 
           echo "Checking RabbitMQ..."
-          until docker compose exec -T rabbitmq rabbitmqctl status > /dev/null 2>&1; do
+          until docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T rabbitmq rabbitmqctl status > /dev/null 2>&1; do
             echo "Waiting for RabbitMQ..."
             sleep 5
           done
@@ -144,11 +144,11 @@ jobs:
         working-directory: deployment/docker
         run: |
           echo "Starting config-server and service-discovery..."
-          docker compose up -d config-server service-discovery
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d config-server service-discovery
           echo "Services started. Waiting 60 seconds..."
           sleep 60
           echo "Checking running containers:"
-          docker compose ps
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml ps
 
       - name: Check config server health
         working-directory: deployment/docker
@@ -164,7 +164,7 @@ jobs:
           done
           echo "❌ Config Server failed to become healthy"
           echo "Showing Config Server logs:"
-          docker compose logs config-server
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs config-server
           exit 1
 
       - name: Check Eureka health
@@ -181,13 +181,13 @@ jobs:
           done
           echo "❌ Eureka Server failed to become healthy"
           echo "Showing Eureka Server logs:"
-          docker compose logs service-discovery
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs service-discovery
           exit 1
 
       - name: Start API Gateway
         working-directory: deployment/docker
         run: |
-          docker compose up -d api-gateway
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d api-gateway
           echo "Waiting for API Gateway..."
           sleep 45
 
@@ -203,13 +203,13 @@ jobs:
             sleep 5
           done
           echo "❌ API Gateway failed to become healthy"
-          docker compose logs api-gateway
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs api-gateway
           exit 1
 
       - name: Start all microservices
         working-directory: deployment/docker
         run: |
-          docker compose up -d \
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d \
             user-auth-service \
             customer-service \
             vehicle-service \
@@ -235,7 +235,7 @@ jobs:
             sleep 5
           done
           echo "❌ User Auth Service health endpoint not accessible"
-          docker compose logs user-auth-service --tail=100
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs user-auth-service --tail=100
           exit 1
 
       - name: Check Notification Service health
@@ -254,7 +254,7 @@ jobs:
             sleep 5
           done
           echo "❌ Notification Service health endpoint not accessible"
-          docker compose logs notification-service --tail=100
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs notification-service --tail=100
           exit 1
 
       - name: Check Chatbot Service health
@@ -273,7 +273,7 @@ jobs:
             sleep 5
           done
           echo "❌ Chatbot Service health endpoint not accessible"
-          docker compose logs chatbot-service --tail=100
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs chatbot-service --tail=100
           exit 1
 
       - name: Check Customer Service health
@@ -292,7 +292,7 @@ jobs:
             sleep 5
           done
           echo "❌ Customer Service health endpoint not accessible"
-          docker compose logs customer-service --tail=100
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs customer-service --tail=100
           exit 1
 
       - name: Check Vehicle Service health
@@ -311,7 +311,7 @@ jobs:
             sleep 5
           done
           echo "❌ Vehicle Service health endpoint not accessible"
-          docker compose logs vehicle-service --tail=100
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs vehicle-service --tail=100
           exit 1
 
       - name: Check Tracking Service health
@@ -330,7 +330,7 @@ jobs:
             sleep 5
           done
           echo "❌ Tracking Service health endpoint not accessible"
-          docker compose logs tracking-service --tail=100
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs tracking-service --tail=100
           exit 1
 
       - name: Verify Eureka registration
@@ -385,7 +385,7 @@ jobs:
         working-directory: deployment/docker
         run: |
           echo "=== Docker Container Health Status ==="
-          docker compose ps
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml ps
 
           echo ""
           echo "=== Docker Container Health Checks ==="
@@ -396,19 +396,19 @@ jobs:
         working-directory: deployment/docker
         run: |
           mkdir -p ../../logs
-          docker compose logs --no-color > ../../logs/all-services.log
-          docker compose logs config-server --no-color > ../../logs/config-server.log
-          docker compose logs service-discovery --no-color > ../../logs/service-discovery.log
-          docker compose logs api-gateway --no-color > ../../logs/api-gateway.log
-          docker compose logs user-auth-service --no-color > ../../logs/user-auth-service.log
-          docker compose logs customer-service --no-color > ../../logs/customer-service.log
-          docker compose logs vehicle-service --no-color > ../../logs/vehicle-service.log
-          docker compose logs notification-service --no-color > ../../logs/notification-service.log
-          docker compose logs tracking-service --no-color > ../../logs/tracking-service.log
-          docker compose logs chatbot-service --no-color > ../../logs/chatbot-service.log
-          docker compose logs rabbitmq --no-color > ../../logs/rabbitmq.log
-          docker compose logs redis --no-color > ../../logs/redis.log
-          docker compose logs postgres --no-color > ../../logs/postgres.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs --no-color > ../../logs/all-services.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs config-server --no-color > ../../logs/config-server.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs service-discovery --no-color > ../../logs/service-discovery.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs api-gateway --no-color > ../../logs/api-gateway.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs user-auth-service --no-color > ../../logs/user-auth-service.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs customer-service --no-color > ../../logs/customer-service.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs vehicle-service --no-color > ../../logs/vehicle-service.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs notification-service --no-color > ../../logs/notification-service.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs tracking-service --no-color > ../../logs/tracking-service.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs chatbot-service --no-color > ../../logs/chatbot-service.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs rabbitmq --no-color > ../../logs/rabbitmq.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs redis --no-color > ../../logs/redis.log
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs db --no-color > ../../logs/db.log
 
       - name: Upload logs as artifact
         if: failure()
@@ -422,4 +422,4 @@ jobs:
         if: always()
         working-directory: deployment/docker
         run: |
-          docker compose down -v
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
