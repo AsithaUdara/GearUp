@@ -47,6 +47,24 @@ CREATE TABLE IF NOT EXISTS bookings (
     FOREIGN KEY (time_slot_id) REFERENCES time_slots(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS employees (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    role VARCHAR(100),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO employees (name, email, phone, role)
+VALUES
+('Aarav Gupta',   'aarav.g@example.com', '9001112222', 'Service Advisor'),
+('Priya Shah',    'priya.s@example.com', '9003334444', 'Technician'),
+('Rohan Mehta',   'rohan.m@example.com', '9005556666', 'Technician'),
+('Sneha Iyer',    'sneha.i@example.com', '9007778888', 'Service Advisor'),
+('Dev Patel',     'dev.p@example.com',   '9009990000', 'Technician');
+
 -- Indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_time_slots_service_date ON time_slots(service_id, slot_date);
 CREATE INDEX IF NOT EXISTS idx_time_slots_available ON time_slots(is_available);

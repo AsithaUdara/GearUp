@@ -23,4 +23,6 @@ public class BookingDTO {
     private String notes;
     private LocalDateTime bookingDate;
     private TimeSlotDTO timeSlot;
+
+    private Long assignedEmployeeId;
 }

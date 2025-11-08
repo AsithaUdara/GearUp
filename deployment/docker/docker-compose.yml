@@ -587,7 +587,7 @@ services:
 
   appointment-service:
     build:
-      context: ../../
+      context: ../..
       dockerfile: ./services/appointment-service/Dockerfile
     container_name: gearup-appointment-service
     ports:
