@@ -350,7 +350,7 @@ jobs:
         run: |
           echo "Waiting for all pods to be ready in namespace $NAMESPACE..."
           kubectl wait --for=condition=ready pod --all -n "$NAMESPACE" --timeout=300s || true
-          
+
           echo "Current pod status:"
           kubectl get pods -n "$NAMESPACE"
 
@@ -359,10 +359,10 @@ jobs:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
           echo "Checking service endpoints..."
-          
+
           # Get all services
           services=$(kubectl get services -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
-          
+
           for service in $services; do
             echo "Service: $service"
             kubectl get service "$service" -n "$NAMESPACE" -o wide
@@ -373,7 +373,7 @@ jobs:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
           echo "Verifying service health endpoints..."
-          
+
           # List of services to check (adjust based on your services)
           services=(
             "api-gateway:8080"
@@ -387,7 +387,7 @@ jobs:
             "vehicle-service:8084"
             "tracking-service:8087"
           )
-          
+
           for svc in "${services[@]}"; do
             IFS=':' read -r service port <<< "$svc"
             pod=$(kubectl get pods -n "$NAMESPACE" -l app="$service" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
@@ -405,9 +405,9 @@ jobs:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
           echo "Checking Eureka service registration..."
-          
+
           eureka_pod=$(kubectl get pods -n "$NAMESPACE" -l app=service-discovery -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-          
+
           if [ -n "$eureka_pod" ]; then
             echo "Fetching registered services from Eureka..."
             kubectl exec -n "$NAMESPACE" "$eureka_pod" -- wget -qO- http://localhost:8761/eureka/apps 2>/dev/null | grep -o '<name>[^<]*</name>' | sed 's/<name>//g' | sed 's/<\/name>//g' | sort -u || echo "⚠️  Could not fetch Eureka apps"
