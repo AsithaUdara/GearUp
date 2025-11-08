@@ -34,6 +34,7 @@ build/
 
 # Ignore Firebase service account key
 firebase-service-account.json
+services/user-auth-service/src/main/resources/config/gear-up-firebase-adminsdk.json
 
 .fake
 
