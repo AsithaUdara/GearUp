@@ -26,16 +26,32 @@
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Starter -->
+        <!-- Web & Validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Spring Boot Data JPA (if needed) -->
+        <!-- Data JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Security (method-level only, firebase filter reused later if needed) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- Shared Firebase security utilities -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-security-lib</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- PostgreSQL Driver (version managed by parent) -->
@@ -61,6 +77,30 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
+
+        <!-- Reuse shared common DTOs if needed (ApiResponse pattern) -->
+        <!-- Remove shared-common dependencies (artifactIds differ) or add correct ones if needed -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-common-dto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-common-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Messaging -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-event-models</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -75,6 +115,13 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Compiler Plugin -->

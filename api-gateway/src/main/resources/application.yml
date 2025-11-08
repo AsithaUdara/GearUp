@@ -50,16 +50,21 @@ spring:
             maxAge: 3600
       default-filters: []
       routes:
+        # Specific admin service template endpoints FIRST to avoid being shadowed by broader /api/v1/admin/** route
+        - id: template-service-admin
+          uri: http://template-service:8083
+          predicates:
+            - Path=/api/v1/admin/service-templates/**
         # Route for auth endpoints (login, OTP verification, password change)
         - id: user-auth-service-auth
           uri: http://user-auth-service:8081
           predicates:
             - Path=/api/v1/auth/**
-        # Route for admin user management endpoints
-        - id: user-auth-service-admin
+        # Route for admin user management endpoints (narrowed to users to prevent overlap)
+        - id: user-auth-service-admin-users
           uri: http://user-auth-service:8081
           predicates:
-            - Path=/api/v1/admin/**
+            - Path=/api/v1/admin/users/**
         # (Optional) Route for other user related endpoints if needed
         - id: user-auth-service-users
           uri: http://user-auth-service:8081
