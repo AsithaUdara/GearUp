@@ -115,6 +115,11 @@ jobs:
             db: as_chatbot_service
             user: svc_chatbot_service
             password: chatbot_svc_pass_2024
+          - name: payment-service
+            module: services/payment-service
+            db: as_payment_service
+            user: svc_payment_service
+            password: payment_pass_2024
 
     steps:
       - name: Checkout

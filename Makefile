@@ -1,7 +1,7 @@
 ## Makefile helpers for Flyway migrations and local Postgres
 ## Each service has its own database and migration scripts managed by Flyway
 
-.PHONY: docker-run-postgres docker-stop-postgres flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-all
+.PHONY: docker-run-postgres docker-stop-postgres flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-all
 
 docker-run-postgres:
 	@if [ -f .env ]; then ENV_FILE="--env-file .env"; else ENV_FILE=""; fi; \
@@ -58,7 +58,15 @@ flyway-vehicle:
 		-Dflyway.user=$${FLYWAY_USER_VEHICLE:-svc_vehicle_service} \
 		-Dflyway.password=$${FLYWAY_PASSWORD_VEHICLE:-vehicle_svc_pass_2024}
 
+# Run Flyway migrations for payment-service
+flyway-payment:
+	@echo "Running Flyway migrations for payment-service..."
+	./mvnw -pl services/payment-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_PAYMENT:-jdbc:postgresql://localhost:5432/as_payment_service} \
+		-Dflyway.user=$${FLYWAY_USER_PAYMENT:-svc_payment_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_PAYMENT:-payment_pass_2024}
+
 # Run all Flyway migrations
-flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle
+flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment
 	@echo "All migrations completed successfully!"
 
