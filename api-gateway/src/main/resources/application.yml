@@ -1,8 +1,10 @@
 spring:
-  autoconfigure:
-    exclude:
-      # Exclude management reactive security so actuator isn't separately secured
-      - org.springframework.boot.actuate.autoconfigure.security.reactive.ReactiveManagementWebSecurityAutoConfiguration
+  application:
+    name: api-gateway
+
+  config:
+    import: optional:configserver:${SPRING_CLOUD_CONFIG_URI:http://localhost:8888}
+
   cloud:
     gateway:
       discovery:
@@ -17,11 +19,6 @@ spring:
             # Pattern support (Spring 5.3+/Spring Cloud 2022+) for any localhost port
             allowedOriginPatterns:
               - "http://localhost:*"
-            # In some Spring Cloud Gateway versions a scalar '*' for allowedHeaders may not be
-            # interpreted correctly for credentialed requests. Make the list explicit so that
-            # preflight (OPTIONS) for Authorization + Content-Type + custom headers succeeds.
-            # NOTE: Keep this list broad but explicit; wildcard + allowCredentials is disallowed
-            # by browsers, so enumerating solves the missing Access-Control-Allow-Origin header issue.
             allowedMethods:
               - GET
               - POST
@@ -29,6 +26,7 @@ spring:
               - DELETE
               - PATCH
               - OPTIONS
+            # Explicit headers list helps with credentialed requests
             allowedHeaders:
               - Authorization
               - Content-Type
@@ -48,33 +46,69 @@ spring:
               - Content-Type
             allowCredentials: true
             maxAge: 3600
-      default-filters: []
       routes:
+        # Public chatbot route
+        - id: chatbot-service-route
+          uri: lb://chatbot-service
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - name: StripPrefix
+              args:
+                parts: 0
         # Specific admin service template endpoints FIRST to avoid being shadowed by broader /api/v1/admin/** route
         - id: template-service-admin
-          uri: http://template-service:8083
+          uri: lb://template-service
           predicates:
             - Path=/api/v1/admin/service-templates/**
         # Route for auth endpoints (login, OTP verification, password change)
         - id: user-auth-service-auth
-          uri: http://user-auth-service:8081
+          uri: lb://user-auth-service
           predicates:
             - Path=/api/v1/auth/**
         # Route for admin user management endpoints (narrowed to users to prevent overlap)
         - id: user-auth-service-admin-users
-          uri: http://user-auth-service:8081
+          uri: lb://user-auth-service
           predicates:
             - Path=/api/v1/admin/users/**
         # (Optional) Route for other user related endpoints if needed
-        - id: user-auth-service-users
-          uri: http://user-auth-service:8081
+        - id: user-auth-route
+          uri: lb://user-auth-service
           predicates:
-            - Path=/api/v1/users/**
-        # Dev-only helper endpoints for local E2E
-        - id: user-auth-service-dev
-          uri: http://user-auth-service:8081
+            - Path=/api/users/**
+          filters:
+            - name: StripPrefix
+              args:
+                parts: 2
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        # Vehicle Service Route
+        - id: vehicle-service-route
+          uri: lb://vehicle-service
           predicates:
-            - Path=/api/v1/dev/**
+            - Path=/api/v1/vehicles/**
+        # Customer Service Route
+        - id: customer-service-route
+          uri: lb://customer-service
+          predicates:
+            - Path=/api/v1/customers/**
+        # Analytical Service Route
+        - id: analytical-service-route
+          uri: lb://analytical-service
+          predicates:
+            - Path=/api/v1/analytics/**
+        # Tracking Service Route
+        - id: tracking-service-route
+          uri: lb://tracking-service
+          predicates:
+            - Path=/api/tracking/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
         # Root API passthrough to gateway itself if required
         - id: api-gateway-root
           uri: lb://api-gateway

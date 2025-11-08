@@ -12,7 +12,8 @@ messaging:
   rabbitmq:
     exchange: ${RABBIT_EXCHANGE:notification.exchange}
 
-
+server:
+  port: 8081
 
 eureka:
   client:

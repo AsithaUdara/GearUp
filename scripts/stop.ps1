@@ -23,17 +23,18 @@ Write-Host ""
 Set-Location "deployment\docker"
 
 Write-Host "Stopping services..." -ForegroundColor Yellow
-docker-compose --env-file ../../.env down
+docker-compose down
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "v All services stopped" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "ERROR: Failed to stop some services" -ForegroundColor Red
     exit 1
 }
 
 Write-Host ""
 Write-Host "To remove data volumes: " -NoNewline
-Write-Host "docker-compose --env-file ../../.env down -v" -ForegroundColor Yellow
+Write-Host "docker-compose down -v" -ForegroundColor Yellow
 Write-Host "To remove images too:   " -NoNewline
-Write-Host "docker-compose --env-file ../../.env down -v --rmi all" -ForegroundColor Yellow
+Write-Host "docker-compose down -v --rmi all" -ForegroundColor Yellow
