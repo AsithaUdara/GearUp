@@ -140,6 +140,16 @@ jobs:
             db: as_customer_service
             user: svc_customer_service
             password: customer_svc_pass_2024
+          - name: appointment-service
+            module: services/appointment-service
+            db: as_appointment_service
+            user: svc_appointment_service
+            password: postgres
+          - name: modification-service
+            module: services/modification-service
+            db: as_modification_service
+            user: svc_modification_service
+            password: postgres
 
     steps:
       - name: Checkout
@@ -266,6 +276,10 @@ jobs:
             module: services/vehicle-service
           - name: customer-service
             module: services/customer-service
+          - name: appointment-service
+            module: services/appointment-service
+          - name: modification-service
+            module: services/modification-service
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -448,7 +462,9 @@ jobs:
             "notification-service:8081"
             "chatbot-service:8086"
             "payment-service:8083"
+            "appointment-service:8084"
             "analytical-service:8089"
+            "modification-service:8089"
             "tracking-service:8091"
             "vehicle-service:8090"
             "customer-service:8088"

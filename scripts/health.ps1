@@ -136,7 +136,7 @@ if (-not $gatewayHealthy) {
 
 # Start all microservices
 Write-Host "`nStarting all microservices..." -ForegroundColor Green
-docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service payment-service parts-service
+docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service payment-service parts-service appointment-service modification-service pgadmin
 Write-Host "Waiting 60 seconds for microservices..." -ForegroundColor Yellow
 Start-Sleep -Seconds 60
 
@@ -181,6 +181,8 @@ $allHealthy = $allHealthy -and (Test-ServiceHealth "Customer Service" 8088)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Tracking Service" 8091)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Analytical Service" 8087)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Parts Service" 8093)
+$allHealthy = $allHealthy -and (Test-ServiceHealth "Appointment Service" 8084)
+$allHealthy = $allHealthy -and (Test-ServiceHealth "Modification Service" 8089)
 
 # Final summary
 Write-Host "`n==================================" -ForegroundColor Cyan
@@ -204,9 +206,11 @@ if ($allHealthy) {
     Write-Host "    - User Auth:     http://localhost:8082/actuator/health" -ForegroundColor Gray
     Write-Host "    - Notification:  http://localhost:8081/actuator/health" -ForegroundColor Gray
     Write-Host "    - Payment:       http://localhost:8083/actuator/health" -ForegroundColor Gray
+    Write-Host "    - Appointment:   http://localhost:8084/actuator/health" -ForegroundColor Gray
     Write-Host "    - Chatbot:       http://localhost:8086/actuator/health" -ForegroundColor Gray
-    Write-Host "    - Vehicle:       http://localhost:8090/actuator/health" -ForegroundColor Gray
     Write-Host "    - Customer:      http://localhost:8088/actuator/health" -ForegroundColor Gray
+    Write-Host "    - Modification:  http://localhost:8089/actuator/health" -ForegroundColor Gray
+    Write-Host "    - Vehicle:       http://localhost:8090/actuator/health" -ForegroundColor Gray
     Write-Host "    - Tracking:      http://localhost:8091/actuator/health" -ForegroundColor Gray
     Write-Host "    - Analytical:    http://localhost:8087/actuator/health" -ForegroundColor Gray
     Write-Host "    - Parts:         http://localhost:8093/actuator/health" -ForegroundColor Gray

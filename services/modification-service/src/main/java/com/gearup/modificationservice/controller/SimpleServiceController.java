@@ -32,7 +32,7 @@ public class SimpleServiceController {
                             s.getDescription(),
                             s.getBasePrice(),
                             s.getEstimatedDurationHours(),
-                            s.getActive()
+                            s.getIsActive()
                     ))
                     .collect(Collectors.toList());
             return ResponseEntity.ok(dtos);
@@ -53,7 +53,7 @@ public class SimpleServiceController {
                             s.getDescription(),
                             s.getBasePrice(),
                             s.getEstimatedDurationHours(),
-                            s.getActive()
+                            s.getIsActive()
                     ))
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());

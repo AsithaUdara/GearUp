@@ -1,21 +1,102 @@
+# ========================================
+# Appointment Service Configuration
+# ========================================
+# Configuration for appointment-service microservice
+# Served by Spring Cloud Config Server
+
+server:
+  port: 8084
+
 spring:
   application:
     name: appointment-service
-  redis:
-    host: ${SPRING_REDIS_HOST:redis}
-    port: ${SPRING_REDIS_PORT:6379}
+  
+  # Database configuration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/as_appointment_service}
+    username: ${SPRING_DATASOURCE_USERNAME:svc_appointment_service}
+    password: ${SPRING_DATASOURCE_PASSWORD:appointment_pass_2024}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  
+  # Flyway
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
 
-datasource:
-  url: ${DB_URL:jdbc:postgresql://localhost:5432/appointments}
-  username: ${DB_USER:}
-  password: ${DB_PASSWORD:}
+  # RabbitMQ
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
+  # Redis
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      timeout: 2000ms
+  
+  # Cache configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hour in milliseconds
+
+# Eureka Client Configuration
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://admin:password@service-discovery:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
 
+# Management / Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,flyway,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
+    redis:
+      enabled: true
+    rabbitmq:
+      enabled: true
+
+# Logging
 logging:
   level:
+    root: INFO
     com.gearup.appointmentservice: DEBUG
-    org.hibernate.SQL: DEBUG
+    org.springframework.web: INFO
+    org.springframework.amqp: INFO
+    org.hibernate.SQL: INFO
