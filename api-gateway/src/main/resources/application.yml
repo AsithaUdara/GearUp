@@ -70,11 +70,12 @@ spring:
             - id: tracking-service-route
               uri: lb://tracking-service
               predicates:
-                - Path=/api/v1/tracking/**
+                - Path=/api/tracking/**
               filters:
-                - name: StripPrefix
+                - name: RequestRateLimiter
                   args:
-                    parts: 0 # Keep full path
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
 
             - id: api-gateway-root
               uri: lb://api-gateway
