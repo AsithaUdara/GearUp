@@ -2,7 +2,7 @@ package com.gearup.trackingservice.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,28 +84,57 @@ public class TaskService {
         var current = workTaskRepository.findFirstByAssigneeIdAndStatusOrderByCreatedAtAsc(
             employeeId, WorkTask.TaskStatus.in_progress
         );
-        var assigned = workTaskRepository.findByAssigneeIdAndStatusInOrderByCreatedAtDesc(
-            employeeId, 
-            Arrays.asList(WorkTask.TaskStatus.pending, WorkTask.TaskStatus.in_progress)
+        
+        // Fetch pending tasks
+        var pendingTasks = workTaskRepository.findByAssigneeIdAndStatus(
+            employeeId, WorkTask.TaskStatus.pending
         );
+        log.info("Found {} pending tasks for employee {}", pendingTasks.size(), employeeId);
+        
+        // Fetch all in_progress tasks (in work tasks) from work_task table
+        var inWorkTasks = workTaskRepository.findByAssigneeIdAndStatus(
+            employeeId, WorkTask.TaskStatus.in_progress
+        );
+        log.info("Found {} in_progress tasks for employee {}", inWorkTasks.size(), employeeId);
+        
+        // Sort in work tasks by created date descending
+        inWorkTasks.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+        
+        // Combine pending and in_progress tasks for assigned tasks
+        var assigned = new ArrayList<WorkTask>();
+        assigned.addAll(pendingTasks);
+        assigned.addAll(inWorkTasks);
+        // Sort by created date descending
+        assigned.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+        log.info("Total assigned tasks (pending + in_progress): {}", assigned.size());
+        
         var completed = workTaskRepository.findByAssigneeIdAndStatusAndCompletedAtAfterOrderByCompletedAtDesc(
             employeeId, 
             WorkTask.TaskStatus.completed,
             LocalDateTime.now().toLocalDate().atStartOfDay()
         );
+        log.info("Found {} completed tasks for employee {}", completed.size(), employeeId);
         
         long inProgressCount = workTaskRepository.countByAssigneeIdAndStatus(
             employeeId, WorkTask.TaskStatus.in_progress
         );
         
-        return TaskListResponse.builder()
+        var response = TaskListResponse.builder()
             .currentTask(current.map(this::mapToResponse).orElse(null))
             .assignedTasks(assigned.stream().map(this::mapToResponse).collect(Collectors.toList()))
+            .inWorkTasks(inWorkTasks.stream().map(this::mapToResponse).collect(Collectors.toList()))
             .completedTasks(completed.stream().map(this::mapToResponse).collect(Collectors.toList()))
             .totalAssigned(assigned.size())
             .totalInProgress((int) inProgressCount)
             .totalCompleted(completed.size())
             .build();
+        
+        log.info("Returning response with {} assigned tasks, {} in work tasks, {} completed tasks", 
+            response.getAssignedTasks().size(), 
+            response.getInWorkTasks().size(), 
+            response.getCompletedTasks().size());
+        
+        return response;
     }
     
     @Transactional(readOnly = true)
