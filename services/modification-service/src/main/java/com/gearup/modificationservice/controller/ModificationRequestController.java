@@ -24,7 +24,7 @@ public class ModificationRequestController {
     
     // POST /api/service-modifications/:serviceId/requests
     @PostMapping("/service-modifications/{serviceId}/requests")
-    public ResponseEntity<?> submitModificationRequest(
+    public ResponseEntity<ModificationRequestDTO> submitModificationRequest(
             @PathVariable Long serviceId,
             @Valid @RequestBody CreateModificationRequestDTO request) {
         

@@ -1,10 +1,10 @@
 package com.gearup.modificationservice.dto;
 
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -15,5 +15,5 @@ public class ModificationServiceDTO {
     private String description;
     private BigDecimal basePrice;
     private Integer estimatedDurationHours;
-    private Boolean active;
+    private Boolean isActive;
 }

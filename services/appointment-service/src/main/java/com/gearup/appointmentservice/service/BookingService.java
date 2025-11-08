@@ -5,6 +5,7 @@ import com.gearup.appointmentservice.entity.Booking;
 import com.gearup.appointmentservice.entity.BookingStatus;
 import com.gearup.appointmentservice.entity.TimeSlot;
 import com.gearup.appointmentservice.repository.BookingRepository;
+import com.gearup.appointmentservice.repository.EmployeeRepository;
 import com.gearup.appointmentservice.repository.ServiceRepository;
 import com.gearup.appointmentservice.repository.TimeSlotRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceRepository serviceRepository;
     private final TimeSlotRepository timeSlotRepository;
+    private final EmployeeRepository employeeRepository;
 
     // -----------------------------
     // CREATE
@@ -238,6 +240,14 @@ public class BookingService {
                 booking.getTimeSlot().getIsAvailable()
         );
 
+        // Get employee name if assigned
+        String assignedEmployeeName = null;
+        if (booking.getAssignedEmployeeId() != null) {
+            assignedEmployeeName = employeeRepository.findById(booking.getAssignedEmployeeId())
+                    .map(employee -> employee.getName())
+                    .orElse(null);
+        }
+
         return new BookingDTO(
                 booking.getId(),
                 booking.getService().getId(),
@@ -251,7 +261,8 @@ public class BookingService {
                 booking.getNotes(),
                 booking.getBookingDate(),
                 slotDTO,
-                booking.getAssignedEmployeeId()  // ✅ ADD THIS LINE
+                booking.getAssignedEmployeeId(),
+                assignedEmployeeName
         );
     }
 }

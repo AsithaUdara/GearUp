@@ -169,7 +169,7 @@ public class ModificationRequestService {
                             service.getDescription(),
                             service.getBasePrice(),
                             service.getEstimatedDurationHours(),
-                            service.getActive()
+                            service.getIsActive()
                     );
                 })
                 .distinct()

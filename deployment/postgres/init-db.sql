@@ -138,6 +138,34 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_customer_se
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_customer_service;
 
 -- ========================================
+-- Appointment Service Database Setup
+-- ========================================
+\c as_appointment_service;
+
+-- Grant schema privileges
+GRANT ALL ON SCHEMA public TO svc_appointment_service;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_appointment_service;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_appointment_service;
+
+-- Set default privileges for future tables (created by Flyway)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_appointment_service;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_appointment_service;
+
+-- ========================================
+-- Modification Service Database Setup
+-- ========================================
+\c as_modification_service;
+
+-- Grant schema privileges
+GRANT ALL ON SCHEMA public TO svc_modification_service;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_modification_service;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_modification_service;
+
+-- Set default privileges for future tables (created by Flyway)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_modification_service;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_modification_service;
+
+-- ========================================
 -- Tracking Service Database Setup
 -- ========================================
 \c as_tracking_service;
