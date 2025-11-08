@@ -31,3 +31,4 @@ COMMENT ON COLUMN time_log.duration_minutes IS 'Calculated duration in minutes w
 
 
 
+
