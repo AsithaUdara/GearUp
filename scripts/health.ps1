@@ -136,7 +136,7 @@ if (-not $gatewayHealthy) {
 
 # Start all microservices
 Write-Host "`nStarting all microservices..." -ForegroundColor Green
-docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service payment-service
+docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service payment-service parts-service
 Write-Host "Waiting 60 seconds for microservices..." -ForegroundColor Yellow
 Start-Sleep -Seconds 60
 
@@ -180,6 +180,7 @@ $allHealthy = $allHealthy -and (Test-ServiceHealth "Vehicle Service" 8090)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Customer Service" 8088)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Tracking Service" 8091)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Analytical Service" 8087)
+$allHealthy = $allHealthy -and (Test-ServiceHealth "Parts Service" 8093)
 
 # Final summary
 Write-Host "`n==================================" -ForegroundColor Cyan
@@ -208,6 +209,7 @@ if ($allHealthy) {
     Write-Host "    - Customer:      http://localhost:8088/actuator/health" -ForegroundColor Gray
     Write-Host "    - Tracking:      http://localhost:8091/actuator/health" -ForegroundColor Gray
     Write-Host "    - Analytical:    http://localhost:8087/actuator/health" -ForegroundColor Gray
+    Write-Host "    - Parts:         http://localhost:8093/actuator/health" -ForegroundColor Gray
 }
 else {
     Write-Host "[ERROR] SOME SERVICES FAILED!" -ForegroundColor Red
