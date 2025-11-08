@@ -1,5 +1,7 @@
 ## Multi-stage Dockerfile — config-server
 FROM eclipse-temurin:21-jre-alpine
+# Install wget for healthcheck
+RUN apk add --no-cache wget
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 

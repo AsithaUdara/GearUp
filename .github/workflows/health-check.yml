@@ -1,421 +1,425 @@
 name: Health Check All Services
 
 on:
-    push:
-        branches:
-            - main
-            - development
-            - merge-branch
-    pull_request:
-        branches:
-            - main
-            - development
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+      - development
+      - merge-branch
+  pull_request:
+    branches:
+      - main
+      - development
+  workflow_dispatch:
 
 jobs:
-    health-check:
-        name: Docker Health Check
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
+  health-check:
+    name: Docker Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Set up Java 21
-              uses: actions/setup-java@v4
-              with:
-                  distribution: "temurin"
-                  java-version: "21"
-                  cache: "maven"
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "maven"
 
-            - name: Make Maven wrapper executable
-              run: chmod +x ./mvnw
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
 
-            - name: Build all services with Maven
-              run: |
-                  ./mvnw -B clean package -DskipTests
+      - name: Build all services with Maven
+        run: |
+          ./mvnw -B clean package -DskipTests
 
-            - name: Verify Docker and Docker Compose
-              run: |
-                  docker --version
-                  docker compose version
-                  docker info
+      - name: Verify Docker and Docker Compose
+        run: |
+          docker --version
+          docker compose version
+          docker info
 
-            - name: Create .env file for docker compose
-              working-directory: deployment/docker
-              run: |
-                  cat > .env << 'EOF'
-                  # PostgreSQL Configuration
-                  POSTGRES_DB=postgres
-                  POSTGRES_USER=postgres
-                  POSTGRES_PASSWORD=postgres123
-                  POSTGRES_HOST=db
-                  POSTGRES_PORT=5432
+      - name: Create .env file for docker compose
+        working-directory: deployment/docker
+        run: |
+          cat > .env << 'EOF'
+          # PostgreSQL Configuration
+          POSTGRES_DB=postgres
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=postgres123
+          POSTGRES_HOST=db
+          POSTGRES_PORT=5432
 
-                  # Service-specific database URLs
-                  CUSTOMER_DB_URL=jdbc:postgresql://db:5432/as_customer_service
-                  CUSTOMER_DB_USER=svc_customer_service
-                  CUSTOMER_DB_PASSWORD=customer_svc_pass_2024
+          # Service-specific database URLs
+          CUSTOMER_DB_URL=jdbc:postgresql://db:5432/as_customer_service
+          CUSTOMER_DB_USER=svc_customer_service
+          CUSTOMER_DB_PASSWORD=customer_svc_pass_2024
 
-                  VEHICLE_DB_URL=jdbc:postgresql://db:5432/as_vehicle_service
-                  VEHICLE_DB_USER=svc_vehicle_service
-                  VEHICLE_DB_PASSWORD=vehicle_svc_pass_2024
+          VEHICLE_DB_URL=jdbc:postgresql://db:5432/as_vehicle_service
+          VEHICLE_DB_USER=svc_vehicle_service
+          VEHICLE_DB_PASSWORD=vehicle_svc_pass_2024
 
-                  AUTOMOBILE_DB_URL=jdbc:postgresql://db:5432/as_automobile_service
-                  AUTOMOBILE_DB_USER=svc_automobile_service
-                  AUTOMOBILE_DB_PASSWORD=automobile_svc_pass_2024
+          AUTOMOBILE_DB_URL=jdbc:postgresql://db:5432/as_automobile_service
+          AUTOMOBILE_DB_USER=svc_automobile_service
+          AUTOMOBILE_DB_PASSWORD=automobile_svc_pass_2024
 
-                  USER_AUTH_DB_URL=jdbc:postgresql://db:5432/as_user_auth_service
-                  USER_AUTH_DB_USER=svc_user_auth_service
-                  USER_AUTH_DB_PASSWORD=user_auth_svc_pass_2024
+          USER_AUTH_DB_URL=jdbc:postgresql://db:5432/as_user_auth_service
+          USER_AUTH_DB_USER=svc_user_auth_service
+          USER_AUTH_DB_PASSWORD=user_auth_svc_pass_2024
 
-                  CHATBOT_DB_URL=jdbc:postgresql://db:5432/as_chatbot_service
-                  CHATBOT_DB_USER=svc_chatbot_service
-                  CHATBOT_DB_PASSWORD=chatbot_svc_pass_2024
+          CHATBOT_DB_URL=jdbc:postgresql://db:5432/as_chatbot_service
+          CHATBOT_DB_USER=svc_chatbot_service
+          CHATBOT_DB_PASSWORD=chatbot_svc_pass_2024
 
-                  NOTIFICATION_DB_URL=jdbc:postgresql://db:5432/as_notification_service
-                  NOTIFICATION_DB_USER=svc_notification_service
-                  NOTIFICATION_DB_PASSWORD=notification_svc_pass_2024
+          NOTIFICATION_DB_URL=jdbc:postgresql://db:5432/as_notification_service
+          NOTIFICATION_DB_USER=svc_notification_service
+          NOTIFICATION_DB_PASSWORD=notification_svc_pass_2024
 
-                  TRACKING_DB_URL=jdbc:postgresql://db:5432/as_tracking_service
-                  TRACKING_DB_USER=svc_tracking_service
-                  TRACKING_DB_PASSWORD=tracking_svc_pass_2024
+          TRACKING_DB_URL=jdbc:postgresql://db:5432/as_tracking_service
+          TRACKING_DB_USER=svc_tracking_service
+          TRACKING_DB_PASSWORD=tracking_svc_pass_2024
 
-                  ANALYTICAL_DB_URL=jdbc:postgresql://db:5432/as_analytical_service
-                  ANALYTICAL_DB_USER=svc_analytical_service
-                  ANALYTICAL_DB_PASSWORD=analytical_svc_pass_2024
+          ANALYTICAL_DB_URL=jdbc:postgresql://db:5432/as_analytical_service
+          ANALYTICAL_DB_USER=svc_analytical_service
+          ANALYTICAL_DB_PASSWORD=analytical_svc_pass_2024
 
-                  TRIP_DB_URL=jdbc:postgresql://db:5432/as_trip_service
-                  TRIP_DB_USER=svc_trip_service
-                  TRIP_DB_PASSWORD=trip_svc_pass_2024
+          TRIP_DB_URL=jdbc:postgresql://db:5432/as_trip_service
+          TRIP_DB_USER=svc_trip_service
+          TRIP_DB_PASSWORD=trip_svc_pass_2024
 
-                  # RabbitMQ Configuration
-                  SPRING_RABBITMQ_HOST=rabbitmq
-                  SPRING_RABBITMQ_PORT=5672
-                  SPRING_RABBITMQ_USERNAME=guest
-                  SPRING_RABBITMQ_PASSWORD=guest
+          # RabbitMQ Configuration
+          SPRING_RABBITMQ_HOST=rabbitmq
+          SPRING_RABBITMQ_PORT=5672
+          SPRING_RABBITMQ_USERNAME=guest
+          SPRING_RABBITMQ_PASSWORD=guest
 
-                  # Redis Configuration
-                  SPRING_REDIS_HOST=redis
-                  SPRING_REDIS_PORT=6379
+          # Redis Configuration
+          SPRING_REDIS_HOST=redis
+          SPRING_REDIS_PORT=6379
 
-                  # Eureka Configuration
-                  EUREKA_DEFAULT_ZONE=http://admin:password@service-discovery:8761/eureka
+          # Eureka Configuration
+          EUREKA_DEFAULT_ZONE=http://admin:password@service-discovery:8761/eureka
 
-                  # JWT Configuration
-                  JWT_SECRET=your-256-bit-secret-key-for-jwt-token-generation-change-this-in-production
-                  JWT_EXPIRATION=86400000
+          # JWT Configuration
+          JWT_SECRET=your-256-bit-secret-key-for-jwt-token-generation-change-this-in-production
+          JWT_EXPIRATION=86400000
 
-                  # Firebase Configuration (optional - set to empty to avoid warnings)
-                  FIREBASE_SERVICE_ACCOUNT_JSON=
-                  FIREBASE_CONFIG_PATH=/app/config/firebase-service-account.json
-                  EOF
+          # Firebase Configuration (optional - set to empty to avoid warnings)
+          FIREBASE_SERVICE_ACCOUNT_JSON=
+          FIREBASE_CONFIG_PATH=/app/config/firebase-service-account.json
+          EOF
 
-            - name: Start infrastructure services
-              working-directory: deployment/docker
-              run: |
-                  echo "Starting infrastructure services..."
-                  docker compose up -d db redis rabbitmq
-                  echo "Infrastructure services started. Waiting 30 seconds..."
-                  sleep 30
-                  echo "Checking running containers:"
-                  docker compose ps
+      - name: Start infrastructure services
+        working-directory: deployment/docker
+        run: |
+          echo "Starting infrastructure services..."
+          docker compose up -d db redis rabbitmq
+          echo "Infrastructure services started. Waiting 30 seconds..."
+          sleep 30
+          echo "Checking running containers:"
+          docker compose ps
 
-            - name: Check infrastructure health
-              working-directory: deployment/docker
-              run: |
-                  echo "Checking PostgreSQL..."
-                  docker compose exec -T db pg_isready -U postgres || exit 1
-                  echo "✅ PostgreSQL is ready"
+      - name: Check infrastructure health
+        working-directory: deployment/docker
+        run: |
+          echo "Checking PostgreSQL..."
+          docker compose exec -T db pg_isready -U postgres || exit 1
+          echo "✅ PostgreSQL is ready"
 
-                  echo "Checking Redis..."
-                  docker compose exec -T redis redis-cli ping || exit 1
-                  echo "✅ Redis is ready"
+          echo "Checking Redis..."
+          docker compose exec -T redis redis-cli ping || exit 1
+          echo "✅ Redis is ready"
 
-                  echo "Checking RabbitMQ..."
-                  until docker compose exec -T rabbitmq rabbitmqctl status > /dev/null 2>&1; do
-                    echo "Waiting for RabbitMQ..."
-                    sleep 5
-                  done
-                  echo "✅ RabbitMQ is ready"
+          echo "Checking RabbitMQ..."
+          until docker compose exec -T rabbitmq rabbitmqctl status > /dev/null 2>&1; do
+            echo "Waiting for RabbitMQ..."
+            sleep 5
+          done
+          echo "✅ RabbitMQ is ready"
 
-            - name: Start config server and service discovery
-              working-directory: deployment/docker
-              run: |
-                  echo "Starting config-server and service-discovery..."
-                  docker compose up -d config-server service-discovery
-                  echo "Services started. Waiting 60 seconds..."
-                  sleep 60
-                  echo "Checking running containers:"
-                  docker compose ps
+      - name: Start config server and service discovery
+        working-directory: deployment/docker
+        run: |
+          echo "Starting config-server and service-discovery..."
+          docker compose up -d config-server service-discovery
+          echo "Services started. Waiting 60 seconds..."
+          sleep 60
+          echo "Checking running containers:"
+          docker compose ps
 
-            - name: Check config server health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    if curl -f http://localhost:8888/actuator/health > /dev/null 2>&1; then
-                      echo "✅ Config Server is healthy"
-                      exit 0
-                    fi
-                    echo "Waiting for Config Server... ($i/30)"
-                    sleep 5
-                  done
-                  echo "❌ Config Server failed to become healthy"
-                  docker compose logs config-server
-                  exit 1
+      - name: Check config server health
+        working-directory: deployment/docker
+        run: |
+          echo "Waiting for Config Server to be ready..."
+          for i in {1..30}; do
+            if curl -f -u configadmin:change-me http://localhost:8888/actuator/health > /dev/null 2>&1; then
+              echo "✅ Config Server is healthy"
+              exit 0
+            fi
+            echo "Waiting for Config Server... ($i/30)"
+            sleep 5
+          done
+          echo "❌ Config Server failed to become healthy"
+          echo "Showing Config Server logs:"
+          docker compose logs config-server
+          exit 1
 
-            - name: Check Eureka health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    if curl -f http://localhost:8761/actuator/health > /dev/null 2>&1; then
-                      echo "✅ Eureka Server is healthy"
-                      exit 0
-                    fi
-                    echo "Waiting for Eureka Server... ($i/30)"
-                    sleep 5
-                  done
-                  echo "❌ Eureka Server failed to become healthy"
-                  docker compose logs service-discovery
-                  exit 1
+      - name: Check Eureka health
+        working-directory: deployment/docker
+        run: |
+          echo "Waiting for Eureka Server to be ready..."
+          for i in {1..30}; do
+            if curl -f -u admin:password http://localhost:8761/actuator/health > /dev/null 2>&1; then
+              echo "✅ Eureka Server is healthy"
+              exit 0
+            fi
+            echo "Waiting for Eureka Server... ($i/30)"
+            sleep 5
+          done
+          echo "❌ Eureka Server failed to become healthy"
+          echo "Showing Eureka Server logs:"
+          docker compose logs service-discovery
+          exit 1
 
-            - name: Start API Gateway
-              working-directory: deployment/docker
-              run: |
-                  docker compose up -d api-gateway
-                  echo "Waiting for API Gateway..."
-                  sleep 45
+      - name: Start API Gateway
+        working-directory: deployment/docker
+        run: |
+          docker compose up -d api-gateway
+          echo "Waiting for API Gateway..."
+          sleep 45
 
-            - name: Check API Gateway health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
-                      echo "✅ API Gateway is healthy"
-                      exit 0
-                    fi
-                    echo "Waiting for API Gateway... ($i/30)"
-                    sleep 5
-                  done
-                  echo "❌ API Gateway failed to become healthy"
-                  docker compose logs api-gateway
-                  exit 1
+      - name: Check API Gateway health
+        working-directory: deployment/docker
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "✅ API Gateway is healthy"
+              exit 0
+            fi
+            echo "Waiting for API Gateway... ($i/30)"
+            sleep 5
+          done
+          echo "❌ API Gateway failed to become healthy"
+          docker compose logs api-gateway
+          exit 1
 
-            - name: Start all microservices
-              working-directory: deployment/docker
-              run: |
-                  docker compose up -d \
-                    user-auth-service \
-                    customer-service \
-                    vehicle-service \
-                    notification-service \
-                    tracking-service \
-                    chatbot-service
-                  echo "Waiting for microservices to start..."
-                  sleep 90
+      - name: Start all microservices
+        working-directory: deployment/docker
+        run: |
+          docker compose up -d \
+            user-auth-service \
+            customer-service \
+            vehicle-service \
+            notification-service \
+            tracking-service \
+            chatbot-service
+          echo "Waiting for microservices to start..."
+          sleep 90
 
-            - name: Check User Auth Service health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082/actuator/health 2>/dev/null || echo "000")
-                    if [ "$response" = "200" ] || [ "$response" = "503" ]; then
-                      echo "✅ User Auth Service actuator endpoint is accessible (HTTP $response)"
-                      if [ "$response" = "503" ]; then
-                        echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
-                      fi
-                      exit 0
-                    fi
-                    echo "Waiting for User Auth Service... ($i/30) - HTTP $response"
-                    sleep 5
-                  done
-                  echo "❌ User Auth Service health endpoint not accessible"
-                  docker compose logs user-auth-service --tail=100
-                  exit 1
+      - name: Check User Auth Service health
+        working-directory: deployment/docker
+        run: |
+          for i in {1..30}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082/actuator/health 2>/dev/null || echo "000")
+            if [ "$response" = "200" ] || [ "$response" = "503" ]; then
+              echo "✅ User Auth Service actuator endpoint is accessible (HTTP $response)"
+              if [ "$response" = "503" ]; then
+                echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
+              fi
+              exit 0
+            fi
+            echo "Waiting for User Auth Service... ($i/30) - HTTP $response"
+            sleep 5
+          done
+          echo "❌ User Auth Service health endpoint not accessible"
+          docker compose logs user-auth-service --tail=100
+          exit 1
 
-            - name: Check Notification Service health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/actuator/health 2>/dev/null || echo "000")
-                    if [ "$response" = "200" ] || [ "$response" = "503" ]; then
-                      echo "✅ Notification Service actuator endpoint is accessible (HTTP $response)"
-                      if [ "$response" = "503" ]; then
-                        echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
-                      fi
-                      exit 0
-                    fi
-                    echo "Waiting for Notification Service... ($i/30) - HTTP $response"
-                    sleep 5
-                  done
-                  echo "❌ Notification Service health endpoint not accessible"
-                  docker compose logs notification-service --tail=100
-                  exit 1
+      - name: Check Notification Service health
+        working-directory: deployment/docker
+        run: |
+          for i in {1..30}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/actuator/health 2>/dev/null || echo "000")
+            if [ "$response" = "200" ] || [ "$response" = "503" ]; then
+              echo "✅ Notification Service actuator endpoint is accessible (HTTP $response)"
+              if [ "$response" = "503" ]; then
+                echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
+              fi
+              exit 0
+            fi
+            echo "Waiting for Notification Service... ($i/30) - HTTP $response"
+            sleep 5
+          done
+          echo "❌ Notification Service health endpoint not accessible"
+          docker compose logs notification-service --tail=100
+          exit 1
 
-            - name: Check Chatbot Service health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8086/actuator/health 2>/dev/null || echo "000")
-                    if [ "$response" = "200" ] || [ "$response" = "503" ]; then
-                      echo "✅ Chatbot Service actuator endpoint is accessible (HTTP $response)"
-                      if [ "$response" = "503" ]; then
-                        echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
-                      fi
-                      exit 0
-                    fi
-                    echo "Waiting for Chatbot Service... ($i/30) - HTTP $response"
-                    sleep 5
-                  done
-                  echo "❌ Chatbot Service health endpoint not accessible"
-                  docker compose logs chatbot-service --tail=100
-                  exit 1
+      - name: Check Chatbot Service health
+        working-directory: deployment/docker
+        run: |
+          for i in {1..30}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8086/actuator/health 2>/dev/null || echo "000")
+            if [ "$response" = "200" ] || [ "$response" = "503" ]; then
+              echo "✅ Chatbot Service actuator endpoint is accessible (HTTP $response)"
+              if [ "$response" = "503" ]; then
+                echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
+              fi
+              exit 0
+            fi
+            echo "Waiting for Chatbot Service... ($i/30) - HTTP $response"
+            sleep 5
+          done
+          echo "❌ Chatbot Service health endpoint not accessible"
+          docker compose logs chatbot-service --tail=100
+          exit 1
 
-            - name: Check Customer Service health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8083/actuator/health 2>/dev/null || echo "000")
-                    if [ "$response" = "200" ] || [ "$response" = "503" ]; then
-                      echo "✅ Customer Service actuator endpoint is accessible (HTTP $response)"
-                      if [ "$response" = "503" ]; then
-                        echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
-                      fi
-                      exit 0
-                    fi
-                    echo "Waiting for Customer Service... ($i/30) - HTTP $response"
-                    sleep 5
-                  done
-                  echo "❌ Customer Service health endpoint not accessible"
-                  docker compose logs customer-service --tail=100
-                  exit 1
+      - name: Check Customer Service health
+        working-directory: deployment/docker
+        run: |
+          for i in {1..30}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8083/actuator/health 2>/dev/null || echo "000")
+            if [ "$response" = "200" ] || [ "$response" = "503" ]; then
+              echo "✅ Customer Service actuator endpoint is accessible (HTTP $response)"
+              if [ "$response" = "503" ]; then
+                echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
+              fi
+              exit 0
+            fi
+            echo "Waiting for Customer Service... ($i/30) - HTTP $response"
+            sleep 5
+          done
+          echo "❌ Customer Service health endpoint not accessible"
+          docker compose logs customer-service --tail=100
+          exit 1
 
-            - name: Check Vehicle Service health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8084/actuator/health 2>/dev/null || echo "000")
-                    if [ "$response" = "200" ] || [ "$response" = "503" ]; then
-                      echo "✅ Vehicle Service actuator endpoint is accessible (HTTP $response)"
-                      if [ "$response" = "503" ]; then
-                        echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
-                      fi
-                      exit 0
-                    fi
-                    echo "Waiting for Vehicle Service... ($i/30) - HTTP $response"
-                    sleep 5
-                  done
-                  echo "❌ Vehicle Service health endpoint not accessible"
-                  docker compose logs vehicle-service --tail=100
-                  exit 1
+      - name: Check Vehicle Service health
+        working-directory: deployment/docker
+        run: |
+          for i in {1..30}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8084/actuator/health 2>/dev/null || echo "000")
+            if [ "$response" = "200" ] || [ "$response" = "503" ]; then
+              echo "✅ Vehicle Service actuator endpoint is accessible (HTTP $response)"
+              if [ "$response" = "503" ]; then
+                echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
+              fi
+              exit 0
+            fi
+            echo "Waiting for Vehicle Service... ($i/30) - HTTP $response"
+            sleep 5
+          done
+          echo "❌ Vehicle Service health endpoint not accessible"
+          docker compose logs vehicle-service --tail=100
+          exit 1
 
-            - name: Check Tracking Service health
-              working-directory: deployment/docker
-              run: |
-                  for i in {1..30}; do
-                    response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8087/actuator/health 2>/dev/null || echo "000")
-                    if [ "$response" = "200" ] || [ "$response" = "503" ]; then
-                      echo "✅ Tracking Service actuator endpoint is accessible (HTTP $response)"
-                      if [ "$response" = "503" ]; then
-                        echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
-                      fi
-                      exit 0
-                    fi
-                    echo "Waiting for Tracking Service... ($i/30) - HTTP $response"
-                    sleep 5
-                  done
-                  echo "❌ Tracking Service health endpoint not accessible"
-                  docker compose logs tracking-service --tail=100
-                  exit 1
+      - name: Check Tracking Service health
+        working-directory: deployment/docker
+        run: |
+          for i in {1..30}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8087/actuator/health 2>/dev/null || echo "000")
+            if [ "$response" = "200" ] || [ "$response" = "503" ]; then
+              echo "✅ Tracking Service actuator endpoint is accessible (HTTP $response)"
+              if [ "$response" = "503" ]; then
+                echo "⚠️  Service is up but reporting as unhealthy (dependencies may be initializing)"
+              fi
+              exit 0
+            fi
+            echo "Waiting for Tracking Service... ($i/30) - HTTP $response"
+            sleep 5
+          done
+          echo "❌ Tracking Service health endpoint not accessible"
+          docker compose logs tracking-service --tail=100
+          exit 1
 
-            - name: Verify Eureka registration
-              working-directory: deployment/docker
-              run: |
-                  echo "Checking service registration with Eureka..."
-                  sleep 30
+      - name: Verify Eureka registration
+        working-directory: deployment/docker
+        run: |
+          echo "Checking service registration with Eureka..."
+          sleep 30
 
-                  # Get registered services from Eureka
-                  EUREKA_APPS=$(curl -s -u admin:password http://localhost:8761/eureka/apps | grep -o '<application>[^<]*<name>[^<]*</name>' | grep -o '<name>[^<]*</name>' | sed 's/<name>//g' | sed 's/<\/name>//g' | sort -u)
+          # Get registered services from Eureka
+          EUREKA_APPS=$(curl -s -u admin:password http://localhost:8761/eureka/apps | grep -o '<application>[^<]*<name>[^<]*</name>' | grep -o '<name>[^<]*</name>' | sed 's/<name>//g' | sed 's/<\/name>//g' | sort -u)
 
-                  echo "Registered services in Eureka:"
-                  echo "$EUREKA_APPS"
+          echo "Registered services in Eureka:"
+          echo "$EUREKA_APPS"
 
-                  # Check if expected services are registered
-                  expected_services=("API-GATEWAY" "USER-AUTH-SERVICE" "CUSTOMER-SERVICE" "VEHICLE-SERVICE" "NOTIFICATION-SERVICE" "TRACKING-SERVICE" "CHATBOT-SERVICE")
+          # Check if expected services are registered
+          expected_services=("API-GATEWAY" "USER-AUTH-SERVICE" "CUSTOMER-SERVICE" "VEHICLE-SERVICE" "NOTIFICATION-SERVICE" "TRACKING-SERVICE" "CHATBOT-SERVICE")
 
-                  for service in "${expected_services[@]}"; do
-                    if echo "$EUREKA_APPS" | grep -q "$service"; then
-                      echo "✅ $service is registered with Eureka"
-                    else
-                      echo "⚠️  $service is NOT registered with Eureka"
-                    fi
-                  done
+          for service in "${expected_services[@]}"; do
+            if echo "$EUREKA_APPS" | grep -q "$service"; then
+              echo "✅ $service is registered with Eureka"
+            else
+              echo "⚠️  $service is NOT registered with Eureka"
+            fi
+          done
 
-            - name: Test API Gateway routing
-              working-directory: deployment/docker
-              run: |
-                  echo "Testing API Gateway routing to services..."
+      - name: Test API Gateway routing
+        working-directory: deployment/docker
+        run: |
+          echo "Testing API Gateway routing to services..."
 
-                  # Test routing through API Gateway
-                  response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/user-auth/actuator/health 2>/dev/null || echo "000")
-                  echo "API Gateway -> User Auth Service: HTTP $response"
+          # Test routing through API Gateway
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/user-auth/actuator/health 2>/dev/null || echo "000")
+          echo "API Gateway -> User Auth Service: HTTP $response"
 
-                  response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/customer/actuator/health 2>/dev/null || echo "000")
-                  echo "API Gateway -> Customer Service: HTTP $response"
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/customer/actuator/health 2>/dev/null || echo "000")
+          echo "API Gateway -> Customer Service: HTTP $response"
 
-                  response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/vehicle/actuator/health 2>/dev/null || echo "000")
-                  echo "API Gateway -> Vehicle Service: HTTP $response"
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/vehicle/actuator/health 2>/dev/null || echo "000")
+          echo "API Gateway -> Vehicle Service: HTTP $response"
 
-                  response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/notification/actuator/health 2>/dev/null || echo "000")
-                  echo "API Gateway -> Notification Service: HTTP $response"
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/notification/actuator/health 2>/dev/null || echo "000")
+          echo "API Gateway -> Notification Service: HTTP $response"
 
-                  response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/tracking/actuator/health 2>/dev/null || echo "000")
-                  echo "API Gateway -> Tracking Service: HTTP $response"
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/tracking/actuator/health 2>/dev/null || echo "000")
+          echo "API Gateway -> Tracking Service: HTTP $response"
 
-                  response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/chatbot/actuator/health 2>/dev/null || echo "000")
-                  echo "API Gateway -> Chatbot Service: HTTP $response"
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/chatbot/actuator/health 2>/dev/null || echo "000")
+          echo "API Gateway -> Chatbot Service: HTTP $response"
 
-            - name: Display Docker health status
-              if: always()
-              working-directory: deployment/docker
-              run: |
-                  echo "=== Docker Container Health Status ==="
-                  docker compose ps
+      - name: Display Docker health status
+        if: always()
+        working-directory: deployment/docker
+        run: |
+          echo "=== Docker Container Health Status ==="
+          docker compose ps
 
-                  echo ""
-                  echo "=== Docker Container Health Checks ==="
-                  docker ps --format "table {{.Names}}\t{{.Status}}" | grep gearup
+          echo ""
+          echo "=== Docker Container Health Checks ==="
+          docker ps --format "table {{.Names}}\t{{.Status}}" | grep gearup
 
-            - name: Save logs on failure
-              if: failure()
-              working-directory: deployment/docker
-              run: |
-                  mkdir -p ../../logs
-                  docker compose logs --no-color > ../../logs/all-services.log
-                  docker compose logs config-server --no-color > ../../logs/config-server.log
-                  docker compose logs service-discovery --no-color > ../../logs/service-discovery.log
-                  docker compose logs api-gateway --no-color > ../../logs/api-gateway.log
-                  docker compose logs user-auth-service --no-color > ../../logs/user-auth-service.log
-                  docker compose logs customer-service --no-color > ../../logs/customer-service.log
-                  docker compose logs vehicle-service --no-color > ../../logs/vehicle-service.log
-                  docker compose logs notification-service --no-color > ../../logs/notification-service.log
-                  docker compose logs tracking-service --no-color > ../../logs/tracking-service.log
-                  docker compose logs chatbot-service --no-color > ../../logs/chatbot-service.log
-                  docker compose logs rabbitmq --no-color > ../../logs/rabbitmq.log
-                  docker compose logs redis --no-color > ../../logs/redis.log
-                  docker compose logs postgres --no-color > ../../logs/postgres.log
+      - name: Save logs on failure
+        if: failure()
+        working-directory: deployment/docker
+        run: |
+          mkdir -p ../../logs
+          docker compose logs --no-color > ../../logs/all-services.log
+          docker compose logs config-server --no-color > ../../logs/config-server.log
+          docker compose logs service-discovery --no-color > ../../logs/service-discovery.log
+          docker compose logs api-gateway --no-color > ../../logs/api-gateway.log
+          docker compose logs user-auth-service --no-color > ../../logs/user-auth-service.log
+          docker compose logs customer-service --no-color > ../../logs/customer-service.log
+          docker compose logs vehicle-service --no-color > ../../logs/vehicle-service.log
+          docker compose logs notification-service --no-color > ../../logs/notification-service.log
+          docker compose logs tracking-service --no-color > ../../logs/tracking-service.log
+          docker compose logs chatbot-service --no-color > ../../logs/chatbot-service.log
+          docker compose logs rabbitmq --no-color > ../../logs/rabbitmq.log
+          docker compose logs redis --no-color > ../../logs/redis.log
+          docker compose logs postgres --no-color > ../../logs/postgres.log
 
-            - name: Upload logs as artifact
-              if: failure()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: service-logs
-                  path: logs/
-                  retention-days: 7
+      - name: Upload logs as artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-logs
+          path: logs/
+          retention-days: 7
 
-            - name: Cleanup
-              if: always()
-              working-directory: deployment/docker
-              run: |
-                  docker compose down -v
+      - name: Cleanup
+        if: always()
+        working-directory: deployment/docker
+        run: |
+          docker compose down -v

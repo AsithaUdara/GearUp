@@ -10,7 +10,7 @@ COPY service-discovery/target/*.jar /app/app.jar
 RUN chown -R app:app /app
 USER app
 EXPOSE 8761
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD wget -qO- --no-check-certificate http://localhost:8761/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD wget --user=admin --password=password -qO- --no-check-certificate http://localhost:8761/actuator/health || exit 1
 LABEL maintainer="ops@company.com" \
     org.opencontainers.image.version="0.1.0"
 ENTRYPOINT ["java","-jar","/app/app.jar"]

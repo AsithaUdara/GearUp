@@ -10,11 +10,19 @@ services:
       - ./.env
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--user=admin",
+          "--password=password",
+          "-qO-",
+          "http://localhost:8761/actuator/health",
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 40s
+      retries: 10
+      start_period: 60s
 
   config-server:
     build:
@@ -32,11 +40,19 @@ services:
       - ../../config-repo:/app/config-repo:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--user=configadmin",
+          "--password=change-me",
+          "-qO-",
+          "http://localhost:8888/actuator/health",
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 40s
+      retries: 10
+      start_period: 60s
 
   api-gateway:
     build:
