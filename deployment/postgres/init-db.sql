@@ -17,6 +17,7 @@ CREATE DATABASE as_customer_service;
 CREATE DATABASE as_tracking_service;
 CREATE DATABASE as_analytical_service;
 CREATE DATABASE as_payment_service;
+CREATE DATABASE as_parts_service;
 
 -- Create dedicated service users with strong passwords from environment variables
 -- Docker will pass these via POSTGRES_INITDB_ARGS
@@ -29,6 +30,7 @@ CREATE USER svc_customer_service WITH PASSWORD :'CUSTOMER_DB_PASSWORD';
 CREATE USER svc_tracking_service WITH PASSWORD 'tracking_svc_pass_2024';
 CREATE USER svc_analytical_service WITH PASSWORD 'analytical_svc_pass_2024';
 CREATE USER svc_payment_service WITH PASSWORD :'PAYMENT_DB_PASSWORD';
+CREATE USER svc_parts_service WITH PASSWORD 'parts_svc_pass_2024';
 
 -- Grant all privileges on respective databases to service users
 GRANT ALL PRIVILEGES ON DATABASE as_automobile_service TO svc_automobile_service;
@@ -169,6 +171,20 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_payment_service;
 -- Set default privileges for future tables (created by Flyway)
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_payment_service;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_payment_service;
+
+-- ========================================
+-- Parts Service Database Setup
+-- ========================================
+\c as_parts_service;
+
+-- Grant schema privileges
+GRANT ALL ON SCHEMA public TO svc_parts_service;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_parts_service;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_parts_service;
+
+-- Set default privileges for future tables (created by Flyway)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_parts_service;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_parts_service;
 
 -- Log completion
 \c postgres;

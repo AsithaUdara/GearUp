@@ -175,6 +175,33 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
+
+  parts-service:
+    build:
+      context: ../../
+      dockerfile: services/parts-service/Dockerfile
+    container_name: gearup-parts-service
+    ports:
+      - "8084:8084"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/as_parts_service
+      - SPRING_DATASOURCE_USERNAME=svc_parts_service
+      - SPRING_DATASOURCE_PASSWORD=parts_svc_pass_2024
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      service-discovery:
+        condition: service_started
       rabbitmq:
         condition: service_healthy
       redis:
@@ -555,6 +582,7 @@ services:
       AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
+      PARTS_DB_PASSWORD: ${PARTS_DB_PASSWORD}
       PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD}
       CHATBOT_DB_PASSWORD: ${CHATBOT_DB_PASSWORD}
       VEHICLE_DB_PASSWORD: ${VEHICLE_DB_PASSWORD}
@@ -574,12 +602,17 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: gearup-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${SPRING_RABBITMQ_PASSWORD}
+      RABBITMQ_ERLANG_COOKIE: rabbitmq-cookie
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - rabbitmq-log:/var/log/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -594,14 +627,61 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: gearup-pgadmin
+    env_file:
+      - ../../.env
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@gearup.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@gearup.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
       PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
       - "5050:80"
     depends_on:
       - db
+    restart: unless-stopped
+
+  config-server:
+    build:
+      context: ../../
+      dockerfile: ./config-server/Dockerfile
+    container_name: gearup-config-server
+    ports:
+      - "8888:8888"
+    env_file:
+      - ../../.env
+    environment:
+      - CONFIG_REPO_URI=file:/config-repo
+      - SPRING_PROFILES_ACTIVE=native
+    volumes:
+      - ../../config-repo:/config-repo
+    restart: unless-stopped
+
+  service-discovery:
+    build:
+      context: ../../
+      dockerfile: ./service-discovery/Dockerfile
+    container_name: gearup-service-discovery
+    ports:
+      - "8761:8761"
+    env_file:
+      - ../../.env
+    depends_on:
+      - config-server
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ../../
+      dockerfile: ./api-gateway/Dockerfile
+    container_name: gearup-api-gateway
+    ports:
+      - "9090:9090"
+    env_file:
+      - ../../.env
+    environment:
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+    depends_on:
+      - service-discovery
+      - config-server
     restart: unless-stopped
 
 volumes:

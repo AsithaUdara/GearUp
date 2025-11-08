@@ -1,4 +1,3 @@
-## Multi-stage Dockerfile — config-server
 FROM eclipse-temurin:21-jre-alpine
 # Install curl for healthcheck
 RUN apk add --no-cache curl
