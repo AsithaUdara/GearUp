@@ -10,11 +10,19 @@ services:
       - ./.env
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "-u",
+          "admin:password",
+          "http://localhost:8761/actuator/health",
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 40s
+      retries: 10
+      start_period: 60s
 
   config-server:
     build:
@@ -32,11 +40,19 @@ services:
       - ../../config-repo:/app/config-repo:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "-u",
+          "configadmin:change-me",
+          "http://localhost:8888/actuator/health",
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 40s
+      retries: 10
+      start_period: 60s
 
   api-gateway:
     build:
@@ -234,6 +250,8 @@ services:
       - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
       - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
       - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_DATA_REDIS_PORT=${SPRING_REDIS_PORT}
       - OLLAMA_BASE_URL=http://ollama:11434
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - SPRING_CLOUD_CONFIG_USERNAME=configadmin
@@ -379,6 +397,152 @@ services:
       retries: 3
       start_period: 60s
 
+  tracking-service:
+    build:
+      context: ../../
+      dockerfile: ./services/tracking-service/Dockerfile
+    container_name: gearup-tracking-service
+    ports:
+      - "8091:8091"
+    env_file:
+      - ./.env
+    environment:
+      - SERVER_PORT=8091
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
+      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
+      - SPRING_DATASOURCE_URL=${TRACKING_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${TRACKING_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${TRACKING_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
+      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+    volumes:
+      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8091/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  analytical-service:
+    build:
+      context: ../../
+      dockerfile: ./services/analytical-service/Dockerfile
+    container_name: gearup-analytical-service
+    ports:
+      - "8087:8087"
+    env_file:
+      - ./.env
+    environment:
+      - SERVER_PORT=8087
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
+      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
+      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
+      - SPRING_DATASOURCE_URL=${ANALYTICAL_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${ANALYTICAL_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${ANALYTICAL_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
+      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+    volumes:
+      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8087/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  payment-service:
+    build:
+      context: ../../
+      dockerfile: ./services/payment-service/Dockerfile
+    container_name: gearup-payment-service
+    ports:
+      - "8083:8083"
+    env_file:
+      - ./.env
+    environment:
+      - SERVER_PORT=8083
+      - SPRING_DATASOURCE_URL=${PAYMENT_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${PAYMENT_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${PAYMENT_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
+      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
+      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   db:
     image: pgvector/pgvector:pg15
     container_name: gearup-postgres
@@ -393,10 +557,12 @@ services:
       AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
-      TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
+      PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD}
       CHATBOT_DB_PASSWORD: ${CHATBOT_DB_PASSWORD}
       VEHICLE_DB_PASSWORD: ${VEHICLE_DB_PASSWORD}
       CUSTOMER_DB_PASSWORD: ${CUSTOMER_DB_PASSWORD}
+      TRACKING_DB_PASSWORD: ${TRACKING_DB_PASSWORD}
+      ANALYTICAL_DB_PASSWORD: ${ANALYTICAL_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -430,11 +596,9 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: gearup-pgadmin
-    env_file:
-      - ../../.env
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@gearup.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_DEFAULT_EMAIL: admin@gearup.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
       PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
       - "5050:80"

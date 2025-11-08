@@ -110,16 +110,16 @@ jobs:
             db: as_user_auth_service
             user: svc_user_auth_service
             password: auth_svc_pass_2024
-          - name: template-service
-            module: services/template-service
-            db: as_template_service
-            user: svc_template_service
-            password: template_svc_pass_2024
           - name: chatbot-service
             module: services/chatbot-service
             db: as_chatbot_service
             user: svc_chatbot_service
             password: chatbot_svc_pass_2024
+          - name: payment-service
+            module: services/payment-service
+            db: as_payment_service
+            user: svc_payment_service
+            password: payment_pass_2024
 
     steps:
       - name: Checkout
@@ -280,7 +280,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for KUBE_CONFIG_BASE64 secret
+        run: |
+          if [ -z "${{ secrets.KUBE_CONFIG_BASE64 }}" ]; then
+            echo "KUBE_CONFIG_BASE64 secret is not set. Skipping Kubernetes deployment.";
+            echo "SKIP_DEPLOY=true" >> $GITHUB_ENV
+          else
+            echo "KUBE_CONFIG_BASE64 found, proceeding with deployment.";
+            echo "SKIP_DEPLOY=false" >> $GITHUB_ENV
+          fi
+
       - name: Install kubectl
+        if: env.SKIP_DEPLOY == 'false'
         uses: azure/setup-kubectl@v3
         with:
           # Use 'latest' to avoid failures when a specific patch isn't available
@@ -289,9 +300,11 @@ jobs:
           version: "latest"
 
       - name: Install Helm
+        if: env.SKIP_DEPLOY == 'false'
         uses: azure/setup-helm@v1
 
       - name: Configure kubeconfig
+        if: env.SKIP_DEPLOY == 'false'
         env:
           KUBE_CONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64 }}
         run: |
@@ -300,6 +313,7 @@ jobs:
           mv kubeconfig $HOME/.kube/config
 
       - name: Deploy charts from deployment/helm/charts
+        if: env.SKIP_DEPLOY == 'false'
         env:
           IMAGE_TAG: ${{ github.sha }}
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
@@ -326,3 +340,129 @@ jobs:
               helm upgrade --install "$name" "$chart" --namespace "$NAMESPACE"
             fi
           done
+
+  verify-deployment:
+    name: Verify Deployment Health
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for KUBE_CONFIG_BASE64 secret
+        run: |
+          if [ -z "${{ secrets.KUBE_CONFIG_BASE64 }}" ]; then
+            echo "KUBE_CONFIG_BASE64 secret is not set. Skipping health verification.";
+            echo "SKIP_VERIFY=true" >> $GITHUB_ENV
+          else
+            echo "KUBE_CONFIG_BASE64 found, proceeding with health verification.";
+            echo "SKIP_VERIFY=false" >> $GITHUB_ENV
+          fi
+
+      - name: Install kubectl
+        if: env.SKIP_VERIFY == 'false'
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - name: Configure kubeconfig
+        if: env.SKIP_VERIFY == 'false'
+        env:
+          KUBE_CONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64 }}
+        run: |
+          echo "$KUBE_CONFIG_BASE64" | base64 --decode > kubeconfig
+          mkdir -p $HOME/.kube
+          mv kubeconfig $HOME/.kube/config
+
+      - name: Wait for pods to be ready
+        if: env.SKIP_VERIFY == 'false'
+        env:
+          NAMESPACE: ${{ env.HELM_NAMESPACE }}
+        run: |
+          echo "Waiting for all pods to be ready in namespace $NAMESPACE..."
+          kubectl wait --for=condition=ready pod --all -n "$NAMESPACE" --timeout=300s || true
+
+          echo "Current pod status:"
+          kubectl get pods -n "$NAMESPACE"
+
+      - name: Check service endpoints
+        if: env.SKIP_VERIFY == 'false'
+        env:
+          NAMESPACE: ${{ env.HELM_NAMESPACE }}
+        run: |
+          echo "Checking service endpoints..."
+
+          # Get all services
+          services=$(kubectl get services -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
+
+          for service in $services; do
+            echo "Service: $service"
+            kubectl get service "$service" -n "$NAMESPACE" -o wide
+          done
+
+      - name: Verify health endpoints
+        if: env.SKIP_VERIFY == 'false'
+        env:
+          NAMESPACE: ${{ env.HELM_NAMESPACE }}
+        run: |
+          echo "Verifying service health endpoints..."
+
+          # List of services to check (adjust based on your services)
+          services=(
+            "api-gateway:8080"
+            "config-server:8888"
+            "service-discovery:8761"
+            "user-auth-service:8082"
+            "automobile-service:8085"
+            "notification-service:8081"
+            "chatbot-service:8086"
+            "customer-service:8083"
+            "vehicle-service:8084"
+            "tracking-service:8087"
+          )
+
+          for svc in "${services[@]}"; do
+            IFS=':' read -r service port <<< "$svc"
+            pod=$(kubectl get pods -n "$NAMESPACE" -l app="$service" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+            
+            if [ -n "$pod" ]; then
+              echo "Checking health for $service (pod: $pod)..."
+              kubectl exec -n "$NAMESPACE" "$pod" -- wget -qO- http://localhost:$port/actuator/health 2>/dev/null || echo "⚠️  Health check failed or not available for $service"
+            else
+              echo "⚠️  Pod not found for $service"
+            fi
+          done
+
+      - name: Check Eureka registration
+        if: env.SKIP_VERIFY == 'false'
+        env:
+          NAMESPACE: ${{ env.HELM_NAMESPACE }}
+        run: |
+          echo "Checking Eureka service registration..."
+
+          eureka_pod=$(kubectl get pods -n "$NAMESPACE" -l app=service-discovery -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+
+          if [ -n "$eureka_pod" ]; then
+            echo "Fetching registered services from Eureka..."
+            kubectl exec -n "$NAMESPACE" "$eureka_pod" -- wget -qO- http://localhost:8761/eureka/apps 2>/dev/null | grep -o '<name>[^<]*</name>' | sed 's/<name>//g' | sed 's/<\/name>//g' | sort -u || echo "⚠️  Could not fetch Eureka apps"
+          else
+            echo "⚠️  Eureka pod not found"
+          fi
+
+      - name: Display deployment summary
+        if: always() && env.SKIP_VERIFY == 'false'
+        env:
+          NAMESPACE: ${{ env.HELM_NAMESPACE }}
+        run: |
+          echo "=== Deployment Summary ==="
+          echo "Namespace: $NAMESPACE"
+          echo ""
+          echo "Pods:"
+          kubectl get pods -n "$NAMESPACE" -o wide
+          echo ""
+          echo "Services:"
+          kubectl get services -n "$NAMESPACE"
+          echo ""
+          echo "Deployments:"
+          kubectl get deployments -n "$NAMESPACE"

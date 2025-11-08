@@ -56,6 +56,41 @@ spring:
                   args:
                     parts: 0 # Keep full path as customer service expects /api/v1/customers
 
+            # Analytical Service Route
+            - id: analytical-service-route
+              uri: lb://analytical-service
+              predicates:
+                - Path=/api/v1/analytics/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path
+
+            # Tracking Service Route
+            - id: tracking-service-route
+              uri: lb://tracking-service
+              predicates:
+                - Path=/api/tracking/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
+
+            # Payment Service Route
+            - id: payment-service-route
+              uri: lb://payment-service
+              predicates:
+                - Path=/api/payments/**,/api/bills/**,/api/payment-requests/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as payment service expects /api/payments
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 15
+                    redis-rate-limiter.burstCapacity: 30
+
             - id: api-gateway-root
               uri: lb://api-gateway
               predicates:
