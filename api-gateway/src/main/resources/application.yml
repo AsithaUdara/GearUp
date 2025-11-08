@@ -105,6 +105,34 @@ spring:
                     redis-rate-limiter.replenishRate: 15
                     redis-rate-limiter.burstCapacity: 30
 
+            # Appointment Service Route
+            - id: appointment-service-route
+              uri: lb://appointment-service
+              predicates:
+                - Path=/api/appointments/**,/api/bookings/**,/api/timeslots/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as appointment service expects /api/appointments
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
+
+            # Modification Service Route
+            - id: modification-service-route
+              uri: lb://modification-service
+              predicates:
+                - Path=/api/modifications/**,/api/modification-requests/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as modification service expects /api/modifications
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 15
+                    redis-rate-limiter.burstCapacity: 30
+
             - id: api-gateway-root
               uri: lb://api-gateway
               predicates:

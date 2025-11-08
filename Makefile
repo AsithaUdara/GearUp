@@ -1,7 +1,7 @@
 ## Makefile helpers for Flyway migrations and local Postgres
 ## Each service has its own database and migration scripts managed by Flyway
 
-.PHONY: docker-run-postgres docker-stop-postgres flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-all
+.PHONY: docker-run-postgres docker-stop-postgres flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification flyway-all
 
 docker-run-postgres:
 	@if [ -f .env ]; then ENV_FILE="--env-file .env"; else ENV_FILE=""; fi; \
@@ -90,7 +90,23 @@ flyway-parts:
 		-Dflyway.user=$${FLYWAY_USER_PARTS:-svc_parts_service} \
 		-Dflyway.password=$${FLYWAY_PASSWORD_PARTS:-parts_svc_pass_2024}
 
+# Run Flyway migrations for appointment-service
+flyway-appointment:
+	@echo "Running Flyway migrations for appointment-service..."
+	./mvnw -pl services/appointment-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_APPOINTMENT:-jdbc:postgresql://localhost:5432/as_appointment_service} \
+		-Dflyway.user=$${FLYWAY_USER_APPOINTMENT:-svc_appointment_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_APPOINTMENT:-appointment_pass_2024}
+
+# Run Flyway migrations for modification-service
+flyway-modification:
+	@echo "Running Flyway migrations for modification-service..."
+	./mvnw -pl services/modification-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_MODIFICATION:-jdbc:postgresql://localhost:5432/as_modification_service} \
+		-Dflyway.user=$${FLYWAY_USER_MODIFICATION:-svc_modification_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_MODIFICATION:-modification_pass_2024}
+
 # Run all Flyway migrations
-flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts
+flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification
 	@echo "All migrations completed successfully!"
 
