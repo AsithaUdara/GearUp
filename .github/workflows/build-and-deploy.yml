@@ -275,7 +275,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for KUBE_CONFIG_BASE64 secret
+        run: |
+          if [ -z "${{ secrets.KUBE_CONFIG_BASE64 }}" ]; then
+            echo "KUBE_CONFIG_BASE64 secret is not set. Skipping Kubernetes deployment.";
+            echo "SKIP_DEPLOY=true" >> $GITHUB_ENV
+          else
+            echo "KUBE_CONFIG_BASE64 found, proceeding with deployment.";
+            echo "SKIP_DEPLOY=false" >> $GITHUB_ENV
+          fi
+
       - name: Install kubectl
+        if: env.SKIP_DEPLOY == 'false'
         uses: azure/setup-kubectl@v3
         with:
           # Use 'latest' to avoid failures when a specific patch isn't available
@@ -284,9 +295,11 @@ jobs:
           version: "latest"
 
       - name: Install Helm
+        if: env.SKIP_DEPLOY == 'false'
         uses: azure/setup-helm@v1
 
       - name: Configure kubeconfig
+        if: env.SKIP_DEPLOY == 'false'
         env:
           KUBE_CONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64 }}
         run: |
@@ -295,6 +308,7 @@ jobs:
           mv kubeconfig $HOME/.kube/config
 
       - name: Deploy charts from deployment/helm/charts
+        if: env.SKIP_DEPLOY == 'false'
         env:
           IMAGE_TAG: ${{ github.sha }}
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
@@ -331,12 +345,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for KUBE_CONFIG_BASE64 secret
+        run: |
+          if [ -z "${{ secrets.KUBE_CONFIG_BASE64 }}" ]; then
+            echo "KUBE_CONFIG_BASE64 secret is not set. Skipping health verification.";
+            echo "SKIP_VERIFY=true" >> $GITHUB_ENV
+          else
+            echo "KUBE_CONFIG_BASE64 found, proceeding with health verification.";
+            echo "SKIP_VERIFY=false" >> $GITHUB_ENV
+          fi
+
       - name: Install kubectl
+        if: env.SKIP_VERIFY == 'false'
         uses: azure/setup-kubectl@v3
         with:
           version: "latest"
 
       - name: Configure kubeconfig
+        if: env.SKIP_VERIFY == 'false'
         env:
           KUBE_CONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64 }}
         run: |
@@ -345,6 +371,7 @@ jobs:
           mv kubeconfig $HOME/.kube/config
 
       - name: Wait for pods to be ready
+        if: env.SKIP_VERIFY == 'false'
         env:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
@@ -355,6 +382,7 @@ jobs:
           kubectl get pods -n "$NAMESPACE"
 
       - name: Check service endpoints
+        if: env.SKIP_VERIFY == 'false'
         env:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
@@ -369,6 +397,7 @@ jobs:
           done
 
       - name: Verify health endpoints
+        if: env.SKIP_VERIFY == 'false'
         env:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
@@ -401,6 +430,7 @@ jobs:
           done
 
       - name: Check Eureka registration
+        if: env.SKIP_VERIFY == 'false'
         env:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
@@ -416,7 +446,7 @@ jobs:
           fi
 
       - name: Display deployment summary
-        if: always()
+        if: always() && env.SKIP_VERIFY == 'false'
         env:
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
         run: |
