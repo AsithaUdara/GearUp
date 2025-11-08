@@ -34,6 +34,12 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- Jakarta Bean Validation Provider (required for actuator health endpoints) -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+
         <!-- Eureka Server -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -58,11 +64,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <skip>false</skip>
-                    <mainClass>com.gearup.servicediscovery.ServiceDiscoveryApplication</mainClass>
-                    <layout>JAR</layout>
-                </configuration>
+                <version>3.2.5</version>
                 <executions>
                     <execution>
                         <goals>

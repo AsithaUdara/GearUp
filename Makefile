@@ -1,7 +1,7 @@
 ## Makefile helpers for Flyway migrations and local Postgres
 ## Each service has its own database and migration scripts managed by Flyway
 
-.PHONY: docker-run-postgres docker-stop-postgres flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-all
+.PHONY: docker-run-postgres docker-stop-postgres flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-all
 
 docker-run-postgres:
 	@if [ -f .env ]; then ENV_FILE="--env-file .env"; else ENV_FILE=""; fi; \
@@ -42,7 +42,47 @@ flyway-template:
 		-Dflyway.user=$${FLYWAY_USER_TEMPLATE:-svc_template_service} \
 		-Dflyway.password=$${FLYWAY_PASSWORD_TEMPLATE:-template_svc_pass_2024}
 
+# Run Flyway migrations for customer-service
+flyway-customer:
+	@echo "Running Flyway migrations for customer-service..."
+	./mvnw -pl services/customer-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_CUSTOMER:-jdbc:postgresql://localhost:5432/as_customer_service} \
+		-Dflyway.user=$${FLYWAY_USER_CUSTOMER:-svc_customer_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_CUSTOMER:-customer_svc_pass_2024}
+
+# Run Flyway migrations for vehicle-service
+flyway-vehicle:
+	@echo "Running Flyway migrations for vehicle-service..."
+	./mvnw -pl services/vehicle-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_VEHICLE:-jdbc:postgresql://localhost:5432/as_vehicle_service} \
+		-Dflyway.user=$${FLYWAY_USER_VEHICLE:-svc_vehicle_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_VEHICLE:-vehicle_svc_pass_2024}
+
+# Run Flyway migrations for payment-service
+flyway-payment:
+	@echo "Running Flyway migrations for payment-service..."
+	./mvnw -pl services/payment-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_PAYMENT:-jdbc:postgresql://localhost:5432/as_payment_service} \
+		-Dflyway.user=$${FLYWAY_USER_PAYMENT:-svc_payment_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_PAYMENT:-payment_pass_2024}
+
+# Run Flyway migrations for analytical-service
+flyway-analytical:
+	@echo "Running Flyway migrations for analytical-service..."
+	./mvnw -pl services/analytical-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_ANALYTICAL:-jdbc:postgresql://localhost:5432/as_analytical_service} \
+		-Dflyway.user=$${FLYWAY_USER_ANALYTICAL:-svc_analytical_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_ANALYTICAL:-analytical_svc_pass_2024}
+
+# Run Flyway migrations for tracking-service
+flyway-tracking:
+	@echo "Running Flyway migrations for tracking-service..."
+	./mvnw -pl services/tracking-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_TRACKING:-jdbc:postgresql://localhost:5432/as_tracking_service} \
+		-Dflyway.user=$${FLYWAY_USER_TRACKING:-svc_tracking_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_TRACKING:-tracking_svc_pass_2024}
+
 # Run all Flyway migrations
-flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template
+flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking
 	@echo "All migrations completed successfully!"
 

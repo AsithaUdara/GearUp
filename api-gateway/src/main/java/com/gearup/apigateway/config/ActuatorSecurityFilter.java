@@ -23,6 +23,12 @@ public class ActuatorSecurityFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
         if (path != null && path.startsWith("/actuator")) {
+            // Allow public access to health and info endpoints for monitoring
+            if (path.equals("/actuator/health") || path.equals("/actuator/info")) {
+                return chain.filter(exchange);
+            }
+            
+            // Protect other actuator endpoints with token
             if (actuatorToken == null || actuatorToken.isBlank()) {
                 // no token configured -> deny access in production scenarios
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);

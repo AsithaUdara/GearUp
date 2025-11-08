@@ -39,7 +39,7 @@ Endpoints
 - Check the module README or `DEV_GUIDE.md` for common endpoints once service is running. Example (gateway may proxy):
 
 ```
-GET http://localhost:8080/api/automobile-service/actuator/health
+GET http://localhost:8085/api/automobile-service/actuator/health
 ```
 
 ## Database & Migrations
@@ -112,10 +112,10 @@ Testing
 
 ```powershell
 # Health check
-curl http://localhost:8082/actuator/health
+curl http://localhost:8085/actuator/health
 
 # Via API Gateway (if gateway running)
-curl http://localhost:8080/api/automobile-service/vehicles
+curl http://localhost:9090/api/automobile-service/vehicles
 
 # Verify DB connection (script)
 .\scripts\test-db-connections.ps1
