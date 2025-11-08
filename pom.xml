@@ -13,6 +13,7 @@
     <modules>
         <module>services/automobile-service</module>
         <module>services/notification-service</module>
+        <module>services/payment-service</module>
         <module>services/user-auth-service</module>
         <module>services/chatbot-service</module>
         <module>services/vehicle-service</module>

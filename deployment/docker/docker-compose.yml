@@ -497,6 +497,26 @@ services:
       retries: 3
       start_period: 60s
 
+  payment-service:
+    build:
+      context: ../../
+      dockerfile: ./services/payment-service/Dockerfile
+    container_name: gearup-payment-service
+    ports:
+      - "8083:8083"
+    env_file:
+      - ../../.env
+    environment:
+      - SPRING_DATASOURCE_URL=${PAYMENT_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${PAYMENT_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${PAYMENT_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   db:
     image: pgvector/pgvector:pg15
     container_name: gearup-postgres
@@ -511,6 +531,7 @@ services:
       AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
+      PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD}
       CHATBOT_DB_PASSWORD: ${CHATBOT_DB_PASSWORD}
       VEHICLE_DB_PASSWORD: ${VEHICLE_DB_PASSWORD}
       CUSTOMER_DB_PASSWORD: ${CUSTOMER_DB_PASSWORD}
