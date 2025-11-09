@@ -15,6 +15,7 @@ public class TaskListResponse {
     
     private TaskResponse currentTask;
     private List<TaskResponse> assignedTasks;
+    private List<TaskResponse> inWorkTasks;
     private List<TaskResponse> completedTasks;
     private int totalAssigned;
     private int totalInProgress;
