@@ -1,3 +1,4 @@
+//add missing services
 services:
   service-discovery:
     build:
