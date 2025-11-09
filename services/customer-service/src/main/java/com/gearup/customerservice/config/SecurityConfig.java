@@ -1,6 +1,7 @@
 package com.gearup.customerservice.config;
 
 import com.gearup.security.FirebaseAuthenticationFilter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -8,15 +9,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.Optional;
-
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   Optional<FirebaseAuthenticationFilter> firebaseAuthenticationFilter) throws Exception {
+                                                   ObjectProvider<FirebaseAuthenticationFilter> firebaseAuthenticationFilterProvider) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
@@ -26,7 +25,7 @@ public class SecurityConfig {
             );
 
         // Register the filter only if a FirebaseAuthenticationFilter bean is available.
-        firebaseAuthenticationFilter.ifPresent(filter ->
+        firebaseAuthenticationFilterProvider.ifAvailable(filter ->
             http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
         );
 
