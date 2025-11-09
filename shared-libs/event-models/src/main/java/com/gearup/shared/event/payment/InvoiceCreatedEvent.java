@@ -1,24 +1,26 @@
-package com.gearup.shared.event;
+package com.gearup.shared.event.payment;
+
+import com.gearup.shared.event.base.BasePaymentEvent;
 
 /**
- * Event published when an invoice is paid.
+ * Event published when an invoice is created.
  */
-public class InvoicePaidEvent extends BaseNotificationEvent {
+public class InvoiceCreatedEvent extends BasePaymentEvent {
     private String invoiceId;
     private String invoiceNumber;
     private Double amount;
-    private String paymentMethod;
+    private String customerName;
 
-    public InvoicePaidEvent() {
+    public InvoiceCreatedEvent() {
     }
 
-    public InvoicePaidEvent(String eventId, String userId, java.time.LocalDateTime timestamp,
-                            String invoiceId, String invoiceNumber, Double amount, String paymentMethod) {
+    public InvoiceCreatedEvent(String eventId, String userId, java.time.LocalDateTime timestamp,
+                               String invoiceId, String invoiceNumber, Double amount, String customerName) {
         super(eventId, userId, timestamp);
         this.invoiceId = invoiceId;
         this.invoiceNumber = invoiceNumber;
         this.amount = amount;
-        this.paymentMethod = paymentMethod;
+        this.customerName = customerName;
     }
 
     public String getInvoiceId() {
@@ -45,11 +47,11 @@ public class InvoicePaidEvent extends BaseNotificationEvent {
         this.amount = amount;
     }
 
-    public String getPaymentMethod() {
-        return paymentMethod;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 }

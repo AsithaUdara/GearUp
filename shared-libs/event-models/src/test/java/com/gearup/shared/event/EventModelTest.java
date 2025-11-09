@@ -1,5 +1,6 @@
 package com.gearup.shared.event;
 
+import com.gearup.shared.event.payment.InvoiceCreatedEvent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 

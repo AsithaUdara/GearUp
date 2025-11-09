@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/v1/tracking")
+@RequestMapping("/api/tracking")
 @RequiredArgsConstructor
 @Slf4j
 public class TrackingController {
@@ -92,7 +92,7 @@ public class TrackingController {
     @PostMapping("/modification-requests")
     public ResponseEntity<ModificationRequestResponse> createModificationRequest(
             @Valid @RequestBody CreateModificationRequest request) {
-        log.info("Creating modification request for service: {}", request.getServiceId());
+        log.info("Creating modification request for service: {}", request);
         ModificationRequestResponse response = modificationRequestService.createModificationRequest(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -114,7 +114,7 @@ public class TrackingController {
      */
     @PostMapping("/parts-requests")
     public ResponseEntity<PartsRequestResponse> createPartsRequest(@Valid @RequestBody CreatePartsRequest request) {
-        log.info("Creating parts request for material: {}", request.getMaterial());
+        log.info("Creating parts request for material: {}", request);
         PartsRequestResponse response = partsRequestService.createPartsRequest(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

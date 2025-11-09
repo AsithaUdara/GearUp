@@ -7,11 +7,11 @@ import com.gearup.notificationservice.dto.NotificationRequest;
 import com.gearup.notificationservice.entity.NotificationPriority;
 import com.gearup.notificationservice.entity.NotificationType;
 import com.gearup.notificationservice.service.NotificationService;
-import com.gearup.shared.event.InvoiceCreatedEvent;
-import com.gearup.shared.event.InvoicePaidEvent;
-import com.gearup.shared.event.InvoiceUpdatedEvent;
-import com.gearup.shared.event.TaskAssignedEvent;
-import com.gearup.shared.event.TaskCompletedEvent;
+import com.gearup.shared.event.payment.InvoiceCreatedEvent;
+import com.gearup.shared.event.payment.InvoicePaidEvent;
+import com.gearup.shared.event.payment.InvoiceUpdatedEvent;
+import com.gearup.shared.event.tracking.TaskAssignedEvent;
+import com.gearup.shared.event.tracking.TaskCompletedEvent;
 import com.gearup.shared.messaging.RabbitMQConfig;
 
 import lombok.RequiredArgsConstructor;
@@ -114,7 +114,7 @@ public class NotificationEventListener {
         
         try {
             NotificationRequest request = NotificationRequest.builder()
-                    .userId(event.getUserId())
+                    .userId(event.getAssigneeId())
                     .title("New Task Assigned")
                     .message(String.format("You have been assigned a new task: %s by %s. Due date: %s", 
                             event.getTaskTitle(), event.getAssignedBy(), event.getDueDate()))
@@ -141,7 +141,7 @@ public class NotificationEventListener {
         
         try {
             NotificationRequest request = NotificationRequest.builder()
-                    .userId(event.getUserId())
+                    .userId(event.getAssigneeId())
                     .title("Task Completed")
                     .message(String.format("Task '%s' has been completed by %s", 
                             event.getTaskTitle(), event.getCompletedBy()))

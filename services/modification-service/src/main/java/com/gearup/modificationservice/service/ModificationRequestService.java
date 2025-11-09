@@ -8,6 +8,9 @@ import com.gearup.modificationservice.entity.RequestStatus;
 import com.gearup.modificationservice.repository.CustomerRepository;
 import com.gearup.modificationservice.repository.ModificationRequestRepository;
 import com.gearup.modificationservice.repository.ModificationServiceRepository;
+import com.gearup.shared.event.modification.*;
+import com.gearup.shared.messaging.EventPublisher;
+import com.gearup.shared.messaging.RabbitMQConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ public class ModificationRequestService {
     private final ModificationRequestRepository modificationRequestRepository;
     private final ModificationServiceRepository modificationServiceRepository;
     private final CustomerRepository customerRepository;
+    private final EventPublisher eventPublisher;
     
     @Transactional
     public ModificationRequestDTO createRequest(CreateModificationRequestDTO request) {
@@ -108,17 +112,99 @@ public class ModificationRequestService {
         ModificationRequest request = modificationRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Modification request not found"));
         
+        RequestStatus oldStatus = request.getStatus();
+        String eventId = UUID.randomUUID().toString();
+        
         if (updateDTO.getStatus() != null) {
-            RequestStatus oldStatus = request.getStatus();
             request.setStatus(updateDTO.getStatus());
             
             // Update timestamp based on status
             if (updateDTO.getStatus() == RequestStatus.APPROVED && oldStatus != RequestStatus.APPROVED) {
                 request.setApprovedAt(LocalDateTime.now());
+                
+                // 🔥 Publish ModificationApprovedEvent
+                ModificationApprovedEvent event = new ModificationApprovedEvent(
+                    eventId,
+                    request.getId(),
+                    request.getCustomer().getUserId(),
+                    request.getCustomer().getName(),
+                    "SYSTEM", // approvedBy
+                    LocalDateTime.now(),
+                    request.getService().getName(),
+                    request.getAdminNotes()
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.MODIFICATION_EXCHANGE,
+                    RabbitMQConstants.MODIFICATION_REQUEST_APPROVED_KEY,
+                    event,
+                    eventId
+                );
+                log.info("📤 Published ModificationApprovedEvent for request: {}", request.getId());
+                
             } else if (updateDTO.getStatus() == RequestStatus.REJECTED && oldStatus != RequestStatus.REJECTED) {
                 request.setRejectedAt(LocalDateTime.now());
+                
+                // 🔥 Publish ModificationRejectedEvent
+                ModificationRejectedEvent event = new ModificationRejectedEvent(
+                    eventId,
+                    request.getId(),
+                    request.getCustomer().getUserId(),
+                    request.getCustomer().getName(),
+                    "SYSTEM",
+                    LocalDateTime.now(),
+                    updateDTO.getAdminNotes() != null ? updateDTO.getAdminNotes() : "Request rejected",
+                    request.getService().getName()
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.MODIFICATION_EXCHANGE,
+                    RabbitMQConstants.MODIFICATION_REQUEST_REJECTED_KEY,
+                    event,
+                    eventId
+                );
+                log.info("📤 Published ModificationRejectedEvent for request: {}", request.getId());
+                
             } else if (updateDTO.getStatus() == RequestStatus.COMPLETED && oldStatus != RequestStatus.COMPLETED) {
                 request.setCompletedAt(LocalDateTime.now());
+                
+                // 🔥 Publish ModificationCompletedEvent
+                ModificationCompletedEvent event = new ModificationCompletedEvent(
+                    eventId,
+                    request.getId(),
+                    request.getCustomer().getUserId(),
+                    request.getCustomer().getName(),
+                    LocalDateTime.now(),
+                    "SYSTEM",
+                    request.getService().getName(),
+                    request.getFinalCost() != null ? request.getFinalCost().doubleValue() : request.getEstimatedCost().doubleValue(),
+                    request.getAdminNotes()
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.MODIFICATION_EXCHANGE,
+                    RabbitMQConstants.MODIFICATION_REQUEST_COMPLETED_KEY,
+                    event,
+                    eventId
+                );
+                log.info("📤 Published ModificationCompletedEvent for request: {}", request.getId());
+                
+            } else if (updateDTO.getStatus() == RequestStatus.CANCELLED && oldStatus != RequestStatus.CANCELLED) {
+                // 🔥 Publish ModificationCancelledEvent
+                ModificationCancelledEvent event = new ModificationCancelledEvent(
+                    eventId,
+                    request.getId(),
+                    request.getCustomer().getUserId(),
+                    request.getCustomer().getName(),
+                    LocalDateTime.now(),
+                    "SYSTEM",
+                    request.getService().getName(),
+                    updateDTO.getAdminNotes() != null ? updateDTO.getAdminNotes() : "Request cancelled"
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.MODIFICATION_EXCHANGE,
+                    RabbitMQConstants.MODIFICATION_REQUEST_CANCELLED_KEY,
+                    event,
+                    eventId
+                );
+                log.info("📤 Published ModificationCancelledEvent for request: {}", request.getId());
             }
         }
         

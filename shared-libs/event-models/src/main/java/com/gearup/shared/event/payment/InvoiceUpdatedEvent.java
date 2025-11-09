@@ -1,9 +1,11 @@
-package com.gearup.shared.event;
+package com.gearup.shared.event.payment;
+
+import com.gearup.shared.event.base.BasePaymentEvent;
 
 /**
  * Event published when an invoice is updated.
  */
-public class InvoiceUpdatedEvent extends BaseNotificationEvent {
+public class InvoiceUpdatedEvent extends BasePaymentEvent {
     private String invoiceId;
     private String invoiceNumber;
     private String updateType; // e.g., "STATUS_CHANGED", "AMOUNT_UPDATED"

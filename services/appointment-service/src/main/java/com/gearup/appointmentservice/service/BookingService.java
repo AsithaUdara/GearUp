@@ -3,11 +3,15 @@ package com.gearup.appointmentservice.service;
 import com.gearup.appointmentservice.dto.*;
 import com.gearup.appointmentservice.entity.Booking;
 import com.gearup.appointmentservice.entity.BookingStatus;
+import com.gearup.appointmentservice.entity.Employee;
 import com.gearup.appointmentservice.entity.TimeSlot;
 import com.gearup.appointmentservice.repository.BookingRepository;
 import com.gearup.appointmentservice.repository.EmployeeRepository;
 import com.gearup.appointmentservice.repository.ServiceRepository;
 import com.gearup.appointmentservice.repository.TimeSlotRepository;
+import com.gearup.shared.event.appointment.*;
+import com.gearup.shared.messaging.EventPublisher;
+import com.gearup.shared.messaging.RabbitMQConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +32,7 @@ public class BookingService {
     private final ServiceRepository serviceRepository;
     private final TimeSlotRepository timeSlotRepository;
     private final EmployeeRepository employeeRepository;
+    private final EventPublisher eventPublisher;
 
     // -----------------------------
     // CREATE
@@ -64,6 +69,35 @@ public class BookingService {
 
         timeSlot.setIsAvailable(false);
         timeSlotRepository.save(timeSlot);
+
+        // 📢 Publish AppointmentCreatedEvent
+        try {
+            LocalDateTime slotDateTime = LocalDateTime.of(timeSlot.getSlotDate(), timeSlot.getStartTime());
+            
+            AppointmentCreatedEvent event = new AppointmentCreatedEvent(
+                java.util.UUID.randomUUID().toString(),  // eventId
+                saved.getId(),                            // bookingId
+                saved.getUserId(),                        // customerId
+                saved.getCustomerName(),                  // customerName
+                svc.getId(),                              // serviceId
+                svc.getName(),                            // serviceName
+                timeSlot.getId(),                         // timeSlotId
+                slotDateTime,                             // slotDateTime
+                saved.getCustomerEmail(),                 // customerEmail
+                saved.getCustomerPhone(),                 // customerPhone
+                saved.getStatus().name(),                 // status
+                saved.getNotes()                          // notes
+            );
+            eventPublisher.publish(
+                RabbitMQConstants.APPOINTMENT_EXCHANGE,
+                RabbitMQConstants.APPOINTMENT_CREATED_KEY,
+                event
+            );
+            log.info("📢 Published AppointmentCreatedEvent for booking: {}", saved.getId());
+        } catch (Exception e) {
+            log.error("❌ Failed to publish AppointmentCreatedEvent for booking: {}", saved.getId(), e);
+            // Don't fail the booking creation if event publishing fails
+        }
 
         log.info("Booking created successfully with id: {}", saved.getId());
         return convertToDTO(saved);
@@ -135,7 +169,29 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
         
         booking.setStatus(BookingStatus.CONFIRMED);
-        bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        
+        // 📢 Publish AppointmentApprovedEvent
+        try {
+            AppointmentApprovedEvent event = new AppointmentApprovedEvent(
+                java.util.UUID.randomUUID().toString(),
+                saved.getId(),
+                saved.getUserId(),
+                saved.getCustomerName(),
+                saved.getService().getId(),
+                saved.getService().getName(),
+                "SYSTEM",  // approvedBy (can be enhanced to track actual admin)
+                LocalDateTime.now()  // approvedAt
+            );
+            eventPublisher.publish(
+                RabbitMQConstants.APPOINTMENT_EXCHANGE,
+                RabbitMQConstants.APPOINTMENT_APPROVED_KEY,
+                event
+            );
+            log.info("📢 Published AppointmentApprovedEvent for booking: {}", saved.getId());
+        } catch (Exception e) {
+            log.error("❌ Failed to publish AppointmentApprovedEvent for booking: {}", saved.getId(), e);
+        }
         
         log.info("Booking approved successfully: {}", booking.getId());
         return convertToDTO(booking);
@@ -189,6 +245,41 @@ public class BookingService {
         }
         
         Booking saved = bookingRepository.save(booking);
+        
+        // 📢 Publish EmployeeAssignedToAppointmentEvent (CRITICAL EVENT)
+        try {
+            Employee employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+            
+            TimeSlot slot = saved.getTimeSlot();
+            LocalDateTime appointmentDateTime = LocalDateTime.of(slot.getSlotDate(), slot.getStartTime());
+            
+            EmployeeAssignedToAppointmentEvent event = new EmployeeAssignedToAppointmentEvent(
+                java.util.UUID.randomUUID().toString(),  // eventId
+                saved.getId(),                            // bookingId
+                saved.getUserId(),                        // customerId
+                saved.getCustomerName(),                  // customerName
+                employeeId,                               // employeeId
+                employee.getName(),                       // employeeName
+                employee.getEmail(),                      // employeeEmail
+                saved.getService().getId(),               // serviceId
+                saved.getService().getName(),             // serviceName
+                appointmentDateTime,                      // appointmentDateTime
+                LocalDateTime.now(),                      // assignedAt
+                timeSlotStr != null ? timeSlotStr : slot.getStartTime() + "-" + slot.getEndTime()  // timeSlot
+            );
+            eventPublisher.publish(
+                RabbitMQConstants.APPOINTMENT_EXCHANGE,
+                RabbitMQConstants.EMPLOYEE_ASSIGNED_KEY,
+                event
+            );
+            log.info("📢 Published EmployeeAssignedToAppointmentEvent for booking: {} to employee: {}", 
+                    saved.getId(), employeeId);
+        } catch (Exception e) {
+            log.error("❌ Failed to publish EmployeeAssignedToAppointmentEvent for booking: {}", saved.getId(), e);
+            // Don't fail the assignment if event publishing fails
+        }
+        
         log.info("✅ Employee {} successfully assigned to booking {}", employeeId, bookingId);
         return convertToDTO(saved);
     }
@@ -212,6 +303,31 @@ public class BookingService {
         TimeSlot slot = booking.getTimeSlot();
         slot.setIsAvailable(true);
         timeSlotRepository.save(slot);
+        
+        // 📢 Publish AppointmentCancelledEvent
+        try {
+            TimeSlot timeSlot = booking.getTimeSlot();
+            
+            AppointmentCancelledEvent event = new AppointmentCancelledEvent(
+                java.util.UUID.randomUUID().toString(),
+                booking.getId(),
+                booking.getUserId(),
+                booking.getCustomerName(),
+                booking.getService().getId(),
+                booking.getService().getName(),
+                timeSlot.getId(),  // timeSlotId
+                "User requested cancellation",  // cancellationReason
+                LocalDateTime.now()  // cancelledAt
+            );
+            eventPublisher.publish(
+                RabbitMQConstants.APPOINTMENT_EXCHANGE,
+                RabbitMQConstants.APPOINTMENT_CANCELLED_KEY,
+                event
+            );
+            log.info("📢 Published AppointmentCancelledEvent for booking: {}", booking.getId());
+        } catch (Exception e) {
+            log.error("❌ Failed to publish AppointmentCancelledEvent for booking: {}", booking.getId(), e);
+        }
         
         log.info("Booking {} cancelled", booking.getId());
     }

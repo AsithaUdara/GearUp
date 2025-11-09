@@ -1,4 +1,4 @@
-package com.gearup.shared.event;
+package com.gearup.shared.event.base;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

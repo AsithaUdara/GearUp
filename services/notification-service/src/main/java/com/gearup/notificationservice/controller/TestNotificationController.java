@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gearup.shared.event.InvoiceCreatedEvent;
-import com.gearup.shared.event.InvoicePaidEvent;
-import com.gearup.shared.event.TaskAssignedEvent;
+import com.gearup.shared.event.payment.InvoiceCreatedEvent;
+import com.gearup.shared.event.payment.InvoicePaidEvent;
+import com.gearup.shared.event.tracking.TaskAssignedEvent;
 import com.gearup.shared.messaging.RabbitMQConfig;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/v1/test")
+@RequestMapping("/api/test")
 @RequiredArgsConstructor
 @Slf4j
 public class TestNotificationController {
@@ -63,9 +63,8 @@ public class TestNotificationController {
         // Construct shared TaskAssignedEvent directly (canonical event lives in shared module)
         TaskAssignedEvent event = new TaskAssignedEvent(
                 UUID.randomUUID().toString(),
-                userId,
-                LocalDateTime.now(),
                 "TASK-" + System.currentTimeMillis(),
+                userId,
                 "Complete Q4 Report",
                 "Manager",
                 "2024-12-31",

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/timeslots")
+@RequestMapping("/api/timeslots")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

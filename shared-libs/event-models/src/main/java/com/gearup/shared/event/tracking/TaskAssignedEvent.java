@@ -1,10 +1,11 @@
-package com.gearup.shared.event;
+package com.gearup.shared.event.tracking;
+
+import com.gearup.shared.event.base.BaseTrackingEvent;
 
 /**
  * Event published when a task is assigned.
  */
-public class TaskAssignedEvent extends BaseNotificationEvent {
-    private String taskId;
+public class TaskAssignedEvent extends BaseTrackingEvent {
     private String taskTitle;
     private String assignedBy;
     private String dueDate;
@@ -13,22 +14,13 @@ public class TaskAssignedEvent extends BaseNotificationEvent {
     public TaskAssignedEvent() {
     }
 
-    public TaskAssignedEvent(String eventId, String userId, java.time.LocalDateTime timestamp,
-                             String taskId, String taskTitle, String assignedBy, String dueDate, String priority) {
-        super(eventId, userId, timestamp);
-        this.taskId = taskId;
+    public TaskAssignedEvent(String eventId, String taskId, String assigneeId,
+                             String taskTitle, String assignedBy, String dueDate, String priority) {
+        super(eventId, taskId, assigneeId);
         this.taskTitle = taskTitle;
         this.assignedBy = assignedBy;
         this.dueDate = dueDate;
         this.priority = priority;
-    }
-
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
     }
 
     public String getTaskTitle() {

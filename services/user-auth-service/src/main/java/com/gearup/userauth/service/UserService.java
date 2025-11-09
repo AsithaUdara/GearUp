@@ -26,14 +26,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final AuditService auditService;
-    private final EventPublisher eventPublisher;
+    private final UserEventPublisher userEventPublisher;
 
     public UserService(UserRepository userRepository, RoleService roleService, 
-                      AuditService auditService, EventPublisher eventPublisher) {
+                      AuditService auditService, UserEventPublisher userEventPublisher) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.auditService = auditService;
-        this.eventPublisher = eventPublisher;
+        this.userEventPublisher = userEventPublisher;
     }
 
     @Transactional
@@ -68,7 +68,7 @@ public class UserService {
         auditService.logUserAction(savedUser.getId(), "REGISTER", "User registered", null, userToMap(savedUser));
 
         // Publish event
-        eventPublisher.publishUserRegisteredEvent(savedUser);
+        userEventPublisher.publishUserRegisteredEvent(savedUser);
 
         return UserResponse.fromUser(savedUser);
     }
@@ -117,7 +117,7 @@ public class UserService {
                 oldValues, userToMap(updatedUser));
 
         // Publish event
-        eventPublisher.publishUserUpdatedEvent(updatedUser);
+        userEventPublisher.publishUserUpdatedEvent(updatedUser);
 
         return UserResponse.fromUser(updatedUser);
     }

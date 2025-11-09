@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/v1/service-modifications")
+@RequestMapping("/api/service-modifications")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
