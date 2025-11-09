@@ -4,7 +4,7 @@ This file is a hands-on guide for working with service modules under `services/`
 
 What is a service module?
 
-- Each folder under `services/` (e.g. `automobile-service`, `notification-service`, `parts-service`) is a Spring Boot microservice.
+- Each folder under `services/` (e.g. `automobile-service`, `notification-service`) is a Spring Boot microservice.
 - Each module has its own `pom.xml`, source code under `src/main/java`, and a `Dockerfile` used for containerization.
 
 Step-by-step: create a new microservice

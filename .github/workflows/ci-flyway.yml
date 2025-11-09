@@ -2,9 +2,9 @@ name: CI - Flyway migrations + integration tests
 
 on:
   push:
-    branches: [main, development, microservice-initialization]
+    branches: [main, microservice-initialization]
   pull_request:
-    branches: [main, development]
+    branches: [main]
 
 jobs:
   migrate-and-test:

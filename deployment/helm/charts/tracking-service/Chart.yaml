@@ -1,4 +1,0 @@
-apiVersion: v2
-name: tracking-service
-description: Helm chart for tracking-service
-version: 0.1.0

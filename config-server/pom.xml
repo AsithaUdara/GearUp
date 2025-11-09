@@ -33,18 +33,6 @@
             <artifactId>spring-cloud-config-server</artifactId>
         </dependency>
 
-        <!-- Actuator for health checks -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!-- Jakarta Bean Validation Provider (required for actuator health endpoints) -->
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-        </dependency>
-
         <!-- Basic security for config endpoints (credentials provided by env/secret) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -63,13 +51,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

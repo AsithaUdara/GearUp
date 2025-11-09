@@ -1,14 +1,12 @@
 name: CI - Flyway migrate (template-service)
 
-# This workflow is disabled as template-service is a placeholder template only
-# and should not be built or deployed.
 on:
-  workflow_dispatch: # Only allow manual trigger if needed
+  pull_request:
+    branches: [main, microservice-initialization]
 
 jobs:
   flyway-template:
     runs-on: ubuntu-latest
-    if: false # Skip this job - template-service is a placeholder only
     env:
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       FLYWAY_URL: jdbc:postgresql://localhost:5432/as_template_service
