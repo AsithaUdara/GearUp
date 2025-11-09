@@ -147,18 +147,16 @@
 
     <build>
         <plugins>
+            <!-- Flyway Maven Plugin for migrations -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>com.gearup.userauthservice.UserAuthServiceApplication</mainClass>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
+                <version>${spring-boot.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -166,6 +164,23 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <mainClass>com.gearup.userauth.UserAuthServiceApplication</mainClass>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
             </plugin>
         </plugins>
     </build>

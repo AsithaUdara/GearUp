@@ -8,7 +8,7 @@ import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
-import com.gearup.paymentservice.config.RabbitMQConfig;
+import com.gearup.paymentservice.config.PaymentRabbitMQConfig;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +33,8 @@ public class EventPublisher {
         event.put("userId", userId);
         event.put("amount", amount);
         
-        publishEvent(RabbitMQConfig.PAYMENT_EXCHANGE, 
-                    RabbitMQConfig.PAYMENT_CREATED_KEY, 
+        publishEvent(PaymentRabbitMQConfig.PAYMENT_EXCHANGE, 
+                    PaymentRabbitMQConfig.PAYMENT_CREATED_KEY, 
                     event);
     }
 
@@ -48,8 +48,8 @@ public class EventPublisher {
         event.put("amount", amount);
         event.put("transactionId", transactionId);
         
-        publishEvent(RabbitMQConfig.PAYMENT_EXCHANGE, 
-                    RabbitMQConfig.PAYMENT_COMPLETED_KEY, 
+        publishEvent(PaymentRabbitMQConfig.PAYMENT_EXCHANGE, 
+                    PaymentRabbitMQConfig.PAYMENT_COMPLETED_KEY, 
                     event);
         
         // Also publish to notification exchange for user notification
@@ -67,8 +67,8 @@ public class EventPublisher {
         event.put("amount", amount);
         event.put("reason", reason);
         
-        publishEvent(RabbitMQConfig.PAYMENT_EXCHANGE, 
-                    RabbitMQConfig.PAYMENT_FAILED_KEY, 
+        publishEvent(PaymentRabbitMQConfig.PAYMENT_EXCHANGE, 
+                    PaymentRabbitMQConfig.PAYMENT_FAILED_KEY, 
                     event);
         
         // Notify user about failed payment
@@ -86,8 +86,8 @@ public class EventPublisher {
         event.put("amount", amount);
         event.put("description", description);
         
-        publishEvent(RabbitMQConfig.PAYMENT_EXCHANGE, 
-                    RabbitMQConfig.PAYMENT_REQUEST_CREATED_KEY, 
+        publishEvent(PaymentRabbitMQConfig.PAYMENT_EXCHANGE, 
+                    PaymentRabbitMQConfig.PAYMENT_REQUEST_CREATED_KEY, 
                     event);
         
         // Notify user about new payment request
@@ -104,8 +104,8 @@ public class EventPublisher {
         event.put("userId", userId);
         event.put("approvedBy", approvedBy);
         
-        publishEvent(RabbitMQConfig.PAYMENT_EXCHANGE, 
-                    RabbitMQConfig.PAYMENT_REQUEST_APPROVED_KEY, 
+        publishEvent(PaymentRabbitMQConfig.PAYMENT_EXCHANGE, 
+                    PaymentRabbitMQConfig.PAYMENT_REQUEST_APPROVED_KEY, 
                     event);
         
         publishToNotificationService(userId, "Payment Request Approved", 
@@ -121,8 +121,8 @@ public class EventPublisher {
         event.put("userId", userId);
         event.put("reason", reason);
         
-        publishEvent(RabbitMQConfig.PAYMENT_EXCHANGE, 
-                    RabbitMQConfig.PAYMENT_REQUEST_REJECTED_KEY, 
+        publishEvent(PaymentRabbitMQConfig.PAYMENT_EXCHANGE, 
+                    PaymentRabbitMQConfig.PAYMENT_REQUEST_REJECTED_KEY, 
                     event);
         
         publishToNotificationService(userId, "Payment Request Rejected", 
@@ -138,8 +138,8 @@ public class EventPublisher {
         event.put("customerId", customerId);
         event.put("totalAmount", totalAmount);
         
-        publishEvent(RabbitMQConfig.PAYMENT_EXCHANGE, 
-                    RabbitMQConfig.BILL_CREATED_KEY, 
+        publishEvent(PaymentRabbitMQConfig.PAYMENT_EXCHANGE, 
+                    PaymentRabbitMQConfig.BILL_CREATED_KEY, 
                     event);
         
         publishToNotificationService(customerId, "New Bill Generated", 
@@ -156,8 +156,8 @@ public class EventPublisher {
         event.put("amountPaid", amountPaid);
         event.put("paymentMethod", paymentMethod);
         
-        publishEvent(RabbitMQConfig.PAYMENT_EXCHANGE, 
-                    RabbitMQConfig.BILL_PAID_KEY, 
+        publishEvent(PaymentRabbitMQConfig.PAYMENT_EXCHANGE, 
+                    PaymentRabbitMQConfig.BILL_PAID_KEY, 
                     event);
         
         publishToNotificationService(customerId, "Bill Payment Received", 
@@ -175,7 +175,7 @@ public class EventPublisher {
         notification.put("type", "PAYMENT");
         notification.put("timestamp", LocalDateTime.now().toString());
         
-        publishEvent(RabbitMQConfig.NOTIFICATION_EXCHANGE, "notification.created", notification);
+        publishEvent(PaymentRabbitMQConfig.NOTIFICATION_EXCHANGE, "notification.created", notification);
     }
 
     /**

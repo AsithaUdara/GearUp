@@ -25,7 +25,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 @Configuration
 @EnableCaching
-public class RedisConfig {
+public class PaymentRedisConfig {
 
     /**
      * Configure Object Mapper for Redis serialization

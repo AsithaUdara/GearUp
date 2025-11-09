@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Configuration;
  * Defines exchanges, queues, and bindings for payment-related events
  */
 @Configuration
-public class RabbitMQConfig {
+public class PaymentRabbitMQConfig {
 
     // Exchange names
     public static final String PAYMENT_EXCHANGE = "payment.exchange";
