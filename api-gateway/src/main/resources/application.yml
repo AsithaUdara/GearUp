@@ -10,42 +10,44 @@ spring:
       discovery:
         locator:
           enabled: true
-      # Global CORS configuration (applies to all routes)
-      globalcors:
-        add-to-simple-url-handler-mapping: true
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: ${GATEWAY_CORS_ALLOWED_ORIGINS:http://localhost:3000}
-            # Pattern support (Spring 5.3+/Spring Cloud 2022+) for any localhost port
-            allowedOriginPatterns:
-              - "http://localhost:*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-            # Explicit headers list helps with credentialed requests
-            allowedHeaders:
-              - Authorization
-              - Content-Type
-              - Accept
-              - Origin
-              - X-Requested-With
-              - Access-Control-Request-Method
-              - Access-Control-Request-Headers
-              - Cache-Control
-              - Pragma
-              - Expires
-              - Referer
-              - User-Agent
-              - X-Actuator-Token
-            exposedHeaders:
-              - Authorization
-              - Content-Type
-            allowCredentials: true
-            maxAge: 3600
+      # Global CORS configuration (applies to all routes) - updated keys for Spring Cloud Gateway 4.x
+      server:
+        webflux:
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: ${GATEWAY_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+                # Pattern support (Spring 5.3+/Spring Cloud 2022+) for any localhost port
+                allowedOriginPatterns:
+                  - "http://localhost:*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                  - OPTIONS
+                # Explicit headers list helps with credentialed requests
+                allowedHeaders:
+                  - Authorization
+                  - Content-Type
+                  - Accept
+                  - Origin
+                  - X-Requested-With
+                  - Access-Control-Request-Method
+                  - Access-Control-Request-Headers
+                  - Cache-Control
+                  - Pragma
+                  - Expires
+                  - Referer
+                  - User-Agent
+                  - X-Actuator-Token
+                exposedHeaders:
+                  - Authorization
+                  - Content-Type
+                allowCredentials: true
+                maxAge: 3600
       routes:
         # Public chatbot route
         - id: chatbot-service-route
@@ -60,7 +62,8 @@ spring:
         - id: template-service-admin
           uri: lb://template-service
           predicates:
-            - Path=/api/v1/admin/service-templates/**
+            # Match both base and nested paths so list/create without trailing slash don't 404
+            - Path=/api/v1/admin/service-templates, /api/v1/admin/service-templates/**
         # Route for auth endpoints (login, OTP verification, password change)
         - id: user-auth-service-auth
           uri: lb://user-auth-service
@@ -71,15 +74,15 @@ spring:
           uri: lb://user-auth-service
           predicates:
             - Path=/api/v1/admin/users/**
-        # (Optional) Route for other user related endpoints if needed
+        # Consolidated user route for profile/me endpoints
         - id: user-auth-route
           uri: lb://user-auth-service
           predicates:
-            - Path=/api/users/**
+            - Path=/api/v1/users/**
           filters:
             - name: StripPrefix
               args:
-                parts: 2
+                parts: 0
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 10

@@ -48,6 +48,9 @@ spring:
     port: 5672
     username: ${RABBITMQ_USERNAME:automobile_admin}
     password: ${RABBITMQ_PASSWORD:123456}
+    listener:
+      simple:
+        missing-queues-fatal: false # Prevent fatal startup if queue not yet declared; listener will retry
 
 server:
   port: 8082

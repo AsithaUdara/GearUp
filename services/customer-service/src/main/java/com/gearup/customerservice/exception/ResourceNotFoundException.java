@@ -1,5 +1,1 @@
-package com.gearup.templateservice.exception;
-
-public class ResourceNotFoundException extends RuntimeException {
-    public ResourceNotFoundException(String message) { super(message); }
-}
+/* Duplicate of template-service exception; intentionally disabled in customer-service. */

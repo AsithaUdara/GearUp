@@ -1,4 +1,4 @@
-package com.gearup.templateservice.config;
+package com.gearup.customerservice.config;
 
 import com.gearup.security.FirebaseAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/admin/**").authenticated()
                 .anyRequest().permitAll()
             )
+            // Verify Firebase token or trust gateway headers depending on shared lib implementation
             .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

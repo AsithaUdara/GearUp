@@ -6,7 +6,6 @@ import com.gearup.userauth.model.UserSession;
 import com.gearup.userauth.repository.UserSessionRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;

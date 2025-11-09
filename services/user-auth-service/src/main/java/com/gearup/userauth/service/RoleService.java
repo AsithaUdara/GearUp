@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @Service
 public class RoleService {
 
+    // Logger retained for potential future diagnostic use; suppress unused warning.
+    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(RoleService.class);
 
     private final RoleRepository roleRepository;

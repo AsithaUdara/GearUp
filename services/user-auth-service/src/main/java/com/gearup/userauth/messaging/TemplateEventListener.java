@@ -15,18 +15,27 @@ public class TemplateEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(TemplateEventListener.class);
 
-    @RabbitListener(queues = RabbitMQConfig.TEMPLATE_QUEUE)
+    @RabbitListener(
+        queues = RabbitMQConfig.TEMPLATE_QUEUE,
+        containerFactory = "rabbitListenerContainerFactory"
+    )
     public void onTemplateCreated(@Payload ServiceTemplateCreatedEvent event) {
         log.info("[TemplateEventListener] template.created received id={}, name={}", event.getTemplateId(), event.getName());
         // TODO: react as needed (e.g., permissions pre-warming, audit fan-out, cache)
     }
 
-    @RabbitListener(queues = RabbitMQConfig.TEMPLATE_QUEUE)
+    @RabbitListener(
+        queues = RabbitMQConfig.TEMPLATE_QUEUE,
+        containerFactory = "rabbitListenerContainerFactory"
+    )
     public void onTemplateUpdated(@Payload ServiceTemplateUpdatedEvent event) {
         log.info("[TemplateEventListener] template.updated received id={}, name={}", event.getTemplateId(), event.getName());
     }
 
-    @RabbitListener(queues = RabbitMQConfig.TEMPLATE_QUEUE)
+    @RabbitListener(
+        queues = RabbitMQConfig.TEMPLATE_QUEUE,
+        containerFactory = "rabbitListenerContainerFactory"
+    )
     public void onTemplateDeleted(@Payload ServiceTemplateDeletedEvent event) {
         log.info("[TemplateEventListener] template.deleted received id={}, name={}", event.getTemplateId(), event.getName());
     }

@@ -38,7 +38,8 @@ public class RedisNotificationCache {
     public void setUnreadCount(String userId, Long count) {
         try {
             String key = UNREAD_COUNT_PREFIX + userId;
-            redisTemplate.opsForValue().set(key, count, CACHE_TTL_HOURS, TimeUnit.HOURS);
+            // Ensure non-null value to satisfy static analysis contracts
+            redisTemplate.opsForValue().set(key, java.util.Objects.requireNonNull(count, "count"), CACHE_TTL_HOURS, TimeUnit.HOURS);
         } catch (Exception e) {
             log.error("Error setting unread count in Redis for user: {}", userId, e);
         }
