@@ -9,6 +9,8 @@ services:
   # 'template' profile is explicitly enabled. Without this file, base behavior is unchanged.
   user-auth-service:
     profiles: ["template"]
+    environment:
+      - DEV_ADMIN_KEY=${DEV_ADMIN_KEY:-dev-secret}
 
   template-service:
     profiles: ["template"]
