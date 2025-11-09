@@ -147,8 +147,7 @@ class VehicleServiceTest {
         // Verify event published
         ArgumentCaptor<String> exchangeCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Map<String,Object>> payloadCaptor = ArgumentCaptor.forClass((Class)Map.class);
+        ArgumentCaptor<Map> payloadCaptor = ArgumentCaptor.forClass(Map.class);
         
         verify(rabbitTemplate, times(1)).convertAndSend(
                 exchangeCaptor.capture(),
@@ -237,8 +236,7 @@ class VehicleServiceTest {
         
         // Verify status change event
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Map<String,Object>> payloadCaptor = ArgumentCaptor.forClass((Class)Map.class);
+        ArgumentCaptor<Map> payloadCaptor = ArgumentCaptor.forClass(Map.class);
         
         verify(rabbitTemplate, times(1)).convertAndSend(
                 eq("vehicle.exchange"),
@@ -364,8 +362,7 @@ class VehicleServiceTest {
         // Assert
         assertThat(result.getStatus()).isEqualTo(VehicleStatus.AVAILABLE);
         
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Map<String,Object>> payloadCaptor = ArgumentCaptor.forClass((Class)Map.class);
+        ArgumentCaptor<Map> payloadCaptor = ArgumentCaptor.forClass(Map.class);
         verify(rabbitTemplate, times(1)).convertAndSend(
                 eq("vehicle.exchange"),
                 eq("vehicle.status.changed"),

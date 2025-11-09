@@ -7,48 +7,33 @@ spring:
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
+  
   cloud:
     gateway:
-      server:
-        webflux:
-          # Use new key namespace for routes (4.x) to avoid migration rewrite
-          routes:
-            # Chatbot Service - Public Access (No Authentication Required)
-            - id: chatbot-service
-              uri: lb://chatbot-service
-              predicates:
-                - Path=/api/chat/**
-              filters:
-                - StripPrefix=0
-            # User Auth Service (combine auth + user management)
-            - id: user-auth-service
-              uri: lb://user-auth-service
-              predicates:
-                - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/admin/users/**
-              filters:
-                - StripPrefix=0
-            # Template Service (Admin CRUD) – consolidated route (list/create/update/delete)
-            - id: template-service-admin
-              uri: lb://template-service
-              predicates:
-                - Path=/api/v1/admin/service-templates, /api/v1/admin/service-templates/**
-              filters:
-                - StripPrefix=0
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOrigins:
-                  - "http://localhost:3000"
-                  - "http://localhost:3001"
-                allowedMethods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                  - OPTIONS
-                allowedHeaders: "*"
-                allowCredentials: false
-                maxAge: 3600
+      routes:
+        # Chatbot Service - Public Access (No Authentication Required)
+        - id: chatbot-service
+          uri: lb://chatbot-service
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - StripPrefix=0
+      
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false
+            maxAge: 3600
 
 server:
   port: ${PORT:8080}

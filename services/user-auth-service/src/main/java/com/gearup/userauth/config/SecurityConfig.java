@@ -11,8 +11,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-// CORS is centralized at the API Gateway. Do not configure service-level CORS here to avoid
-// duplicate Access-Control-Allow-Origin headers seen by the browser.
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -37,9 +41,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            // CORS is handled at the API Gateway. Disable here to avoid duplicate
-            // Access-Control-Allow-Origin headers which cause browser rejections.
-            .cors(org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
@@ -47,10 +49,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/setup-password").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/verify-otp").permitAll()
-                // Dev-only helper endpoints (controller active only under 'dev' profile)
-                .requestMatchers("/api/v1/dev/**").permitAll()
                 
                 // Actuator endpoints
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
@@ -66,8 +64,17 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // NOTE: Intentionally removed any CorsConfigurationSource bean. When present,
-    // Spring WebFlux auto-configures a CorsWebFilter that adds CORS headers at the
-    // service level, which combined with the API Gateway CORS results in duplicated
-    // Access-Control-Allow-Origin values like "http://localhost:3000, http://localhost:3000".
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

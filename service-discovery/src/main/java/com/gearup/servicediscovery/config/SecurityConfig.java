@@ -14,13 +14,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable())  // Disable CSRF for Eureka endpoints
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/eureka/**").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults());
+        
         return http.build();
     }
 }

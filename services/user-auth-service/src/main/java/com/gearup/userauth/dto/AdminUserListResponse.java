@@ -26,14 +26,11 @@ public class AdminUserListResponse {
     
     public static AdminUserListResponse fromUser(User user) {
         // Get name (prefer displayName, fallback to firstName + lastName)
-        // Always build name from first/last to avoid persisting duplicate displayName values
-        String first = user.getFirstName() != null ? user.getFirstName().trim() : "";
-        String last = user.getLastName() != null ? user.getLastName().trim() : "";
-        String name;
-        if (last.isBlank() || first.equalsIgnoreCase(last)) {
-            name = first;
-        } else {
-            name = (first + " " + last).trim();
+        String name = user.getDisplayName();
+        if (name == null || name.isEmpty()) {
+            name = (user.getFirstName() != null ? user.getFirstName() : "") + " " +
+                   (user.getLastName() != null ? user.getLastName() : "");
+            name = name.trim();
         }
         
         // Get primary role (first role if multiple, or "No Role" if none)

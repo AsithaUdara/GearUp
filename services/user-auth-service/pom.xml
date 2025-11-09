@@ -124,18 +124,11 @@
             <version>1.0.0</version>
         </dependency>
 
-        <!-- Messaging -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-
-        <!-- Lombok (compile-time only) -->
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
-            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
 
         <!-- Testing -->
@@ -154,33 +147,6 @@
 
     <build>
         <plugins>
-            <!-- Maven Compiler Plugin with -parameters flag -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
-                <configuration>
-                    <parameters>true</parameters>
-                    <release>21</release>
-                    <proc>full</proc>
-                    <!-- Ensure Lombok annotations are processed during compilation -->
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>1.18.34</version>
-                        </path>
-                    </annotationProcessorPaths>
-                    <!-- rely on annotationProcessorPaths for Lombok; no explicit -processor override -->
-                </configuration>
-            </plugin>
-
-            <!-- Flyway Maven Plugin -->
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-            </plugin>
-
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

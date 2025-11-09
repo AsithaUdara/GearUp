@@ -19,7 +19,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "firebase_uid", unique = true)
+    @Column(name = "firebase_uid", nullable = false, unique = true)
     private String firebaseUid;
     
     @Column(nullable = false, unique = true)
@@ -57,15 +57,6 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
-    
-    @Column(name = "setup_otp")
-    private String setupOtp;
-    
-    @Column(name = "setup_otp_expires_at")
-    private LocalDateTime setupOtpExpiresAt;
-    
-    @Column(name = "is_password_set")
-    private Boolean isPasswordSet = false;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
