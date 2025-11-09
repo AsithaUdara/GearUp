@@ -8,21 +8,28 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.Optional;
+
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   Optional<FirebaseAuthenticationFilter> firebaseAuthenticationFilter) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/v1/admin/**").authenticated()
                 .anyRequest().permitAll()
-            )
-            // Verify Firebase token or trust gateway headers depending on shared lib implementation
-            .addFilterBefore(new FirebaseAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+            );
+
+        // Register the filter only if a FirebaseAuthenticationFilter bean is available.
+        firebaseAuthenticationFilter.ifPresent(filter ->
+            http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+        );
+
         return http.build();
     }
 }
