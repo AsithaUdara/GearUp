@@ -9,7 +9,6 @@ RUN chown -R app:app /app
 USER app
 EXPOSE 8084
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD wget -qO- --no-check-certificate http://localhost:8084/actuator/health || exit 1
-LABEL maintainer="ops@gearup.com" \
-    org.opencontainers.image.version="1.0.0" \
-    org.opencontainers.image.title="GearUp Appointment Service"
+LABEL maintainer="ops@company.com" \
+    org.opencontainers.image.version="0.1.0"
 ENTRYPOINT ["java","-jar","/app/app.jar"]

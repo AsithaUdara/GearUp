@@ -7,9 +7,8 @@ WORKDIR /app
 COPY services/modification-service/target/*.jar /app/app.jar
 RUN chown -R app:app /app
 USER app
-EXPOSE 8089
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD wget -qO- --no-check-certificate http://localhost:8089/actuator/health || exit 1
-LABEL maintainer="ops@gearup.com" \
-    org.opencontainers.image.version="1.0.0" \
-    org.opencontainers.image.title="GearUp Modification Service"
+EXPOSE 8085
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD wget -qO- --no-check-certificate http://localhost:8085/actuator/health || exit 1
+LABEL maintainer="ops@company.com" \
+    org.opencontainers.image.version="0.1.0"
 ENTRYPOINT ["java","-jar","/app/app.jar"]

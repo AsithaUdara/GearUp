@@ -1,98 +1,4 @@
 services:
-  service-discovery:
-    build:
-      context: ../../
-      dockerfile: ./service-discovery/Dockerfile
-    container_name: gearup-service-discovery
-    ports:
-      - "8761:8761"
-    env_file:
-      - ./.env
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "-u",
-          "admin:password",
-          "http://localhost:8761/actuator/health",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
-
-  config-server:
-    build:
-      context: ../../
-      dockerfile: ./config-server/Dockerfile
-    container_name: gearup-config-server
-    ports:
-      - "8888:8888"
-    env_file:
-      - ./.env
-    environment:
-      - SPRING_PROFILES_ACTIVE=native
-      - CONFIG_REPO_URI=file:/app/config-repo
-    volumes:
-      - ../../config-repo:/app/config-repo:ro
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "-u",
-          "configadmin:change-me",
-          "http://localhost:8888/actuator/health",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
-
-  api-gateway:
-    build:
-      context: ../../
-      dockerfile: ./api-gateway/Dockerfile
-    container_name: gearup-api-gateway
-    ports:
-      - "9090:8080"
-    env_file:
-      - ./.env
-    environment:
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
   automobile-service:
     build:
       # Use repository root as build context so the Docker build can access shared modules
@@ -101,39 +7,20 @@ services:
       dockerfile: ./services/automobile-service/Dockerfile
     container_name: gearup-automobile-service
     ports:
-      - "8085:8085"
-    # Use local .env file in deployment/docker directory for Docker-specific variables
+      - "8080:8080"
+    # point env_file to repo root so variables are picked from the top-level .env
     env_file:
-      - ./.env
+      - ../../.env
     environment:
-      - SERVER_PORT=8085
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
       - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${AUTOMOBILE_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
       db:
         condition: service_healthy
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8085/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   notification-service:
     build:
@@ -145,34 +32,20 @@ services:
     ports:
       - "8081:8081"
     env_file:
-      - ./.env
+      - ../../.env
     environment:
-      - SERVER_PORT=8081
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
       - SPRING_DATASOURCE_URL=${NOTIFICATION_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${NOTIFICATION_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${NOTIFICATION_DB_PASSWORD}
-      # In dev, auto-create missing tables to avoid schema-validation failures
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
       - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
       - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
       - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
       - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
       - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
       - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
       db:
         condition: service_healthy
       rabbitmq:
@@ -180,12 +53,6 @@ services:
       redis:
         condition: service_started
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   user-auth-service:
     build:
@@ -195,395 +62,17 @@ services:
     ports:
       - "8082:8082"
     env_file:
-      - ./.env
+      - ../../.env
     environment:
-      - SERVER_PORT=8082
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
       - SPRING_DATASOURCE_URL=${USER_AUTH_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${USER_AUTH_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${USER_AUTH_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_DATA_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_DATA_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
       db:
         condition: service_healthy
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  chatbot-service:
-    build:
-      context: ../../
-      dockerfile: ./services/chatbot-service/Dockerfile
-    container_name: gearup-chatbot-service
-    ports:
-      - "8086:8086"
-    env_file:
-      - ./.env
-    environment:
-      - SPRING_DATASOURCE_URL=${CHATBOT_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${CHATBOT_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${CHATBOT_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_DATA_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_DATA_REDIS_PORT=${SPRING_REDIS_PORT}
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      ollama:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8086/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: gearup-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-    restart: unless-stopped
-    # Uncomment below if you have NVIDIA GPU
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-
-  vehicle-service:
-    build:
-      context: ../../
-      dockerfile: ./services/vehicle-service/Dockerfile
-    container_name: gearup-vehicle-service
-    ports:
-      - "8090:8090"
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8090
-      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
-      - SPRING_DATASOURCE_URL=${VEHICLE_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${VEHICLE_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${VEHICLE_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-      - EUREKA_CLIENT_FETCH_REGISTRY=true
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8090/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  customer-service:
-    build:
-      context: ../../
-      dockerfile: ./services/customer-service/Dockerfile
-    container_name: gearup-customer-service
-    ports:
-      - "8088:8088"
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8088
-      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
-      - SPRING_DATASOURCE_URL=${CUSTOMER_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${CUSTOMER_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${CUSTOMER_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-      - EUREKA_CLIENT_FETCH_REGISTRY=true
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8088/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  tracking-service:
-    build:
-      context: ../../
-      dockerfile: ./services/tracking-service/Dockerfile
-    container_name: gearup-tracking-service
-    ports:
-      - "8091:8091"
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8091
-      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
-      - SPRING_DATASOURCE_URL=${TRACKING_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${TRACKING_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${TRACKING_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-      - EUREKA_CLIENT_FETCH_REGISTRY=true
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8091/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  analytical-service:
-    build:
-      context: ../../
-      dockerfile: ./services/analytical-service/Dockerfile
-    container_name: gearup-analytical-service
-    ports:
-      - "8087:8087"
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8087
-      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
-      - SPRING_DATASOURCE_URL=${ANALYTICAL_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${ANALYTICAL_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${ANALYTICAL_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-      - EUREKA_CLIENT_FETCH_REGISTRY=true
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8087/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  payment-service:
-    build:
-      context: ../../
-      dockerfile: ./services/payment-service/Dockerfile
-    container_name: gearup-payment-service
-    ports:
-      - "8083:8083"
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8083
-      - SPRING_DATASOURCE_URL=${PAYMENT_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${PAYMENT_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${PAYMENT_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  parts-service:
-    build:
-      context: ../../
-      dockerfile: ./services/parts-service/Dockerfile
-    container_name: gearup-parts-service
-    ports:
-      - "8093:8093"
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8093
-      - SPRING_DATASOURCE_URL=${PARTS_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${PARTS_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${PARTS_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8093/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   appointment-service:
     build:
@@ -593,41 +82,16 @@ services:
     ports:
       - "8084:8084"
     env_file:
-      - ./.env
+      - ../../.env
     environment:
-      - SERVER_PORT=8084
       - SPRING_DATASOURCE_URL=${APPOINTMENT_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${APPOINTMENT_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${APPOINTMENT_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
     depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
       db:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8084/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   modification-service:
     build:
@@ -637,70 +101,39 @@ services:
     ports:
       - "8089:8089"
     env_file:
-      - ./.env
+      - ../../.env
     environment:
-      - SERVER_PORT=8089
       - SPRING_DATASOURCE_URL=${MODIFICATION_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${MODIFICATION_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${MODIFICATION_DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
+      - SERVER_PORT=8089
     depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
       db:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8089/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   db:
-    image: pgvector/pgvector:pg15
+    image: postgres:15-alpine
     container_name: gearup-postgres
     env_file:
-      - ./.env
+      - ../../.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST_AUTH_METHOD: trust # Allow all connections without password for local dev
       # Pass service passwords to init script
       AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
-      PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD}
-      PARTS_DB_PASSWORD: ${PARTS_DB_PASSWORD}
-      CHATBOT_DB_PASSWORD: ${CHATBOT_DB_PASSWORD}
-      VEHICLE_DB_PASSWORD: ${VEHICLE_DB_PASSWORD}
-      CUSTOMER_DB_PASSWORD: ${CUSTOMER_DB_PASSWORD}
-      TRACKING_DB_PASSWORD: ${TRACKING_DB_PASSWORD}
-      ANALYTICAL_DB_PASSWORD: ${ANALYTICAL_DB_PASSWORD}
+      TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
       APPOINTMENT_DB_PASSWORD: ${APPOINTMENT_DB_PASSWORD}
       MODIFICATION_DB_PASSWORD: ${MODIFICATION_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ../postgres/init-db.sh:/docker-entrypoint-initdb.d/01-init.sh
+      - ../postgres/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -741,4 +174,3 @@ services:
 
 volumes:
   db-data:
-  ollama-data:

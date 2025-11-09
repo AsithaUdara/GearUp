@@ -24,11 +24,3 @@ spring:
   redis:
     host: ${SPRING_REDIS_HOST:redis}
     port: ${SPRING_REDIS_PORT:6379}
-
-# Eureka client configuration
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://admin:password@service-discovery:8761/eureka/}
-    fetch-registry: true
-    register-with-eureka: true

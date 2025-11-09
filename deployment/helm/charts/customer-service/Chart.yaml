@@ -1,4 +1,0 @@
-apiVersion: v2
-name: customer-service
-description: Helm chart for customer-service
-version: 0.1.0

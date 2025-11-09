@@ -29,16 +29,7 @@ public class FirebaseConfig {
     private String serviceAccountPath;
 
     @PostConstruct
-    public void init() {
-        try {
-            initializeFirebase();
-        } catch (Exception e) {
-            log.error("Failed to initialize Firebase. Service will run without Firebase authentication.", e);
-            log.warn("Public endpoints will still be accessible. Protected endpoints will not work until Firebase is configured.");
-        }
-    }
-
-    private void initializeFirebase() throws Exception {
+    public void init() throws Exception {
         if (FirebaseApp.getApps().isEmpty()) {
             String envPath = System.getenv("FIREBASE_CONFIG_PATH");
             InputStream is = null;
@@ -81,7 +72,6 @@ public class FirebaseConfig {
                     throw new IllegalStateException("Firebase credentials required in production");
                 }
                 log.warn("No Firebase service account found; skipping initialization.");
-                log.info("Service will run without Firebase authentication. Public endpoints will still be accessible.");
                 return;
             }
 

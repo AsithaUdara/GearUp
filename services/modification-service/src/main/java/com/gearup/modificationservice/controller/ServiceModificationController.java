@@ -1,21 +1,15 @@
 package com.gearup.modificationservice.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.gearup.modificationservice.dto.ModificationRequestDTO;
 import com.gearup.modificationservice.dto.ModificationServiceDTO;
 import com.gearup.modificationservice.service.ModificationRequestService;
 import com.gearup.modificationservice.service.ModificationServiceService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/service-modifications")

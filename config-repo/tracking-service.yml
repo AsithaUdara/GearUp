@@ -1,126 +1,20 @@
-# ========================================
-# Tracking Service Configuration
-# ========================================
-# Configuration for tracking-service microservice
-# Served by Spring Cloud Config Server
-
-server:
-  port: 8091
-
 spring:
   application:
     name: tracking-service
-  
-  # Database configuration
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/as_tracking_service}
-    username: ${SPRING_DATASOURCE_USERNAME:svc_tracking_service}
-    password: ${SPRING_DATASOURCE_PASSWORD:tracking_svc_pass_2024}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-  
-  # JPA / Hibernate
-  jpa:
-    hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        use_sql_comments: true
-        jdbc:
-          time_zone: UTC
-    open-in-view: false
-  
-  # Flyway
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    baseline-version: 0
-    validate-on-migrate: true
+  redis:
+    host: ${SPRING_REDIS_HOST:redis}
+    port: ${SPRING_REDIS_PORT:6379}
 
-  # RabbitMQ
+# Tracking uses streaming/messaging
   rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:localhost}
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
-    username: ${SPRING_RABBITMQ_USERNAME:guest}
-    password: ${SPRING_RABBITMQ_PASSWORD:guest}
-    listener:
-      simple:
-        retry:
-          enabled: true
-          initial-interval: 3000
-          max-attempts: 3
-          multiplier: 2.0
 
-  # Redis
-  data:
-    redis:
-      host: ${SPRING_REDIS_HOST:localhost}
-      port: ${SPRING_REDIS_PORT:6379}
-      timeout: 2000ms
-
-  # Cache configuration
-  cache:
-    type: redis
-    redis:
-      time-to-live: 3600000 # 1 hour in milliseconds
-
-# Messaging configuration
 messaging:
   rabbitmq:
     exchange: ${RABBIT_EXCHANGE:tracking}
 
-# Eureka Client Configuration
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://admin:password@service-discovery:8761/eureka/}
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 30
-    lease-expiration-duration-in-seconds: 90
-
-# Management / Actuator
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,flyway,prometheus
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: always
-  health:
-    db:
-      enabled: true
-    redis:
-      enabled: true
-    rabbitmq:
-      enabled: true
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-
-# Logging
-logging:
-  level:
-    root: INFO
-    com.gearup.trackingservice: DEBUG
-    org.springframework.web: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}

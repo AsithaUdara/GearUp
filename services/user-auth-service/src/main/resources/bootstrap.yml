@@ -1,8 +1,0 @@
-spring:
-  application:
-    name: user-auth-service
-  cloud:
-    config:
-      enabled: false  # Disabled for local development
-      uri: ${CONFIG_SERVER_URI:http://localhost:8888}
-      fail-fast: false

@@ -4,15 +4,11 @@ on:
   push:
     branches:
       - main
-      - development
       - microservice-initialization
-      - chatbot
   pull_request:
     branches:
       - main
-      - development
       - microservice-initialization
-      - chatbot
 
 env:
   HELM_NAMESPACE: staging
@@ -63,25 +59,7 @@ jobs:
 
       - name: Build and install all modules
         run: |
-          # Retry logic to handle transient Maven Central failures (502 Bad Gateway)
-          MAX_ATTEMPTS=3
-          ATTEMPT=1
-          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-            echo "Build attempt $ATTEMPT of $MAX_ATTEMPTS..."
-            if ./mvnw -B -U -DskipTests clean install; then
-              echo "Build succeeded on attempt $ATTEMPT"
-              exit 0
-            else
-              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-                echo "Build failed on attempt $ATTEMPT, retrying in 30 seconds..."
-                sleep 30
-              else
-                echo "Build failed after $MAX_ATTEMPTS attempts"
-                exit 1
-              fi
-            fi
-            ATTEMPT=$((ATTEMPT + 1))
-          done
+          ./mvnw -B -U -DskipTests clean install
 
   # ==========================================
   # Flyway Database Migrations
@@ -90,10 +68,7 @@ jobs:
     name: Run database migrations
     needs: build-root
     runs-on: ubuntu-latest
-    # Run on both push and pull_request events to ensure all dependent jobs execute
-    if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development' || github.ref == 'refs/heads/microservice-initialization' || github.ref == 'refs/heads/chatbot')) ||
-      (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'development' || github.base_ref == 'microservice-initialization' || github.base_ref == 'chatbot'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/microservice-initialization')
 
     services:
       postgres:
@@ -128,46 +103,11 @@ jobs:
             db: as_user_auth_service
             user: svc_user_auth_service
             password: auth_svc_pass_2024
-          - name: chatbot-service
-            module: services/chatbot-service
-            db: as_chatbot_service
-            user: svc_chatbot_service
-            password: chatbot_svc_pass_2024
-          - name: payment-service
-            module: services/payment-service
-            db: as_payment_service
-            user: svc_payment_service
-            password: payment_pass_2024
-          - name: analytical-service
-            module: services/analytical-service
-            db: as_analytical_service
-            user: svc_analytical_service
-            password: analytical_svc_pass_2024
-          - name: tracking-service
-            module: services/tracking-service
-            db: as_tracking_service
-            user: svc_tracking_service
-            password: tracking_svc_pass_2024
-          - name: vehicle-service
-            module: services/vehicle-service
-            db: as_vehicle_service
-            user: svc_vehicle_service
-            password: vehicle_svc_pass_2024
-          - name: customer-service
-            module: services/customer-service
-            db: as_customer_service
-            user: svc_customer_service
-            password: customer_svc_pass_2024
-          - name: appointment-service
-            module: services/appointment-service
-            db: as_appointment_service
-            user: svc_appointment_service
-            password: postgres
-          - name: modification-service
-            module: services/modification-service
-            db: as_modification_service
-            user: svc_modification_service
-            password: postgres
+          - name: template-service
+            module: services/template-service
+            db: as_template_service
+            user: svc_template_service
+            password: template_svc_pass_2024
 
     steps:
       - name: Checkout
@@ -183,93 +123,23 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
 
-      - name: Build parent POM and shared libraries
-        run: |
-          # Install parent POM first
-          ./mvnw -B -DskipTests install -N
-          # Install all shared libraries
-          ./mvnw -B -DskipTests clean install -pl shared-libs/security-lib,shared-libs/event-models,shared-libs/common-utils,shared-libs/common-dto -am
-
-      - name: Wait for PostgreSQL to be ready
-        env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
-        run: |
-          echo "Waiting for PostgreSQL to be ready..."
-          for i in {1..30}; do
-            if pg_isready -h localhost -p 5432 -U postgres; then
-              echo "PostgreSQL is ready!"
-              break
-            fi
-            echo "Waiting... ($i/30)"
-            sleep 2
-          done
-
       - name: Setup database for ${{ matrix.service.name }}
         env:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
         run: |
-          echo "Creating database and user for ${{ matrix.service.name }}..."
-          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<EOF
-          -- Drop and recreate database to ensure clean state
-          DROP DATABASE IF EXISTS ${{ matrix.service.db }};
-          DROP USER IF EXISTS ${{ matrix.service.user }};
-
-          -- Create user first
+          psql -h localhost -U postgres <<EOF
+          CREATE DATABASE ${{ matrix.service.db }};
           CREATE USER ${{ matrix.service.user }} WITH PASSWORD '${{ matrix.service.password }}';
-
-          -- Create database with the user as owner
-          CREATE DATABASE ${{ matrix.service.db }} OWNER ${{ matrix.service.user }};
-
-          -- Connect to the database and grant permissions
+          GRANT ALL PRIVILEGES ON DATABASE ${{ matrix.service.db }} TO ${{ matrix.service.user }};
           \c ${{ matrix.service.db }}
-
-          -- Grant schema permissions
           GRANT ALL ON SCHEMA public TO ${{ matrix.service.user }};
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${{ matrix.service.user }};
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${{ matrix.service.user }};
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO ${{ matrix.service.user }};
           EOF
-          echo "Database setup completed for ${{ matrix.service.name }}"
-
-      - name: Install pgvector extension for chatbot-service
-        if: matrix.service.name == 'chatbot-service'
-        env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
-        run: |
-          echo "Attempting to install pgvector extension for chatbot-service..."
-          # PostgreSQL 15-alpine may not have pgvector pre-installed
-          # We'll try to create it, but if it fails, the migration will handle it
-          psql -h localhost -U postgres -d ${{ matrix.service.db }} -v ON_ERROR_STOP=0 <<EOF || echo "pgvector not available, skipping extension creation"
-          CREATE EXTENSION IF NOT EXISTS vector;
-          EOF
-
-      - name: Build service module
-        run: |
-          echo "Building ${{ matrix.service.name }} module..."
-          # Retry logic to handle transient Maven Central failures (502 Bad Gateway)
-          MAX_ATTEMPTS=3
-          ATTEMPT=1
-          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-            echo "Build attempt $ATTEMPT of $MAX_ATTEMPTS for ${{ matrix.service.name }}..."
-            if ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am; then
-              echo "Build succeeded on attempt $ATTEMPT"
-              exit 0
-            else
-              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-                echo "Build failed on attempt $ATTEMPT, retrying in 30 seconds..."
-                sleep 30
-              else
-                echo "Build failed after $MAX_ATTEMPTS attempts"
-                exit 1
-              fi
-            fi
-            ATTEMPT=$((ATTEMPT + 1))
-          done
 
       - name: Run Flyway migration for ${{ matrix.service.name }}
         run: |
-          echo "Running Flyway migration for ${{ matrix.service.name }}..."
-          ./mvnw -B -pl ${{ matrix.service.module }} \
+          ./mvnw -pl ${{ matrix.service.module }} \
             -Dflyway.url=jdbc:postgresql://localhost:5432/${{ matrix.service.db }} \
             -Dflyway.user=postgres \
             -Dflyway.password=${{ secrets.POSTGRES_PASSWORD || 'postgres123' }} \
@@ -277,8 +147,7 @@ jobs:
 
       - name: Verify migration status
         run: |
-          echo "Verifying migration status for ${{ matrix.service.name }}..."
-          ./mvnw -B -pl ${{ matrix.service.module }} \
+          ./mvnw -pl ${{ matrix.service.module }} \
             -Dflyway.url=jdbc:postgresql://localhost:5432/${{ matrix.service.db }} \
             -Dflyway.user=postgres \
             -Dflyway.password=${{ secrets.POSTGRES_PASSWORD || 'postgres123' }} \
@@ -286,8 +155,7 @@ jobs:
 
   build-modules:
     name: Build individual microservices
-    needs: [build-root]
-    if: always() && needs.build-root.result == 'success'
+    needs: [build-root, flyway-migrate]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -300,22 +168,6 @@ jobs:
             module: services/user-auth-service
           - name: automobile-service
             module: services/automobile-service
-          - name: chatbot-service
-            module: services/chatbot-service
-          - name: payment-service
-            module: services/payment-service
-          - name: analytical-service
-            module: services/analytical-service
-          - name: tracking-service
-            module: services/tracking-service
-          - name: vehicle-service
-            module: services/vehicle-service
-          - name: customer-service
-            module: services/customer-service
-          - name: appointment-service
-            module: services/appointment-service
-          - name: modification-service
-            module: services/modification-service
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -339,52 +191,12 @@ jobs:
 
       - name: Install shared dependencies
         run: |
-          # Install parent POM first
-          ./mvnw -B -DskipTests install -N
-          # Install all shared libraries with proper dependency resolution and retry logic
-          # Use wildcard to include all shared-libs modules
-          MAX_ATTEMPTS=3
-          for module in "shared-libs/security-lib" "shared-libs/event-models" "shared-libs/common-utils" "shared-libs/common-dto"; do
-            ATTEMPT=1
-            while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-              echo "Building $module - attempt $ATTEMPT of $MAX_ATTEMPTS..."
-              if ./mvnw -B -DskipTests clean install -pl $module -am; then
-                echo "$module succeeded on attempt $ATTEMPT"
-                break
-              else
-                if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-                  echo "$module failed on attempt $ATTEMPT, retrying in 30 seconds..."
-                  sleep 30
-                else
-                  echo "$module failed after $MAX_ATTEMPTS attempts"
-                  exit 1
-                fi
-              fi
-              ATTEMPT=$((ATTEMPT + 1))
-            done
-          done
+          # Install parent POM and shared libraries first
+          ./mvnw -B -DskipTests install -pl shared-libs/security-lib,shared-libs/common-dto,shared-libs/common-utils,shared-libs/event-models
 
       - name: Build module jar
         run: |
-          # Retry logic to handle transient Maven Central failures (502 Bad Gateway)
-          MAX_ATTEMPTS=3
-          ATTEMPT=1
-          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-            echo "Building ${{ matrix.service.name }} - attempt $ATTEMPT of $MAX_ATTEMPTS..."
-            if ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am; then
-              echo "Build succeeded on attempt $ATTEMPT"
-              exit 0
-            else
-              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-                echo "Build failed on attempt $ATTEMPT, retrying in 30 seconds..."
-                sleep 30
-              else
-                echo "Build failed after $MAX_ATTEMPTS attempts"
-                exit 1
-              fi
-            fi
-            ATTEMPT=$((ATTEMPT + 1))
-          done
+          ./mvnw -B -DskipTests package -pl ${{ matrix.service.module }} -am
 
   deploy:
     name: Deploy Helm charts
@@ -394,18 +206,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check for KUBE_CONFIG_BASE64 secret
-        run: |
-          if [ -z "${{ secrets.KUBE_CONFIG_BASE64 }}" ]; then
-            echo "KUBE_CONFIG_BASE64 secret is not set. Skipping Kubernetes deployment.";
-            echo "SKIP_DEPLOY=true" >> $GITHUB_ENV
-          else
-            echo "KUBE_CONFIG_BASE64 found, proceeding with deployment.";
-            echo "SKIP_DEPLOY=false" >> $GITHUB_ENV
-          fi
-
       - name: Install kubectl
-        if: env.SKIP_DEPLOY == 'false'
         uses: azure/setup-kubectl@v3
         with:
           # Use 'latest' to avoid failures when a specific patch isn't available
@@ -414,11 +215,9 @@ jobs:
           version: "latest"
 
       - name: Install Helm
-        if: env.SKIP_DEPLOY == 'false'
         uses: azure/setup-helm@v1
 
       - name: Configure kubeconfig
-        if: env.SKIP_DEPLOY == 'false'
         env:
           KUBE_CONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64 }}
         run: |
@@ -427,7 +226,6 @@ jobs:
           mv kubeconfig $HOME/.kube/config
 
       - name: Deploy charts from deployment/helm/charts
-        if: env.SKIP_DEPLOY == 'false'
         env:
           IMAGE_TAG: ${{ github.sha }}
           NAMESPACE: ${{ env.HELM_NAMESPACE }}
@@ -454,133 +252,3 @@ jobs:
               helm upgrade --install "$name" "$chart" --namespace "$NAMESPACE"
             fi
           done
-
-  verify-deployment:
-    name: Verify Deployment Health
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: success()
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Check for KUBE_CONFIG_BASE64 secret
-        run: |
-          if [ -z "${{ secrets.KUBE_CONFIG_BASE64 }}" ]; then
-            echo "KUBE_CONFIG_BASE64 secret is not set. Skipping health verification.";
-            echo "SKIP_VERIFY=true" >> $GITHUB_ENV
-          else
-            echo "KUBE_CONFIG_BASE64 found, proceeding with health verification.";
-            echo "SKIP_VERIFY=false" >> $GITHUB_ENV
-          fi
-
-      - name: Install kubectl
-        if: env.SKIP_VERIFY == 'false'
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "latest"
-
-      - name: Configure kubeconfig
-        if: env.SKIP_VERIFY == 'false'
-        env:
-          KUBE_CONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64 }}
-        run: |
-          echo "$KUBE_CONFIG_BASE64" | base64 --decode > kubeconfig
-          mkdir -p $HOME/.kube
-          mv kubeconfig $HOME/.kube/config
-
-      - name: Wait for pods to be ready
-        if: env.SKIP_VERIFY == 'false'
-        env:
-          NAMESPACE: ${{ env.HELM_NAMESPACE }}
-        run: |
-          echo "Waiting for all pods to be ready in namespace $NAMESPACE..."
-          kubectl wait --for=condition=ready pod --all -n "$NAMESPACE" --timeout=300s || true
-
-          echo "Current pod status:"
-          kubectl get pods -n "$NAMESPACE"
-
-      - name: Check service endpoints
-        if: env.SKIP_VERIFY == 'false'
-        env:
-          NAMESPACE: ${{ env.HELM_NAMESPACE }}
-        run: |
-          echo "Checking service endpoints..."
-
-          # Get all services
-          services=$(kubectl get services -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
-
-          for service in $services; do
-            echo "Service: $service"
-            kubectl get service "$service" -n "$NAMESPACE" -o wide
-          done
-
-      - name: Verify health endpoints
-        if: env.SKIP_VERIFY == 'false'
-        env:
-          NAMESPACE: ${{ env.HELM_NAMESPACE }}
-        run: |
-          echo "Verifying service health endpoints..."
-
-          # List of services to check (adjust based on your services)
-          services=(
-            "api-gateway:8080"
-            "config-server:8888"
-            "service-discovery:8761"
-            "user-auth-service:8082"
-            "automobile-service:8085"
-            "notification-service:8081"
-            "chatbot-service:8086"
-            "payment-service:8083"
-            "appointment-service:8084"
-            "analytical-service:8089"
-            "modification-service:8089"
-            "tracking-service:8091"
-            "vehicle-service:8090"
-            "customer-service:8088"
-          )
-
-          for svc in "${services[@]}"; do
-            IFS=':' read -r service port <<< "$svc"
-            pod=$(kubectl get pods -n "$NAMESPACE" -l app="$service" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-            
-            if [ -n "$pod" ]; then
-              echo "Checking health for $service (pod: $pod)..."
-              kubectl exec -n "$NAMESPACE" "$pod" -- wget -qO- http://localhost:$port/actuator/health 2>/dev/null || echo "⚠️  Health check failed or not available for $service"
-            else
-              echo "⚠️  Pod not found for $service"
-            fi
-          done
-
-      - name: Check Eureka registration
-        if: env.SKIP_VERIFY == 'false'
-        env:
-          NAMESPACE: ${{ env.HELM_NAMESPACE }}
-        run: |
-          echo "Checking Eureka service registration..."
-
-          eureka_pod=$(kubectl get pods -n "$NAMESPACE" -l app=service-discovery -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-
-          if [ -n "$eureka_pod" ]; then
-            echo "Fetching registered services from Eureka..."
-            kubectl exec -n "$NAMESPACE" "$eureka_pod" -- wget -qO- http://localhost:8761/eureka/apps 2>/dev/null | grep -o '<name>[^<]*</name>' | sed 's/<name>//g' | sed 's/<\/name>//g' | sort -u || echo "⚠️  Could not fetch Eureka apps"
-          else
-            echo "⚠️  Eureka pod not found"
-          fi
-
-      - name: Display deployment summary
-        if: always() && env.SKIP_VERIFY == 'false'
-        env:
-          NAMESPACE: ${{ env.HELM_NAMESPACE }}
-        run: |
-          echo "=== Deployment Summary ==="
-          echo "Namespace: $NAMESPACE"
-          echo ""
-          echo "Pods:"
-          kubectl get pods -n "$NAMESPACE" -o wide
-          echo ""
-          echo "Services:"
-          kubectl get services -n "$NAMESPACE"
-          echo ""
-          echo "Deployments:"
-          kubectl get deployments -n "$NAMESPACE"
