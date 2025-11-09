@@ -5,6 +5,11 @@
 # Host port 8091 chosen to avoid conflict with vehicle-service (8090).
 version: "3.9"
 services:
+  # When this override file is included, user-auth-service will only start if the
+  # 'template' profile is explicitly enabled. Without this file, base behavior is unchanged.
+  user-auth-service:
+    profiles: ["template"]
+
   template-service:
     profiles: ["template"]
     build:
