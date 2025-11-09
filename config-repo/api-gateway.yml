@@ -18,6 +18,14 @@ spring:
             - Path=/api/chat/**
           filters:
             - StripPrefix=0
+        
+        # Chatbot Service V1 API - Public Access
+        - id: chatbot-service-v1
+          uri: lb://chatbot-service
+          predicates:
+            - Path=/api/v1/**
+          filters:
+            - StripPrefix=0
       
       globalcors:
         cors-configurations:

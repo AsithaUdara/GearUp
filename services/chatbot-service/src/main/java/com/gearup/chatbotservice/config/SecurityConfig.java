@@ -22,6 +22,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // All chatbot endpoints are public
                         .requestMatchers("/api/chat/**").permitAll()
+                        .requestMatchers("/api/v1/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         // WebSocket endpoints
                         .requestMatchers("/ws/**").permitAll()
