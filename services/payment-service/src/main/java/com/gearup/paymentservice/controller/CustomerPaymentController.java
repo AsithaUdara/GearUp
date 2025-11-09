@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/payments/customer")
+@RequestMapping("/api/v1/payments/customer")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*") // Allow frontend access

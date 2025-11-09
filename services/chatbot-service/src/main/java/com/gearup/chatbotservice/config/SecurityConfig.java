@@ -21,7 +21,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // All chatbot endpoints are public
-                        .requestMatchers("/api/chat/**").permitAll()
+                        .requestMatchers("/api/v1/chat/**").permitAll()
+                        .requestMatchers("/api/v1/hello").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         // WebSocket endpoints
                         .requestMatchers("/ws/**").permitAll()
