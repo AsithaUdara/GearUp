@@ -28,11 +28,32 @@ public class UserResponse {
     private LocalDateTime lastLoginAt;
 
     public static UserResponse fromUser(User user) {
+        // Normalize display name: prefer stored displayName if non-blank and not a duplicated first+first
+        String rawDisplay = user.getDisplayName();
+        String first = user.getFirstName() != null ? user.getFirstName().trim() : "";
+        String last = user.getLastName() != null ? user.getLastName().trim() : "";
+        String normalized;
+        if (rawDisplay == null || rawDisplay.isBlank()) {
+            // Build from first/last; if last blank or duplicate, use only first
+            if (last.isBlank() || first.equalsIgnoreCase(last)) {
+                normalized = first;
+            } else {
+                normalized = (first + " " + last).trim();
+            }
+        } else {
+            String[] tokens = rawDisplay.trim().split("\\s+");
+            if (tokens.length == 2 && tokens[0].equalsIgnoreCase(tokens[1])) {
+                normalized = tokens[0];
+            } else {
+                normalized = rawDisplay.trim();
+            }
+        }
+
         return UserResponse.builder()
                 .id(user.getId())
                 .firebaseUid(user.getFirebaseUid())
                 .email(user.getEmail())
-                .displayName(user.getDisplayName())
+                .displayName(normalized)
                 .phoneNumber(user.getPhoneNumber())
                 .photoUrl(user.getPhotoUrl())
                 .accountStatus(user.getAccountStatus().name())
