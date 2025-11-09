@@ -9,23 +9,37 @@ EXCEPTION
 END $$;
 
 -- Table for storing knowledge base documents with embeddings
-CREATE TABLE knowledge_documents (
-    id BIGSERIAL PRIMARY KEY,
-    content TEXT NOT NULL,
-    metadata JSONB,
-    source VARCHAR(255) NOT NULL,
-    category VARCHAR(100),
-    embedding TEXT,  -- Will be converted to vector(768) if pgvector is available
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create index for vector similarity search only if pgvector is available
+-- Use conditional logic to create the correct column type based on pgvector availability
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'vector') THEN
+        -- Create table with vector type if pgvector is available
+        CREATE TABLE knowledge_documents (
+            id BIGSERIAL PRIMARY KEY,
+            content TEXT NOT NULL,
+            metadata JSONB,
+            source VARCHAR(255) NOT NULL,
+            category VARCHAR(100),
+            embedding vector(768),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        -- Create vector index
         CREATE INDEX idx_knowledge_documents_embedding ON knowledge_documents 
         USING hnsw (embedding vector_cosine_ops);
+    ELSE
+        -- Create table with TEXT type if pgvector is not available
+        CREATE TABLE knowledge_documents (
+            id BIGSERIAL PRIMARY KEY,
+            content TEXT NOT NULL,
+            metadata JSONB,
+            source VARCHAR(255) NOT NULL,
+            category VARCHAR(100),
+            embedding TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
     END IF;
 END $$;
 

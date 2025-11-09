@@ -63,7 +63,25 @@ jobs:
 
       - name: Build and install all modules
         run: |
-          ./mvnw -B -U -DskipTests clean install
+          # Retry logic to handle transient Maven Central failures (502 Bad Gateway)
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Build attempt $ATTEMPT of $MAX_ATTEMPTS..."
+            if ./mvnw -B -U -DskipTests clean install; then
+              echo "Build succeeded on attempt $ATTEMPT"
+              exit 0
+            else
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                echo "Build failed on attempt $ATTEMPT, retrying in 30 seconds..."
+                sleep 30
+              else
+                echo "Build failed after $MAX_ATTEMPTS attempts"
+                exit 1
+              fi
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+          done
 
   # ==========================================
   # Flyway Database Migrations
@@ -140,6 +158,16 @@ jobs:
             db: as_customer_service
             user: svc_customer_service
             password: customer_svc_pass_2024
+          - name: appointment-service
+            module: services/appointment-service
+            db: as_appointment_service
+            user: svc_appointment_service
+            password: postgres
+          - name: modification-service
+            module: services/modification-service
+            db: as_modification_service
+            user: svc_modification_service
+            password: postgres
 
     steps:
       - name: Checkout
@@ -218,7 +246,25 @@ jobs:
       - name: Build service module
         run: |
           echo "Building ${{ matrix.service.name }} module..."
-          ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am
+          # Retry logic to handle transient Maven Central failures (502 Bad Gateway)
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Build attempt $ATTEMPT of $MAX_ATTEMPTS for ${{ matrix.service.name }}..."
+            if ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am; then
+              echo "Build succeeded on attempt $ATTEMPT"
+              exit 0
+            else
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                echo "Build failed on attempt $ATTEMPT, retrying in 30 seconds..."
+                sleep 30
+              else
+                echo "Build failed after $MAX_ATTEMPTS attempts"
+                exit 1
+              fi
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+          done
 
       - name: Run Flyway migration for ${{ matrix.service.name }}
         run: |
@@ -266,6 +312,10 @@ jobs:
             module: services/vehicle-service
           - name: customer-service
             module: services/customer-service
+          - name: appointment-service
+            module: services/appointment-service
+          - name: modification-service
+            module: services/modification-service
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -291,16 +341,50 @@ jobs:
         run: |
           # Install parent POM first
           ./mvnw -B -DskipTests install -N
-          # Install all shared libraries with proper dependency resolution
+          # Install all shared libraries with proper dependency resolution and retry logic
           # Use wildcard to include all shared-libs modules
-          ./mvnw -B -DskipTests clean install -pl shared-libs/security-lib -am
-          ./mvnw -B -DskipTests clean install -pl shared-libs/event-models -am
-          ./mvnw -B -DskipTests clean install -pl shared-libs/common-utils -am
-          ./mvnw -B -DskipTests clean install -pl shared-libs/common-dto -am
+          MAX_ATTEMPTS=3
+          for module in "shared-libs/security-lib" "shared-libs/event-models" "shared-libs/common-utils" "shared-libs/common-dto"; do
+            ATTEMPT=1
+            while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+              echo "Building $module - attempt $ATTEMPT of $MAX_ATTEMPTS..."
+              if ./mvnw -B -DskipTests clean install -pl $module -am; then
+                echo "$module succeeded on attempt $ATTEMPT"
+                break
+              else
+                if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                  echo "$module failed on attempt $ATTEMPT, retrying in 30 seconds..."
+                  sleep 30
+                else
+                  echo "$module failed after $MAX_ATTEMPTS attempts"
+                  exit 1
+                fi
+              fi
+              ATTEMPT=$((ATTEMPT + 1))
+            done
+          done
 
       - name: Build module jar
         run: |
-          ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am
+          # Retry logic to handle transient Maven Central failures (502 Bad Gateway)
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Building ${{ matrix.service.name }} - attempt $ATTEMPT of $MAX_ATTEMPTS..."
+            if ./mvnw -B -DskipTests clean package -pl ${{ matrix.service.module }} -am; then
+              echo "Build succeeded on attempt $ATTEMPT"
+              exit 0
+            else
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                echo "Build failed on attempt $ATTEMPT, retrying in 30 seconds..."
+                sleep 30
+              else
+                echo "Build failed after $MAX_ATTEMPTS attempts"
+                exit 1
+              fi
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+          done
 
   deploy:
     name: Deploy Helm charts
@@ -448,7 +532,9 @@ jobs:
             "notification-service:8081"
             "chatbot-service:8086"
             "payment-service:8083"
+            "appointment-service:8084"
             "analytical-service:8089"
+            "modification-service:8089"
             "tracking-service:8091"
             "vehicle-service:8090"
             "customer-service:8088"
