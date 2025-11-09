@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/tracking")
+@RequestMapping("/api/v1/tracking")
 @RequiredArgsConstructor
 @Slf4j
 public class TimeLogController {

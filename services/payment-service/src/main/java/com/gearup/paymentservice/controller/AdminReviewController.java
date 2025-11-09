@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/reviews/admin")
+@RequestMapping("/api/v1/reviews/admin")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

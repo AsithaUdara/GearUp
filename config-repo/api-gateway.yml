@@ -11,19 +11,123 @@ spring:
   cloud:
     gateway:
       routes:
-        # Chatbot Service - Public Access (No Authentication Required)
-        - id: chatbot-service
-          uri: lb://chatbot-service
+        # ========================================
+        # User Auth Service - v1 API
+        # ========================================
+        - id: user-auth-service
+          uri: lb://user-auth-service
           predicates:
-            - Path=/api/chat/**
+            - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/roles/**, /api/v1/admin/users/**
           filters:
             - StripPrefix=0
         
-        # Chatbot Service V1 API - Public Access
-        - id: chatbot-service-v1
+        # ========================================
+        # Chatbot Service - v1 API (Public Access)
+        # ========================================
+        - id: chatbot-service
           uri: lb://chatbot-service
           predicates:
-            - Path=/api/v1/**
+            - Path=/api/v1/chat/**, /api/v1/hello
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Vehicle Service - v1 API
+        # ========================================
+        - id: vehicle-service
+          uri: lb://vehicle-service
+          predicates:
+            - Path=/api/v1/vehicles/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Customer Service - v1 API
+        # ========================================
+        - id: customer-service
+          uri: lb://customer-service
+          predicates:
+            - Path=/api/v1/customers/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Appointment Service - v1 API
+        # ========================================
+        - id: appointment-service
+          uri: lb://appointment-service
+          predicates:
+            - Path=/api/v1/services/**, /api/v1/employees/**, /api/v1/timeslots/**, /api/v1/bookings/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Payment Service - v1 API
+        # ========================================
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/v1/payments/**, /api/v1/reviews/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Tracking Service - v1 API
+        # ========================================
+        - id: tracking-service
+          uri: lb://tracking-service
+          predicates:
+            - Path=/api/v1/tracking/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Modification Service - v1 API
+        # ========================================
+        - id: modification-service
+          uri: lb://modification-service
+          predicates:
+            - Path=/api/v1/service-modifications/**, /api/v1/modification-requests/**, /api/v1/customers/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Notification Service - v1 API
+        # ========================================
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/notifications/**, /api/v1/test/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Analytical Service - v1 API
+        # ========================================
+        - id: analytical-service
+          uri: lb://analytical-service
+          predicates:
+            - Path=/api/v1/analytics/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Parts Service - v1 API
+        # ========================================
+        - id: parts-service
+          uri: lb://parts-service
+          predicates:
+            - Path=/api/v1/parts-requests/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
+        # Automobile Service - v1 API
+        # ========================================
+        - id: automobile-service
+          uri: lb://automobile-service
+          predicates:
+            - Path=/api/v1/public/**, /api/v1/secure/**
           filters:
             - StripPrefix=0
       
