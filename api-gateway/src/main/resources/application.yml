@@ -23,14 +23,41 @@ spring:
                   args:
                     parts: 0 # Don't strip prefix, chatbot service expects /api/chat
 
-            - id: user-auth-route
+            # User Auth Service Routes
+            - id: user-auth-auth-route
               uri: lb://user-auth-service
               predicates:
-                - Path=/api/users/**
+                - Path=/api/v1/auth/**
               filters:
                 - name: StripPrefix
                   args:
-                    parts: 2
+                    parts: 0 # Keep full path as auth service expects /api/v1/auth
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+
+            - id: user-auth-users-route
+              uri: lb://user-auth-service
+              predicates:
+                - Path=/api/v1/users/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as user service expects /api/v1/users
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+
+            - id: user-auth-admin-users-route
+              uri: lb://user-auth-service
+              predicates:
+                - Path=/api/v1/admin/users/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path: admin controller expects /api/v1/admin/users
                 - name: RequestRateLimiter
                   args:
                     redis-rate-limiter.replenishRate: 10
@@ -104,6 +131,20 @@ spring:
                   args:
                     redis-rate-limiter.replenishRate: 15
                     redis-rate-limiter.burstCapacity: 30
+
+            # Template Service (Admin) Route
+            - id: template-service-route
+              uri: lb://template-service
+              predicates:
+                - Path=/api/v1/admin/service-templates/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path: service expects /api/v1/admin/service-templates
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
 
             # Appointment Service Route
             - id: appointment-service-route

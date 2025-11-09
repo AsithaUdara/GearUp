@@ -185,7 +185,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.gearup.userauthservice.UserAuthServiceApplication</mainClass>
+                    <mainClass>com.gearup.userauth.UserAuthServiceApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

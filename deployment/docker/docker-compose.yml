@@ -60,7 +60,7 @@ services:
       dockerfile: ./api-gateway/Dockerfile
     container_name: gearup-api-gateway
     ports:
-      - "9090:8080"
+      - "8080:8080"
     env_file:
       - ./.env
     environment:
@@ -237,13 +237,13 @@ services:
       context: ../../
       dockerfile: ./services/template-service/Dockerfile
     container_name: gearup-template-service
-    # Map host 8091 -> container 8090 (internal server.port)
+    # Map host 8083 -> container 8083 (internal server.port)
     ports:
-      - "8091:8090"
+      - "8083:8083"
     env_file:
       - ./.env
     environment:
-      - SERVER_PORT=8090
+      - SERVER_PORT=8083
       - SPRING_DATASOURCE_URL=${TEMPLATE_DB_URL}
       - SPRING_DATASOURCE_USERNAME=${TEMPLATE_DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${TEMPLATE_DB_PASSWORD}
@@ -252,8 +252,8 @@ services:
       - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
       - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
       - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
+      - SPRING_DATA_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_DATA_REDIS_PORT=${SPRING_REDIS_PORT}
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - SPRING_CLOUD_CONFIG_USERNAME=configadmin
       - SPRING_CLOUD_CONFIG_PASSWORD=change-me
@@ -271,7 +271,7 @@ services:
         condition: service_started
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8090/actuator/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -732,6 +732,7 @@ services:
       AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
+      TEMPLATE_DB_PASSWORD: ${TEMPLATE_DB_PASSWORD}
       PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD}
       PARTS_DB_PASSWORD: ${PARTS_DB_PASSWORD}
       CHATBOT_DB_PASSWORD: ${CHATBOT_DB_PASSWORD}

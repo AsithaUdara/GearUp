@@ -18,6 +18,8 @@
         <module>services/payment-service</module>
         <module>services/parts-service</module>
         <module>services/user-auth-service</module>
+        <!-- Restored minimal service: template-service -->
+        <module>services/template-service</module>
         <module>services/chatbot-service</module>
         <module>services/vehicle-service</module>
         <module>services/customer-service</module>
