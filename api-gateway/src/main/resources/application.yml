@@ -7,158 +7,120 @@ spring:
 
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
+      # Global CORS configuration (applies to all routes) - updated keys for Spring Cloud Gateway 4.x
       server:
         webflux:
-          discovery:
-            locator:
-              enabled: true
-          routes:
-            # Chatbot Service Route - Public Access (No Authentication)
-            - id: chatbot-service-route
-              uri: lb://chatbot-service
-              predicates:
-                - Path=/api/chat/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 0 # Don't strip prefix, chatbot service expects /api/chat
-
-            - id: user-auth-route
-              uri: lb://user-auth-service
-              predicates:
-                - Path=/api/users/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 2
-                - name: RequestRateLimiter
-                  args:
-                    redis-rate-limiter.replenishRate: 10
-                    redis-rate-limiter.burstCapacity: 20
-
-            # Vehicle Service Route
-            - id: vehicle-service-route
-              uri: lb://vehicle-service
-              predicates:
-                - Path=/api/v1/vehicles/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 0 # Keep full path as vehicle service expects /api/v1/vehicles
-
-            # Customer Service Route
-            - id: customer-service-route
-              uri: lb://customer-service
-              predicates:
-                - Path=/api/v1/customers/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 0 # Keep full path as customer service expects /api/v1/customers
-
-            # Analytical Service Route
-            - id: analytical-service-route
-              uri: lb://analytical-service
-              predicates:
-                - Path=/api/v1/analytics/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 0 # Keep full path
-
-            # Tracking Service Route
-            - id: tracking-service-route
-              uri: lb://tracking-service
-              predicates:
-                - Path=/api/tracking/**
-              filters:
-                - name: RequestRateLimiter
-                  args:
-                    redis-rate-limiter.replenishRate: 20
-                    redis-rate-limiter.burstCapacity: 40
-
-            # Payment Service Route
-            - id: payment-service-route
-              uri: lb://payment-service
-              predicates:
-                - Path=/api/payments/**,/api/bills/**,/api/payment-requests/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 0 # Keep full path as payment service expects /api/payments
-                - name: RequestRateLimiter
-                  args:
-                    redis-rate-limiter.replenishRate: 15
-                    redis-rate-limiter.burstCapacity: 30
-
-            # Parts Service Route
-            - id: parts-service-route
-              uri: lb://parts-service
-              predicates:
-                - Path=/api/parts/**,/api/parts-requests/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 0 # Keep full path as parts service expects /api/parts
-                - name: RequestRateLimiter
-                  args:
-                    redis-rate-limiter.replenishRate: 15
-                    redis-rate-limiter.burstCapacity: 30
-
-            # Appointment Service Route
-            - id: appointment-service-route
-              uri: lb://appointment-service
-              predicates:
-                - Path=/api/appointments/**,/api/bookings/**,/api/timeslots/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 0 # Keep full path as appointment service expects /api/appointments
-                - name: RequestRateLimiter
-                  args:
-                    redis-rate-limiter.replenishRate: 20
-                    redis-rate-limiter.burstCapacity: 40
-
-            # Modification Service Route
-            - id: modification-service-route
-              uri: lb://modification-service
-              predicates:
-                - Path=/api/modifications/**,/api/modification-requests/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 0 # Keep full path as modification service expects /api/modifications
-                - name: RequestRateLimiter
-                  args:
-                    redis-rate-limiter.replenishRate: 15
-                    redis-rate-limiter.burstCapacity: 30
-
-            - id: api-gateway-root
-              uri: lb://api-gateway
-              predicates:
-                - Path=/api/**
-              filters:
-                - name: StripPrefix
-                  args:
-                    parts: 1
-
-      # Global CORS Configuration
-      globalcors:
-        cors-configurations:
-          "[/**]":
-            allowedOrigins:
-              - "http://localhost:3000"
-              - "http://localhost:3001"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: false # Important: false for public endpoints
-            maxAge: 3600
-
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: ${GATEWAY_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+                # Pattern support (Spring 5.3+/Spring Cloud 2022+) for any localhost port
+                allowedOriginPatterns:
+                  - "http://localhost:*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                  - OPTIONS
+                # Explicit headers list helps with credentialed requests
+                allowedHeaders:
+                  - Authorization
+                  - Content-Type
+                  - Accept
+                  - Origin
+                  - X-Requested-With
+                  - Access-Control-Request-Method
+                  - Access-Control-Request-Headers
+                  - Cache-Control
+                  - Pragma
+                  - Expires
+                  - Referer
+                  - User-Agent
+                  - X-Actuator-Token
+                exposedHeaders:
+                  - Authorization
+                  - Content-Type
+                allowCredentials: true
+                maxAge: 3600
+      routes:
+        # Public chatbot route
+        - id: chatbot-service-route
+          uri: lb://chatbot-service
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - name: StripPrefix
+              args:
+                parts: 0
+        # Specific admin service template endpoints FIRST to avoid being shadowed by broader /api/v1/admin/** route
+        - id: template-service-admin
+          uri: lb://template-service
+          predicates:
+            # Match both base and nested paths so list/create without trailing slash don't 404
+            - Path=/api/v1/admin/service-templates, /api/v1/admin/service-templates/**
+        # Route for auth endpoints (login, OTP verification, password change)
+        - id: user-auth-service-auth
+          uri: lb://user-auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+        # Route for admin user management endpoints (narrowed to users to prevent overlap)
+        - id: user-auth-service-admin-users
+          uri: lb://user-auth-service
+          predicates:
+            - Path=/api/v1/admin/users/**
+        # Consolidated user route for profile/me endpoints
+        - id: user-auth-route
+          uri: lb://user-auth-service
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - name: StripPrefix
+              args:
+                parts: 0
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        # Vehicle Service Route
+        - id: vehicle-service-route
+          uri: lb://vehicle-service
+          predicates:
+            - Path=/api/v1/vehicles/**
+        # Customer Service Route
+        - id: customer-service-route
+          uri: lb://customer-service
+          predicates:
+            - Path=/api/v1/customers/**
+        # Analytical Service Route
+        - id: analytical-service-route
+          uri: lb://analytical-service
+          predicates:
+            - Path=/api/v1/analytics/**
+        # Tracking Service Route
+        - id: tracking-service-route
+          uri: lb://tracking-service
+          predicates:
+            - Path=/api/tracking/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+        # Root API passthrough to gateway itself if required
+        - id: api-gateway-root
+          uri: lb://api-gateway
+          predicates:
+            - Path=/api/**
+          filters:
+            - name: StripPrefix
+              args:
+                parts: 1
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -169,7 +131,7 @@ eureka:
     register-with-eureka: false
     fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://admin:password@localhost:8761/eureka/}
 
 server:
   port: ${GATEWAY_PORT:8080}
@@ -178,8 +140,22 @@ server:
 management:
   endpoints:
     web:
+      base-path: /actuator
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    enable:
+      all: false
+  health:
+    redis:
+      enabled: false
+    diskspace:
+      enabled: true
+    ping:
+      enabled: true
 
 # CORS and Redis config are defined under the single 'spring' mapping above
 
@@ -193,9 +169,6 @@ resilience4j:
         failureRateThreshold: 50
 
 # Gateway default filters: timeout/retry are applied per-route or globally as needed
-gateway:
-  default-filters:
-    - name: RequestHeaderToRequestUri
 
 # Security: Firebase credentials should be provided to services via env or k8s secrets
 firebase:

@@ -23,6 +23,8 @@
         <module>services/customer-service</module>
         <module>services/tracking-service</module>
         <module>services/analytical-service</module>
+        <!-- Newly added admin-facing template service -->
+        <module>services/template-service</module>
 
         <!-- Infra modules -->
         <module>service-discovery</module>

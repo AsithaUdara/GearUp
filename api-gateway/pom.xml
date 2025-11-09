@@ -27,6 +27,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
+        <!-- Reactive security for SecurityWebFilterChain -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
@@ -40,11 +45,7 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- Security, Actuator and resilience -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
+        <!-- Actuator and resilience -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -67,6 +68,17 @@
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
 
+        <!-- Firebase Admin SDK (direct dependency since shared-security-lib removed) -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+
         <!-- gRPC netty shaded (pulled in to satisfy optional gRPC filter support) -->
         <dependency>
             <groupId>io.grpc</groupId>
@@ -86,12 +98,7 @@
         </dependency>
         <!-- using GenericContainer in tests, so no redis module required -->
 
-        <!-- Shared security utilities (Firebase filter, etc.) -->
-        <dependency>
-            <groupId>com.gearup</groupId>
-            <artifactId>shared-security-lib</artifactId>
-            <version>1.0.0</version>
-        </dependency>
+        <!-- Note: Do not depend on shared-security-lib to keep Spring Security off the gateway classpath -->
 
         <!-- Caffeine for production LoadBalancer cache improvements -->
         <dependency>
