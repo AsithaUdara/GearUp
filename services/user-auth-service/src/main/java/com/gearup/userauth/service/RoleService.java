@@ -15,8 +15,6 @@ import java.util.stream.Collectors;
 @Service
 public class RoleService {
 
-    // Logger retained for potential future diagnostic use; suppress unused warning.
-    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(RoleService.class);
 
     private final RoleRepository roleRepository;
@@ -40,13 +38,7 @@ public class RoleService {
 
     @Transactional(readOnly = true)
     public Role getRoleByName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new ResourceNotFoundException("Role", "name", "<blank>");
-        }
-        String normalized = name.trim();
-        // Try exact (with permissions) first (already case-insensitive via LOWER in query), fallback to ignore case basic lookup
-        return roleRepository.findByNameWithPermissions(normalized)
-                .or(() -> roleRepository.findByNameIgnoreCase(normalized))
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", normalized));
+        return roleRepository.findByNameWithPermissions(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", name));
     }
 }

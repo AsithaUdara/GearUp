@@ -107,8 +107,7 @@ class CustomerServiceTest {
         // Verify event published
         ArgumentCaptor<String> exchangeCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass((Class) Map.class);
+        ArgumentCaptor<Map> payloadCaptor = ArgumentCaptor.forClass(Map.class);
         
         verify(rabbitTemplate, times(1)).convertAndSend(
                 exchangeCaptor.capture(),
@@ -198,8 +197,7 @@ class CustomerServiceTest {
         
         // Verify KYC change event
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass((Class) Map.class);
+        ArgumentCaptor<Map> payloadCaptor = ArgumentCaptor.forClass(Map.class);
         
         verify(rabbitTemplate, times(1)).convertAndSend(
                 eq("customer.exchange"),

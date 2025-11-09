@@ -54,18 +54,6 @@ public class UserService {
         user.setFirebaseUid(request.getFirebaseUid());
         user.setEmail(request.getEmail());
         user.setDisplayName(request.getDisplayName());
-        // Satisfy NOT NULL constraints on first_name and last_name
-        String display = request.getDisplayName() == null ? "" : request.getDisplayName().trim();
-        if (display.isEmpty()) {
-            // Fallback to email local-part if display name is empty
-            String local = request.getEmail() != null ? request.getEmail().split("@")[0] : "User";
-            user.setFirstName(local);
-            user.setLastName("");
-        } else {
-            String[] parts = display.split("\\s+", 2);
-            user.setFirstName(parts[0]);
-            user.setLastName(parts.length > 1 ? parts[1] : "");
-        }
         user.setPhoneNumber(request.getPhoneNumber());
         user.setPhotoUrl(request.getPhotoUrl());
         user.setAccountStatus(User.AccountStatus.ACTIVE);

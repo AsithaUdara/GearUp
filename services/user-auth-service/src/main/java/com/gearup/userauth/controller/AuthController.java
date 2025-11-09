@@ -63,27 +63,4 @@ public class AuthController {
         logger.info("Logout from all sessions successful");
         return ResponseEntity.ok(ApiResponse.success("Logged out from all sessions", null));
     }
-
-    /**
-     * Setup password for new employee/admin accounts
-     * Public endpoint - uses OTP for verification
-     */
-    @PostMapping("/setup-password")
-    public ResponseEntity<ApiResponse<TokenResponse>> setupPassword(
-            @Valid @RequestBody SetupPasswordRequest request) {
-        logger.info("Password setup request received for email: {}", request.getEmail());
-        TokenResponse tokenResponse = authService.setupPassword(request);
-        return ResponseEntity.ok(ApiResponse.success("Password setup successful. You are now logged in.", tokenResponse));
-    }
-
-    /**
-     * Verify OTP and return short-lived token for password change
-     */
-    @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse<VerifyOtpResponse>> verifyOtp(
-        @Valid @RequestBody VerifyOTPRequest request) {
-        logger.info("Verify OTP request for email: {}", request.getEmail());
-        VerifyOtpResponse response = authService.verifyOtp(request);
-        return ResponseEntity.ok(ApiResponse.success("OTP verified", response));
-    }
 }
