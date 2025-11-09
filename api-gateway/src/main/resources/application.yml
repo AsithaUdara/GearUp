@@ -13,6 +13,7 @@ spring:
       # Global CORS configuration (applies to all routes) - updated keys for Spring Cloud Gateway 4.x
       server:
         webflux:
+<<<<<<< HEAD
           globalcors:
             add-to-simple-url-handler-mapping: true
             cors-configurations:
@@ -121,6 +122,158 @@ spring:
             - name: StripPrefix
               args:
                 parts: 1
+=======
+          discovery:
+            locator:
+              enabled: true
+          routes:
+            # Chatbot Service Route - Public Access (No Authentication)
+            - id: chatbot-service-route
+              uri: lb://chatbot-service
+              predicates:
+                - Path=/api/chat/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Don't strip prefix, chatbot service expects /api/chat
+
+            - id: user-auth-route
+              uri: lb://user-auth-service
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 2
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+
+            # Vehicle Service Route
+            - id: vehicle-service-route
+              uri: lb://vehicle-service
+              predicates:
+                - Path=/api/v1/vehicles/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as vehicle service expects /api/v1/vehicles
+
+            # Customer Service Route
+            - id: customer-service-route
+              uri: lb://customer-service
+              predicates:
+                - Path=/api/v1/customers/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as customer service expects /api/v1/customers
+
+            # Analytical Service Route
+            - id: analytical-service-route
+              uri: lb://analytical-service
+              predicates:
+                - Path=/api/v1/analytics/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path
+
+            # Tracking Service Route
+            - id: tracking-service-route
+              uri: lb://tracking-service
+              predicates:
+                - Path=/api/tracking/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
+
+            # Payment Service Route
+            - id: payment-service-route
+              uri: lb://payment-service
+              predicates:
+                - Path=/api/payments/**,/api/bills/**,/api/payment-requests/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as payment service expects /api/payments
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 15
+                    redis-rate-limiter.burstCapacity: 30
+
+            # Parts Service Route
+            - id: parts-service-route
+              uri: lb://parts-service
+              predicates:
+                - Path=/api/parts/**,/api/parts-requests/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as parts service expects /api/parts
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 15
+                    redis-rate-limiter.burstCapacity: 30
+
+            # Appointment Service Route
+            - id: appointment-service-route
+              uri: lb://appointment-service
+              predicates:
+                - Path=/api/appointments/**,/api/bookings/**,/api/timeslots/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as appointment service expects /api/appointments
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
+
+            # Modification Service Route
+            - id: modification-service-route
+              uri: lb://modification-service
+              predicates:
+                - Path=/api/modifications/**,/api/modification-requests/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as modification service expects /api/modifications
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 15
+                    redis-rate-limiter.burstCapacity: 30
+
+            - id: api-gateway-root
+              uri: lb://api-gateway
+              predicates:
+                - Path=/api/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 1
+
+      # Global CORS Configuration
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false # Important: false for public endpoints
+            maxAge: 3600
+
+>>>>>>> 54fa44210d7e2802c734ec2cc6d14f3f209d80de
   data:
     redis:
       host: ${REDIS_HOST:localhost}
