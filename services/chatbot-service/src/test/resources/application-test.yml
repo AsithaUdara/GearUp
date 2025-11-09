@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: chatbot-service-test
+
+  # Allow test beans to override main beans
+  main:
+    allow-bean-definition-overriding: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/as_chatbot_service
+    driver-class-name: org.postgresql.Driver
+    username: svc_chatbot_service
+    password: ${POSTGRES_PASSWORD:chatbot_svc_pass_2024}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+  flyway:
+    enabled: false
+    clean-disabled: false
+
+  cloud:
+    config:
+      enabled: false
+
+  # Disable RabbitMQ autoconfiguration for tests
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+eureka:
+  client:
+    enabled: false
+
+ollama:
+  base-url: http://localhost:11434
+  chat-model: llama3.2:3b
+  embedding-model: nomic-embed-text
+  timeout: 60000
+  max-retries: 3

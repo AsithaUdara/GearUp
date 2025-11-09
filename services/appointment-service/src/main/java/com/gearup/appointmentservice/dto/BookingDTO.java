@@ -1,11 +1,12 @@
 package com.gearup.appointmentservice.dto;
 
+import java.time.LocalDateTime;
+
 import com.gearup.appointmentservice.entity.BookingStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -23,4 +24,7 @@ public class BookingDTO {
     private String notes;
     private LocalDateTime bookingDate;
     private TimeSlotDTO timeSlot;
+
+    private Long assignedEmployeeId;
+    private String assignedEmployeeName;
 }

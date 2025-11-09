@@ -6,7 +6,7 @@
 
 -- Services table - stores available modification services
 CREATE TABLE IF NOT EXISTS services (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     base_price DECIMAL(10,2),
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS services (
 
 -- Customers table - stores customer information
 CREATE TABLE IF NOT EXISTS customers (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     user_id VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255),
@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS customers (
 
 -- Modification requests table - stores modification requests
 CREATE TABLE IF NOT EXISTS modification_requests (
-    id SERIAL PRIMARY KEY,
-    service_id INTEGER NOT NULL,
-    customer_id INTEGER NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    service_id BIGINT NOT NULL,
+    customer_id BIGINT NOT NULL,
     status VARCHAR(50) DEFAULT 'PENDING',
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     preferred_date DATE,

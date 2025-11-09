@@ -6,7 +6,7 @@ image:
 replicaCount: 1
 
 service:
-  port: 8080
+  port: 8081
   type: ClusterIP
 
 resources:

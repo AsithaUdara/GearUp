@@ -1,0 +1,28 @@
+# Docker Compose override for CI/CD (GitHub Actions)
+# This file removes Windows-specific volume mounts that don't exist on Linux runners
+# Use with: docker compose -f docker-compose.yml -f docker-compose.ci.yml
+
+services:
+  api-gateway:
+    volumes: []
+
+  automobile-service:
+    volumes: []
+
+  notification-service:
+    volumes: []
+
+  user-auth-service:
+    volumes: []
+
+  vehicle-service:
+    volumes: []
+
+  customer-service:
+    volumes: []
+
+  tracking-service:
+    volumes: []
+
+  analytical-service:
+    volumes: []

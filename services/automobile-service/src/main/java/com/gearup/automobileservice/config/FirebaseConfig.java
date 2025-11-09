@@ -27,80 +27,84 @@ public class FirebaseConfig {
 
     @PostConstruct
     public void initialize() {
+        try {
+            initializeFirebase();
+        } catch (Exception e) {
+            log.error("Failed to initialize Firebase. Service will run without Firebase authentication.", e);
+            log.warn("Public endpoints will still be accessible. Protected endpoints will not work until Firebase is configured.");
+        }
+    }
+
+    private void initializeFirebase() throws IOException {
         // Resolution order:
         // 1. FIREBASE_SERVICE_ACCOUNT_JSON env var (preferred for Docker/CI)
         // 2. FIREBASE_CONFIG_PATH env var
         // 3. app.firebase-configuration-file property (file: or classpath:)
         // 4. classpath resource 'firebase-service-account.json'
 
-        try {
-            InputStream in = null;
+        InputStream in = null;
 
-            // Option 1: Try to read from FIREBASE_SERVICE_ACCOUNT_JSON env variable
-            String jsonCredentials = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
-            if (jsonCredentials != null && !jsonCredentials.trim().isEmpty()) {
-                log.info("Using Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON environment variable");
-                // Replace escaped newlines with actual newlines for private key
-                String processedJson = jsonCredentials.replace("\\n", "\n");
-                in = new java.io.ByteArrayInputStream(processedJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            }
+        // Option 1: Try to read from FIREBASE_SERVICE_ACCOUNT_JSON env variable
+        String jsonCredentials = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+        if (jsonCredentials != null && !jsonCredentials.trim().isEmpty()) {
+            log.info("Using Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON environment variable");
+            // Replace escaped newlines with actual newlines for private key
+            String processedJson = jsonCredentials.replace("\\n", "\n");
+            in = new java.io.ByteArrayInputStream(processedJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
 
-            // Option 2: Try FIREBASE_CONFIG_PATH env var
-            if (in == null) {
-                String envPath = System.getenv("FIREBASE_CONFIG_PATH");
-                if (envPath != null && !envPath.trim().isEmpty()) {
-                    File f = new File(envPath);
-                    if (f.exists()) {
-                        log.info("Using Firebase service account from environment path: {}", envPath);
-                        in = new FileInputStream(f);
-                    } else {
-                        log.warn("FIREBASE_CONFIG_PATH is set but file does not exist: {}", envPath);
-                    }
+        // Option 2: Try FIREBASE_CONFIG_PATH env var
+        if (in == null) {
+            String envPath = System.getenv("FIREBASE_CONFIG_PATH");
+            if (envPath != null && !envPath.trim().isEmpty()) {
+                File f = new File(envPath);
+                if (f.exists()) {
+                    log.info("Using Firebase service account from environment path: {}", envPath);
+                    in = new FileInputStream(f);
+                } else {
+                    log.warn("FIREBASE_CONFIG_PATH is set but file does not exist: {}", envPath);
                 }
             }
+        }
 
-            // Option 3: Try property file
-            if (in == null && serviceAccount != null) {
-                try {
-                    if (serviceAccount.exists()) {
-                        log.info("Using Firebase service account from property: {}", serviceAccount.getURI());
-                        in = serviceAccount.getInputStream();
-                    }
-                } catch (IOException e) {
-                    log.warn("Configured serviceAccount resource cannot be read", e);
+        // Option 3: Try property file
+        if (in == null && serviceAccount != null) {
+            try {
+                if (serviceAccount.exists()) {
+                    log.info("Using Firebase service account from property: {}", serviceAccount.getURI());
+                    in = serviceAccount.getInputStream();
                 }
+            } catch (IOException e) {
+                log.warn("Configured serviceAccount resource cannot be read", e);
             }
+        }
 
-            if (in == null) {
-                // last resort: classpath
-                InputStream cp = FirebaseConfig.class.getClassLoader().getResourceAsStream("firebase-service-account.json");
-                if (cp != null) {
-                    log.info("Using Firebase service account from classpath resource");
-                    in = cp;
-                }
+        if (in == null) {
+            // last resort: classpath
+            InputStream cp = FirebaseConfig.class.getClassLoader().getResourceAsStream("firebase-service-account.json");
+            if (cp != null) {
+                log.info("Using Firebase service account from classpath resource");
+                in = cp;
             }
+        }
 
-            if (in == null) {
-                if ("prod".equals(System.getenv("SPRING_PROFILES_ACTIVE"))) {
-                    throw new IllegalStateException("Firebase credentials required in production");
-                }
-                log.warn("No Firebase service account found; skipping initialization.");
-                return;
+        if (in == null) {
+            if ("prod".equals(System.getenv("SPRING_PROFILES_ACTIVE"))) {
+                throw new IllegalStateException("Firebase credentials required in production");
             }
+            log.warn("No Firebase service account found; skipping initialization.");
+            log.info("Service will run without Firebase authentication. Public endpoints will still be accessible.");
+            return;
+        }
 
-            try (InputStream serviceAccountStream = in) {
-                FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccountStream))
-                        .build();
-                if (FirebaseApp.getApps().isEmpty()) {
-                    FirebaseApp.initializeApp(options);
-                    log.info("Firebase initialized successfully.");
-                }
+        try (InputStream serviceAccountStream = in) {
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccountStream))
+                    .build();
+            if (FirebaseApp.getApps().isEmpty()) {
+                FirebaseApp.initializeApp(options);
+                log.info("Firebase initialized successfully.");
             }
-
-        } catch (IOException e) {
-            log.error("Failed to initialize Firebase", e);
-            throw new RuntimeException(e);
         }
     }
 }

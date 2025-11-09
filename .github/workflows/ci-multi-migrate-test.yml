@@ -2,9 +2,9 @@ name: CI - Migrate all services + integration tests
 
 on:
   push:
-    branches: [main, microservice-initialization]
+    branches: [main, development, microservice-initialization]
   pull_request:
-    branches: [main]
+    branches: [main, development]
 
 jobs:
   migrate-and-test-all:
@@ -46,7 +46,13 @@ jobs:
           java-version: "21"
 
       - name: Build and install all modules
-        run: ./mvnw -B -U -DskipTests clean install
+        run: |
+          # Install parent POM first
+          ./mvnw -B -DskipTests install -N
+          # Install shared libraries
+          ./mvnw -B -U -DskipTests clean install -pl shared-libs/security-lib,shared-libs/event-models,shared-libs/common-utils,shared-libs/common-dto -am
+          # Build all services
+          ./mvnw -B -U -DskipTests clean install
 
       - name: Install psql client
         run: |
@@ -55,8 +61,14 @@ jobs:
 
       - name: Wait for Postgres
         run: |
+          echo "Waiting for PostgreSQL to be ready..."
           for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U postgres && break || sleep 2
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
           done
         env:
           PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
@@ -75,30 +87,80 @@ jobs:
 
       - name: Create DBs and users for discovered services
         run: |
+          echo "Creating databases and users for discovered services..."
           while read svc; do
             if [ -z "$svc" ]; then continue; fi
             echo "Creating DB and user for $svc"
-            dbname=as_${svc}
-            dbuser=svc_${svc}
-            psql -h localhost -U postgres -c "CREATE USER \"$dbuser\" WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';" || true
-            psql -h localhost -U postgres -c "CREATE DATABASE \"$dbname\" OWNER \"$dbuser\";" || true
+            # Replace hyphens with underscores for valid PostgreSQL identifiers
+            dbname="as_${svc//-/_}"
+            dbuser="svc_${svc//-/_}"
+            
+            # Drop existing database and user if they exist (with quoted identifiers)
+            psql -h localhost -U postgres -v ON_ERROR_STOP=0 -c "DROP DATABASE IF EXISTS \"$dbname\";" || true
+            psql -h localhost -U postgres -v ON_ERROR_STOP=0 -c "DROP USER IF EXISTS \"$dbuser\";" || true
+            
+            # Create user (with quoted identifiers)
+            psql -h localhost -U postgres -c "CREATE USER \"$dbuser\" WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';"
+            
+            # Create database (with quoted identifiers)
+            psql -h localhost -U postgres -c "CREATE DATABASE \"$dbname\" OWNER \"$dbuser\";"
+            
+            # Grant permissions (with quoted identifiers)
+            psql -h localhost -U postgres -d "$dbname" -c "GRANT ALL ON SCHEMA public TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO \"$dbuser\";"
+            
+            echo "✓ Database $dbname created successfully"
           done < services.txt
         env:
           PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Run Flyway migrations for each service
         run: |
+          echo "Running Flyway migrations for discovered services..."
           while read svc; do
             if [ -z "$svc" ]; then continue; fi
-            echo "Migrating $svc"
-            dbname=as_${svc}
-            dbuser=svc_${svc}
-            ./mvnw "-Dflyway.url=jdbc:postgresql://localhost:5432/${dbname}" "-Dflyway.user=${dbuser}" "-Dflyway.password=${{ env.POSTGRES_PASSWORD }}" -pl services/$svc flyway:migrate
+            echo "Migrating $svc..."
+            # Replace hyphens with underscores for valid PostgreSQL identifiers
+            dbname="as_${svc//-/_}"
+            dbuser="svc_${svc//-/_}"
+            ./mvnw -B -pl "services/$svc" \
+              "-Dflyway.url=jdbc:postgresql://localhost:5432/${dbname}" \
+              "-Dflyway.user=postgres" \
+              "-Dflyway.password=${{ env.POSTGRES_PASSWORD }}" \
+              flyway:migrate
+            echo "✓ Migration completed for $svc"
           done < services.txt
+
+      - name: Grant permissions on migrated tables
+        run: |
+          echo "Granting permissions on all tables to service users..."
+          while read svc; do
+            if [ -z "$svc" ]; then continue; fi
+            echo "Granting permissions for $svc..."
+            # Replace hyphens with underscores for valid PostgreSQL identifiers
+            dbname="as_${svc//-/_}"
+            dbuser="svc_${svc//-/_}"
+            
+            # Grant permissions on all existing tables, sequences, and functions
+            psql -h localhost -U postgres -d "$dbname" -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$dbuser\";"
+            psql -h localhost -U postgres -d "$dbname" -c "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \"$dbuser\";"
+            
+            echo "✓ Permissions granted for $svc"
+          done < services.txt
+        env:
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Run integration tests across modules
         env:
           APP_FIREBASE_CONFIGURATION_FILE: ""
           FIREBASE_CONFIG_PATH: ""
+          # Pass the same postgres password used for database setup
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          # Disable Flyway during tests since migrations already ran
+          FLYWAY_ENABLED: false
         run: |
-          ./mvnw -DskipTests=false test
+          echo "Running integration tests with database password from environment..."
+          ./mvnw -B verify

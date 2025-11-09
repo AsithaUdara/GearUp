@@ -26,6 +26,13 @@ import jakarta.servlet.http.HttpServletResponse;
 public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // Skip filter for actuator endpoints and public paths
+        return path.startsWith("/actuator/") || path.startsWith("/api/public/");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
@@ -44,6 +51,9 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(uid, null, new ArrayList<>());
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            // Set firebaseUid as request attribute for controllers to access
+            request.setAttribute("firebaseUid", uid);
 
         } catch (FirebaseAuthException e) {
             // On token verification failure return 401 JSON response

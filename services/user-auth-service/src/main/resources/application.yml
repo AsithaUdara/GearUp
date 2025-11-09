@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: user-auth-service
+
+  config:
+    import: "optional:configserver:${SPRING_CLOUD_CONFIG_URI:http://localhost:8888}"
+
+  cloud:
+    config:
+      enabled: false # Disabled for local development
+      fail-fast: false
+      uri: http://localhost:8888
+
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5434/as_user_auth_service
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  # JPA Configuration
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # Flyway Configuration
+  flyway:
+    enabled: true # Re-enabled for local PostgreSQL 18
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000
+
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBITMQ_USERNAME:automobile_admin}
+    password: ${RABBITMQ_PASSWORD:123456}
+
+server:
+  port: 8082
+
+# Firebase Configuration
+app:
+  firebase-configuration-file: C:/SecureKeys/gear-up/firebase-service-account.json
+
+# JWT Configuration
+jwt:
+  secret: your-256-bit-secret-key-change-this-in-production-environment-make-it-secure
+  expiration: 3600000 # 1 hour in milliseconds
+  refresh-expiration: 2592000000 # 30 days in milliseconds
+
+# Eureka Client Configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://admin:password@localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.gearup: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
