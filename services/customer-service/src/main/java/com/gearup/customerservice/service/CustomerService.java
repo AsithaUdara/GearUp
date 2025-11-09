@@ -4,23 +4,19 @@ import com.gearup.customerservice.domain.Customer;
 import com.gearup.customerservice.domain.KycStatus;
 import com.gearup.customerservice.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerService {
 
     private final CustomerRepository repository;
-    private final RabbitTemplate rabbitTemplate;
-
-    private static final String EXCHANGE = "customer.exchange";
+    private final CustomerEventPublisher eventPublisher;
 
     public Optional<Customer> get(String uid) {
         return repository.findById(uid);
@@ -29,13 +25,15 @@ public class CustomerService {
     @Transactional
     public Customer create(Customer c) {
         Customer saved = repository.save(c);
-        publishEvent("customer.registered", Map.of(
-                "eventId", UUID.randomUUID().toString(),
-                "customerId", saved.getFirebaseUid(),
-                "email", saved.getEmail(),
-                "displayName", saved.getDisplayName(),
-                "timestamp", Instant.now().toString()
-        ));
+        
+        eventPublisher.publishCustomerRegisteredEvent(
+            saved.getFirebaseUid(),
+            saved.getEmail(),
+            saved.getDisplayName(),
+            saved.getPhone()
+        );
+        
+        log.info("📢 Created customer and published event: {}", saved.getFirebaseUid());
         return saved;
     }
 
@@ -50,11 +48,16 @@ public class CustomerService {
         existing.setAddress(incoming.getAddress());
         existing.setBirthday(incoming.getBirthday());
         Customer saved = repository.save(existing);
-        publishEvent("customer.updated", Map.of(
-                "eventId", UUID.randomUUID().toString(),
-                "customerId", saved.getFirebaseUid(),
-                "timestamp", Instant.now().toString()
-        ));
+        
+        eventPublisher.publishCustomerUpdatedEvent(
+            saved.getFirebaseUid(),
+            saved.getEmail(),
+            saved.getDisplayName(),
+            saved.getPhone(),
+            saved.getAddress()
+        );
+        
+        log.info("📢 Updated customer and published event: {}", saved.getFirebaseUid());
         return saved;
     }
 
@@ -64,20 +67,15 @@ public class CustomerService {
         KycStatus old = existing.getKycStatus();
         existing.setKycStatus(status);
         Customer saved = repository.save(existing);
-        publishEvent("customer.kyc.changed", Map.of(
-                "eventId", UUID.randomUUID().toString(),
-                "customerId", saved.getFirebaseUid(),
-                "oldStatus", old.name(),
-                "newStatus", status.name(),
-                "timestamp", Instant.now().toString()
-        ));
+        
+        eventPublisher.publishCustomerKycChangedEvent(
+            saved.getFirebaseUid(),
+            old.name(),
+            status.name(),
+            "KYC status updated by system"
+        );
+        
+        log.info("📢 Updated KYC and published event: {} -> {}", old, status);
         return saved;
-    }
-
-    private void publishEvent(String routingKey, Map<String, Object> payload) {
-        try {
-            rabbitTemplate.convertAndSend(EXCHANGE, routingKey, payload);
-        } catch (Exception ignored) {
-        }
     }
 }

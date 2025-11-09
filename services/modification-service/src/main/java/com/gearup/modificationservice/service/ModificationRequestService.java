@@ -78,6 +78,31 @@ public class ModificationRequestService {
             
             modificationRequest = modificationRequestRepository.save(modificationRequest);
             
+            // 📢 Publish ModificationRequestCreatedEvent
+            try {
+                String eventId = UUID.randomUUID().toString();
+                ModificationRequestCreatedEvent event = new ModificationRequestCreatedEvent(
+                    eventId,
+                    modificationRequest.getId(),
+                    customer.getUserId(),
+                    customer.getName(),
+                    customer.getEmail(),
+                    LocalDateTime.now(),
+                    service.getName(),
+                    modificationRequest.getEstimatedCost().doubleValue(),
+                    modificationRequest.getPreferredDate() != null ? modificationRequest.getPreferredDate().toString() : null
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.MODIFICATION_EXCHANGE,
+                    RabbitMQConstants.MODIFICATION_REQUEST_CREATED_KEY,
+                    event,
+                    eventId
+                );
+                log.info("📤 Published ModificationRequestCreatedEvent for request: {}", modificationRequest.getId());
+            } catch (Exception e) {
+                log.error("❌ Failed to publish ModificationRequestCreatedEvent: {}", e.getMessage(), e);
+            }
+            
             log.info("Modification request created successfully with id: {}", modificationRequest.getId());
             return convertToDTO(modificationRequest);
         } catch (Exception e) {
@@ -117,6 +142,32 @@ public class ModificationRequestService {
         
         if (updateDTO.getStatus() != null) {
             request.setStatus(updateDTO.getStatus());
+            
+            // 📢 Publish ModificationRequestStatusChangedEvent
+            try {
+                ModificationRequestStatusChangedEvent statusEvent = new ModificationRequestStatusChangedEvent(
+                    UUID.randomUUID().toString(),
+                    request.getId(),
+                    request.getCustomer().getUserId(),
+                    request.getCustomer().getName(),
+                    oldStatus.toString(),
+                    updateDTO.getStatus().toString(),
+                    "SYSTEM",
+                    LocalDateTime.now(),
+                    request.getService().getName(),
+                    updateDTO.getAdminNotes()
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.MODIFICATION_EXCHANGE,
+                    RabbitMQConstants.MODIFICATION_REQUEST_STATUS_CHANGED_KEY,
+                    statusEvent,
+                    statusEvent.getEventId()
+                );
+                log.info("📤 Published ModificationRequestStatusChangedEvent for request: {} from {} to {}", 
+                    request.getId(), oldStatus, updateDTO.getStatus());
+            } catch (Exception e) {
+                log.error("❌ Failed to publish ModificationRequestStatusChangedEvent: {}", e.getMessage(), e);
+            }
             
             // Update timestamp based on status
             if (updateDTO.getStatus() == RequestStatus.APPROVED && oldStatus != RequestStatus.APPROVED) {
@@ -193,10 +244,10 @@ public class ModificationRequestService {
                     request.getId(),
                     request.getCustomer().getUserId(),
                     request.getCustomer().getName(),
-                    LocalDateTime.now(),
-                    "SYSTEM",
-                    request.getService().getName(),
-                    updateDTO.getAdminNotes() != null ? updateDTO.getAdminNotes() : "Request cancelled"
+                    LocalDateTime.now(),  // cancelledAt
+                    "SYSTEM",  // cancelledBy
+                    updateDTO.getAdminNotes() != null ? updateDTO.getAdminNotes() : "Request cancelled",  // cancellationReason
+                    request.getService().getName()  // modificationType
                 );
                 eventPublisher.publish(
                     RabbitMQConstants.MODIFICATION_EXCHANGE,

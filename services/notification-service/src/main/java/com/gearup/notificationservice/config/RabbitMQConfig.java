@@ -196,6 +196,38 @@ public class RabbitMQConfig {
                 .with(RabbitMQConstants.MODIFICATION_COMPLETED_ROUTING_KEY);
     }
     
+    @Bean
+    public Binding modificationRequestCreatedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(modificationExchange())
+                .with(RabbitMQConstants.MODIFICATION_REQUEST_CREATED_KEY);
+    }
+    
+    @Bean
+    public Binding modificationRejectedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(modificationExchange())
+                .with(RabbitMQConstants.MODIFICATION_REQUEST_REJECTED_KEY);
+    }
+    
+    @Bean
+    public Binding modificationCancelledBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(modificationExchange())
+                .with(RabbitMQConstants.MODIFICATION_REQUEST_CANCELLED_KEY);
+    }
+    
+    @Bean
+    public Binding modificationStatusChangedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(modificationExchange())
+                .with(RabbitMQConstants.MODIFICATION_REQUEST_STATUS_CHANGED_KEY);
+    }
+    
     // ===========================
     // Parts Exchange Bindings
     // ===========================
@@ -211,5 +243,137 @@ public class RabbitMQConfig {
                 .bind(notificationQueue())
                 .to(partsExchange())
                 .with(RabbitMQConstants.LOW_STOCK_ALERT_ROUTING_KEY);
+    }
+    
+    @Bean
+    public Binding partsInventoryLowBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(partsExchange())
+                .with(RabbitMQConstants.PARTS_INVENTORY_LOW_KEY);
+    }
+    
+    @Bean
+    public Binding partsStatusChangedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(partsExchange())
+                .with(RabbitMQConstants.PARTS_STATUS_CHANGED_KEY);
+    }
+    
+    // ===========================
+    // Chatbot Exchange Bindings
+    // ===========================
+    
+    @Bean
+    public TopicExchange chatbotExchange() {
+        return new TopicExchange(RabbitMQConstants.CHATBOT_EXCHANGE);
+    }
+    
+    @Bean
+    public Binding chatSessionStartedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(chatbotExchange())
+                .with(RabbitMQConstants.CHAT_SESSION_STARTED_KEY);
+    }
+    
+    @Bean
+    public Binding chatSessionClosedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(chatbotExchange())
+                .with(RabbitMQConstants.CHAT_SESSION_CLOSED_KEY);
+    }
+    
+    @Bean
+    public Binding customerEscalationRequestedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(chatbotExchange())
+                .with(RabbitMQConstants.CUSTOMER_ESCALATION_REQUESTED_KEY);
+    }
+    
+    // ===========================
+    // User Exchange Bindings (Cross-Service)
+    // ===========================
+    
+    @Bean
+    public TopicExchange userExchange() {
+        return new TopicExchange(RabbitMQConstants.USER_EXCHANGE);
+    }
+    
+    @Bean
+    public Binding userRegisteredBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(userExchange())
+                .with(RabbitMQConstants.USER_REGISTERED_ROUTING_KEY);
+    }
+    
+    @Bean
+    public Binding roleAssignedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(userExchange())
+                .with(RabbitMQConstants.ROLE_ASSIGNED_ROUTING_KEY);
+    }
+    
+    // ===========================
+    // Vehicle Exchange Bindings (Cross-Service)
+    // ===========================
+    
+    @Bean
+    public TopicExchange vehicleExchange() {
+        return new TopicExchange(RabbitMQConstants.VEHICLE_EXCHANGE);
+    }
+    
+    @Bean
+    public Binding vehicleRegisteredBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(vehicleExchange())
+                .with(RabbitMQConstants.VEHICLE_REGISTERED_ROUTING_KEY);
+    }
+    
+    @Bean
+    public Binding vehicleUpdatedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(vehicleExchange())
+                .with(RabbitMQConstants.VEHICLE_UPDATED_ROUTING_KEY);
+    }
+    
+    // ===========================
+    // Customer Exchange Bindings (Cross-Service)
+    // ===========================
+    
+    @Bean
+    public TopicExchange customerExchange() {
+        return new TopicExchange(RabbitMQConstants.CUSTOMER_EXCHANGE);
+    }
+    
+    @Bean
+    public Binding customerRegisteredBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(customerExchange())
+                .with(RabbitMQConstants.CUSTOMER_REGISTERED_ROUTING_KEY);
+    }
+    
+    @Bean
+    public Binding customerKycChangedBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(customerExchange())
+                .with(RabbitMQConstants.CUSTOMER_KYC_CHANGED_KEY);
+    }
+    
+    @Bean
+    public Binding invoicePaidBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(paymentExchange())
+                .with(RabbitMQConstants.INVOICE_PAID_ROUTING_KEY);
     }
 }

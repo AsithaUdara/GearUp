@@ -100,6 +100,7 @@ public final class RabbitMQConstants {
     // CUSTOMER SERVICE ROUTING KEYS
     public static final String CUSTOMER_CREATED_KEY = "customer.created";
     public static final String CUSTOMER_UPDATED_KEY = "customer.updated";
+    public static final String CUSTOMER_KYC_CHANGED_KEY = "customer.kyc.changed";
 
     // PARTS SERVICE ROUTING KEYS
     public static final String PARTS_STATUS_CHANGED_KEY = "parts.status.changed";
@@ -165,19 +166,37 @@ public final class RabbitMQConstants {
     // ==================== FULL ROUTING KEYS (with exchange prefix) ====================
     // Used for listener bindings
     
+    // Appointment routing keys
     public static final String APPOINTMENT_CREATED_ROUTING_KEY = APPOINTMENT_CREATED_KEY;
     public static final String APPOINTMENT_APPROVED_ROUTING_KEY = APPOINTMENT_APPROVED_KEY;
     public static final String APPOINTMENT_CANCELLED_ROUTING_KEY = APPOINTMENT_CANCELLED_KEY;
     public static final String EMPLOYEE_ASSIGNED_TO_APPOINTMENT_ROUTING_KEY = EMPLOYEE_ASSIGNED_KEY;
     
+    // Payment routing keys
     public static final String PAYMENT_COMPLETED_ROUTING_KEY = PAYMENT_COMPLETED_KEY;
     public static final String INVOICE_CREATED_ROUTING_KEY = INVOICE_CREATED_KEY;
+    public static final String INVOICE_PAID_ROUTING_KEY = INVOICE_PAID_KEY;
     
+    // Tracking routing keys
     public static final String TASK_COMPLETED_ROUTING_KEY = TASK_COMPLETED_KEY;
     public static final String ISSUE_REPORTED_ROUTING_KEY = "tracking.issue.reported";
     
+    // Modification routing keys
     public static final String MODIFICATION_APPROVED_ROUTING_KEY = MODIFICATION_REQUEST_APPROVED_KEY;
     public static final String MODIFICATION_COMPLETED_ROUTING_KEY = MODIFICATION_REQUEST_COMPLETED_KEY;
     
+    // Parts routing keys
     public static final String LOW_STOCK_ALERT_ROUTING_KEY = PARTS_INVENTORY_LOW_KEY;
+    
+    // User routing keys
+    public static final String USER_REGISTERED_ROUTING_KEY = USER_REGISTERED_KEY;
+    public static final String ROLE_ASSIGNED_ROUTING_KEY = ROLE_ASSIGNED_KEY;
+    
+    // Vehicle routing keys
+    public static final String VEHICLE_REGISTERED_ROUTING_KEY = VEHICLE_CREATED_KEY;
+    public static final String VEHICLE_UPDATED_ROUTING_KEY = VEHICLE_UPDATED_KEY;
+    
+    // Customer routing keys
+    public static final String CUSTOMER_REGISTERED_ROUTING_KEY = CUSTOMER_CREATED_KEY;
+    public static final String CUSTOMER_KYC_CHANGED_ROUTING_KEY = CUSTOMER_KYC_CHANGED_KEY;
 }
