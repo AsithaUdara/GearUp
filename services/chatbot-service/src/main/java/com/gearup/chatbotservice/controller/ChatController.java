@@ -19,7 +19,7 @@ import java.util.List;
  * Provides HTTP endpoints for chat functionality
  */
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/api/v1/chat")
 @Slf4j
 @RequiredArgsConstructor
 public class ChatController {

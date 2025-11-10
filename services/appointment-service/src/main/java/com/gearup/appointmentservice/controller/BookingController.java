@@ -17,7 +17,7 @@ import java.util.List;
  * REST controller handling CRUD operations and actions for bookings.
  */
 @RestController
-@RequestMapping("/api/bookings")
+@RequestMapping("/api/v1/bookings")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/timeslots/customer")
+@RequestMapping("/api/v1/timeslots/customer")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

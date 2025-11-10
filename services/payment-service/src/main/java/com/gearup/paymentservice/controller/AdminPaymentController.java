@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/payments/admin")
+@RequestMapping("/api/v1/payments/admin")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*") // Allow frontend access
