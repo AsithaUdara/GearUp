@@ -60,7 +60,7 @@ services:
       dockerfile: ./api-gateway/Dockerfile
     container_name: gearup-api-gateway
     ports:
-      - "8080:8080"
+      - "9090:8080"
     env_file:
       - ./.env
     environment:
