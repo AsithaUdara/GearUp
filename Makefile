@@ -5,7 +5,7 @@
 
 docker-run-postgres:
 	@if [ -f .env ]; then ENV_FILE="--env-file .env"; else ENV_FILE=""; fi; \
-	docker run --name local_postgres $$ENV_FILE -e POSTGRES_DB=${POSTGRES_DB:-gearup} -e POSTGRES_USER=${POSTGRES_USER:-gearup} -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password} -p 5432:5432 -d postgres:15
+	docker run --name local_postgres $$ENV_FILE -e SPRING_DATASOURCE_DB=${SPRING_DATASOURCE_DB:-gearup} -e SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-postgres} -e SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-postgres} -p 5432:5432 -d postgres:15
 
 docker-stop-postgres:
 	docker stop local_postgres || true && docker rm local_postgres || true

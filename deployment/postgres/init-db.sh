@@ -4,7 +4,7 @@ set -e
 # This script runs during PostgreSQL container initialization
 # Environment variables are passed from docker-compose
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "$SPRING_DATASOURCE_DB" <<-EOSQL
     -- Create databases for each service
     CREATE DATABASE as_automobile_service;
     CREATE DATABASE as_notification_service;
@@ -49,7 +49,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 EOSQL
 
 # Setup pgvector extension and permissions for automobile service
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_automobile_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_automobile_service" <<-EOSQL
     -- Create pgvector extension
     CREATE EXTENSION IF NOT EXISTS vector;
 
@@ -64,7 +64,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_automobile_serv
 EOSQL
 
 # Setup notification service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_notification_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_notification_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_notification_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_notification_service;
@@ -76,7 +76,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_notification_se
 EOSQL
 
 # Setup user auth service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_user_auth_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_user_auth_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_user_auth_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_user_auth_service;
@@ -88,7 +88,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_user_auth_servi
 EOSQL
 
 # Setup chatbot service database with pgvector
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_chatbot_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_chatbot_service" <<-EOSQL
     -- Create pgvector extension for vector embeddings
     CREATE EXTENSION IF NOT EXISTS vector;
 
@@ -103,7 +103,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_chatbot_service
 EOSQL
 
 # Setup customer service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_customer_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_customer_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_customer_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_customer_service;
@@ -115,7 +115,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_customer_servic
 EOSQL
 
 # Setup vehicle service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_vehicle_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_vehicle_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_vehicle_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_vehicle_service;
@@ -127,7 +127,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_vehicle_service
 EOSQL
 
 # Setup analytical service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_analytical_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_analytical_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_analytical_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_analytical_service;
@@ -139,7 +139,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_analytical_serv
 EOSQL
 
 # Setup tracking service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_tracking_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_tracking_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_tracking_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_tracking_service;
@@ -151,7 +151,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_tracking_servic
 EOSQL
 
 # Setup payment service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_payment_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_payment_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_payment_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_payment_service;
@@ -163,7 +163,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_payment_service
 EOSQL
 
 # Setup parts service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_parts_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_parts_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_parts_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_parts_service;
@@ -175,7 +175,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_parts_service" 
 EOSQL
 
 # Setup appointment service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_appointment_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_appointment_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_appointment_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_appointment_service;
@@ -187,7 +187,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_appointment_ser
 EOSQL
 
 # Setup modification service database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_modification_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_modification_service" <<-EOSQL
     -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_modification_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_modification_service;

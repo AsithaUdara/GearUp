@@ -11,16 +11,18 @@ This project now uses **environment variables** for all sensitive credentials in
 ### **Option 1: Use the Helper Script (Recommended)**
 
 1. **Edit the credentials** in `SET_ENV_VARS.ps1`:
+
    ```powershell
    # Open in your editor
    notepad SET_ENV_VARS.ps1
-   
+
    # Change these lines with your actual passwords:
    $env:POSTGRES_PASSWORD = "your_actual_password"
    $env:RABBITMQ_PASSWORD = "your_actual_password"
    ```
 
 2. **Run the script** (in PowerShell):
+
    ```powershell
    # The dot (.) is important - it runs in the current session
    . .\SET_ENV_VARS.ps1
@@ -34,6 +36,7 @@ This project now uses **environment variables** for all sensitive credentials in
 ### **Option 2: Manual Environment Variables**
 
 Set variables manually in PowerShell:
+
 ```powershell
 # PostgreSQL
 $env:POSTGRES_USERNAME = "postgres"
@@ -50,11 +53,13 @@ $env:RABBITMQ_PASSWORD = "your_password"
 ### **Option 3: Create .env File (For Production)**
 
 1. **Copy the example**:
+
    ```powershell
    cp .env.example .env
    ```
 
 2. **Edit `.env`** with your actual values:
+
    ```properties
    POSTGRES_USERNAME=postgres
    POSTGRES_PASSWORD=your_actual_password
@@ -72,21 +77,21 @@ $env:RABBITMQ_PASSWORD = "your_password"
 
 ### **Required Variables**
 
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `POSTGRES_PASSWORD` | PostgreSQL database password | `postgres` | `MySecurePass123` |
-| `POSTGRES_USERNAME` | PostgreSQL username | `postgres` | `postgres` |
-| `RABBITMQ_PASSWORD` | RabbitMQ password | `123456` | `RabbitSecure456` |
-| `RABBITMQ_USERNAME` | RabbitMQ username | `automobile_admin` | `admin` |
+| Variable            | Description                  | Default            | Example           |
+| ------------------- | ---------------------------- | ------------------ | ----------------- |
+| `POSTGRES_PASSWORD` | PostgreSQL database password | `postgres`         | `MySecurePass123` |
+| `POSTGRES_USERNAME` | PostgreSQL username          | `postgres`         | `postgres`        |
+| `RABBITMQ_PASSWORD` | RabbitMQ password            | `123456`           | `RabbitSecure456` |
+| `RABBITMQ_USERNAME` | RabbitMQ username            | `automobile_admin` | `admin`           |
 
 ### **Optional Variables**
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SPRING_DATASOURCE_URL` | Full database JDBC URL | `jdbc:postgresql://localhost:5434/as_user_auth_service` |
-| `SPRING_REDIS_HOST` | Redis host | `localhost` |
-| `SPRING_REDIS_PORT` | Redis port | `6379` |
-| `SERVER_PORT` | User Auth Service port | `8082` |
+| Variable                 | Description            | Default                                                 |
+| ------------------------ | ---------------------- | ------------------------------------------------------- |
+| `SPRING_DATASOURCE_URL`  | Full database JDBC URL | `jdbc:postgresql://localhost:5434/as_user_auth_service` |
+| `SPRING_DATA_REDIS_HOST` | Redis host             | `localhost`                                             |
+| `SPRING_DATA_REDIS_PORT` | Redis port             | `6379`                                                  |
+| `SERVER_PORT`            | User Auth Service port | `8082`                                                  |
 
 ---
 
@@ -113,10 +118,10 @@ All PowerShell scripts now check for environment variables:
 
 ```powershell
 # Use environment variable or fallback to default
-$pgPassword = if ($env:POSTGRES_PASSWORD) { 
-    $env:POSTGRES_PASSWORD 
-} else { 
-    'postgres' 
+$pgPassword = if ($env:POSTGRES_PASSWORD) {
+    $env:POSTGRES_PASSWORD
+} else {
+    'postgres'
 }
 $env:PGPASSWORD = $pgPassword
 ```
@@ -141,46 +146,55 @@ $env:RABBITMQ_PASSWORD
 ## 🚨 Security Best Practices
 
 ### **DO:**
+
 ✅ Use environment variables for all passwords  
 ✅ Add `.env` to `.gitignore` (already done)  
 ✅ Use different passwords for dev/staging/production  
 ✅ Rotate passwords regularly  
-✅ Use strong passwords (12+ characters, mixed case, numbers, symbols)  
+✅ Use strong passwords (12+ characters, mixed case, numbers, symbols)
 
 ### **DON'T:**
+
 ❌ Commit passwords to Git  
 ❌ Share passwords in plain text (email, chat, etc.)  
 ❌ Use default passwords in production  
 ❌ Reuse passwords across services  
-❌ Store passwords in documentation files  
+❌ Store passwords in documentation files
 
 ---
 
 ## 📁 Files Changed
 
 ### **Updated Files:**
+
 - ✅ `services/user-auth-service/src/main/resources/application.yml`
+
   - Changed hardcoded `password: Niro` to `password: ${POSTGRES_PASSWORD:postgres}`
   - Changed hardcoded RabbitMQ password to `${RABBITMQ_PASSWORD:123456}`
 
 - ✅ `scripts/check-all-services.ps1`
+
   - Now checks `$env:POSTGRES_PASSWORD` before using default
 
 - ✅ `scripts/simple-test.ps1`
+
   - Now checks `$env:POSTGRES_PASSWORD` before using default
 
 - ✅ `scripts/check-prerequisites.ps1`
+
   - Now checks `$env:POSTGRES_PASSWORD` before using default
 
 - ✅ `SERVICES_RUNNING.md`
   - Updated instructions to use environment variables
 
 ### **New Files:**
+
 - ✅ `.env.example` - Template for environment variables
 - ✅ `SET_ENV_VARS.ps1` - Helper script to set variables
 - ✅ `SECURITY_SETUP.md` - This guide
 
 ### **Files to Update (Manually):**
+
 - 📝 Documentation files mentioning hardcoded passwords
 - 📝 Any other scripts not covered above
 
@@ -218,12 +232,14 @@ $env:POSTGRES_PASSWORD='MyPassword'; .\mvnw spring-boot:run -pl services/user-au
 If you have hardcoded passwords in your local setup:
 
 1. **Find all instances**:
+
    ```powershell
    # Search for hardcoded passwords
    Select-String -Path .\**\*.yml,.\**\*.ps1 -Pattern "Niro|auth_svc_pass_2024"
    ```
 
 2. **Update each file**:
+
    - Replace hardcoded values with environment variable syntax
    - Use `${VAR_NAME:default}` in YAML files
    - Use `$env:VAR_NAME` in PowerShell scripts
@@ -238,6 +254,7 @@ If you have hardcoded passwords in your local setup:
 ## 💾 Production Deployment
 
 ### **Docker/Kubernetes:**
+
 ```yaml
 # docker-compose.yml or Kubernetes Secret
 environment:
@@ -246,6 +263,7 @@ environment:
 ```
 
 ### **CI/CD (GitHub Actions):**
+
 ```yaml
 # .github/workflows/deploy.yml
 - name: Run tests
@@ -256,6 +274,7 @@ environment:
 ```
 
 ### **Cloud Platforms:**
+
 - **Azure**: Use Azure Key Vault
 - **AWS**: Use AWS Secrets Manager
 - **Google Cloud**: Use Secret Manager
@@ -265,15 +284,19 @@ environment:
 ## ❓ Troubleshooting
 
 ### **Problem: "Access denied" errors**
+
 **Solution**: Check if environment variables are set:
+
 ```powershell
 echo $env:POSTGRES_PASSWORD
 ```
 
 ### **Problem: "Variables not persisting"**
+
 **Solution**: Variables only last for the current session. Run `SET_ENV_VARS.ps1` each time you open a new terminal.
 
 ### **Problem: "Still seeing old password"**
+
 **Solution**: Restart your application after setting new environment variables.
 
 ---
@@ -281,6 +304,7 @@ echo $env:POSTGRES_PASSWORD
 ## 📞 Support
 
 If you have issues:
+
 1. Check this guide first
 2. Verify environment variables are set: `echo $env:POSTGRES_PASSWORD`
 3. Check application logs for connection errors

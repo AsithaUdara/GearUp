@@ -10,14 +10,14 @@ jobs:
   migrate-and-test-all:
     runs-on: ubuntu-latest
     env:
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: postgres
+          SPRING_DATASOURCE_USERNAME: postgres
           # Pass the CI job password into the service container
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -158,7 +158,7 @@ jobs:
           APP_FIREBASE_CONFIGURATION_FILE: ""
           FIREBASE_CONFIG_PATH: ""
           # Pass the same postgres password used for database setup
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          SPRING_DATASOURCE_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
           # Disable Flyway during tests since migrations already ran
           FLYWAY_ENABLED: false
         run: |
