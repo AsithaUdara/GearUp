@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gearup.shared.event.payment.InvoiceCreatedEvent;
 import com.gearup.shared.event.payment.InvoicePaidEvent;
 import com.gearup.shared.event.tracking.TaskAssignedEvent;
-import com.gearup.shared.messaging.RabbitMQConfig;
+import com.gearup.shared.messaging.RabbitMQConstants;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +44,8 @@ public class TestNotificationController {
         );
         
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.INVOICE_CREATED_KEY,
+                RabbitMQConstants.NOTIFICATION_EXCHANGE,
+                RabbitMQConstants.INVOICE_CREATED_KEY,
                 event
         );
         
@@ -72,8 +72,8 @@ public class TestNotificationController {
         );
         
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.TASK_ASSIGNED_KEY,
+                RabbitMQConstants.NOTIFICATION_EXCHANGE,
+                RabbitMQConstants.TASK_ASSIGNED_KEY,
                 event
         );
         
@@ -99,8 +99,8 @@ public class TestNotificationController {
         );
         
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.INVOICE_PAID_KEY,
+                RabbitMQConstants.NOTIFICATION_EXCHANGE,
+                RabbitMQConstants.INVOICE_PAID_KEY,
                 event
         );
         
