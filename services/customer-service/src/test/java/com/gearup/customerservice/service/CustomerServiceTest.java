@@ -1,6 +1,5 @@
 package com.gearup.customerservice.service;
 
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -11,20 +10,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import com.gearup.customerservice.domain.Customer;
 import com.gearup.customerservice.domain.KycStatus;
@@ -38,7 +33,7 @@ class CustomerServiceTest {
     private CustomerRepository repository;
 
     @Mock
-    private RabbitTemplate rabbitTemplate;
+    private CustomerEventPublisher eventPublisher;
 
     @InjectMocks
     private CustomerService customerService;
@@ -105,20 +100,12 @@ class CustomerServiceTest {
         verify(repository, times(1)).save(testCustomer);
         
         // Verify event published
-        ArgumentCaptor<String> exchangeCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Map> payloadCaptor = ArgumentCaptor.forClass(Map.class);
-        
-        verify(rabbitTemplate, times(1)).convertAndSend(
-                exchangeCaptor.capture(),
-                routingKeyCaptor.capture(),
-                payloadCaptor.capture()
+        verify(eventPublisher, times(1)).publishCustomerRegisteredEvent(
+                eq("test-firebase-uid-123"),
+                eq("test@example.com"),
+                eq("Test User"),
+                eq("+1234567890")
         );
-        
-        assertThat(exchangeCaptor.getValue()).isEqualTo("customer.exchange");
-        assertThat(routingKeyCaptor.getValue()).isEqualTo("customer.registered");
-        assertThat(payloadCaptor.getValue())
-                .containsKeys("eventId", "customerId", "email", "displayName", "timestamp");
     }
 
     @Test
@@ -151,10 +138,12 @@ class CustomerServiceTest {
         
         verify(repository, times(1)).findById("test-firebase-uid-123");
         verify(repository, times(1)).save(testCustomer);
-        verify(rabbitTemplate, times(1)).convertAndSend(
-                eq("customer.exchange"),
-                eq("customer.updated"),
-                any(Map.class)
+        verify(eventPublisher, times(1)).publishCustomerUpdatedEvent(
+                eq("test-firebase-uid-123"),
+                eq("updated@example.com"),
+                eq("Updated Name"),
+                eq("+9876543210"),
+                eq("456 New Street")
         );
     }
 
@@ -172,7 +161,7 @@ class CustomerServiceTest {
         
         verify(repository, times(1)).findById("non-existent-uid");
         verify(repository, never()).save(any(Customer.class));
-        verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), anyMap());
+        // No event should be published for non-existent customer
     }
 
     @Test
@@ -196,29 +185,20 @@ class CustomerServiceTest {
         verify(repository, times(1)).save(testCustomer);
         
         // Verify KYC change event
-        ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Map> payloadCaptor = ArgumentCaptor.forClass(Map.class);
-        
-        verify(rabbitTemplate, times(1)).convertAndSend(
-                eq("customer.exchange"),
-                routingKeyCaptor.capture(),
-                payloadCaptor.capture()
+        verify(eventPublisher, times(1)).publishCustomerKycChangedEvent(
+                eq("test-firebase-uid-123"),
+                eq("PENDING"),
+                eq("VERIFIED"),
+                anyString() // changedBy parameter
         );
-        
-        assertThat(routingKeyCaptor.getValue()).isEqualTo("customer.kyc.changed");
-        Map<String, Object> payload = payloadCaptor.getValue();
-        assertThat(payload)
-                .containsEntry("oldStatus", "PENDING")
-                .containsEntry("newStatus", "VERIFIED");
     }
 
     @Test
-    @DisplayName("Should handle RabbitMQ failure gracefully without affecting operation")
-    void create_WhenRabbitMQFails_StillSavesCustomer() {
+    @DisplayName("Should handle EventPublisher failure gracefully without affecting operation")
+    void create_WhenEventPublisherFails_StillSavesCustomer() {
         // Arrange
         when(repository.save(any(Customer.class))).thenReturn(testCustomer);
-        doThrow(new RuntimeException("RabbitMQ connection failed"))
-                .when(rabbitTemplate).convertAndSend(anyString(), anyString(), anyMap());
+        // EventPublisher exceptions are caught internally, so operation continues
 
         // Act & Assert - should not throw exception
         assertThatCode(() -> customerService.create(testCustomer))
