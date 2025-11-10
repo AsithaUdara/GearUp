@@ -15,7 +15,7 @@ USER app
 EXPOSE 8085
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8090/actuator/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8085/actuator/health || exit 1
 
 LABEL maintainer="ops@company.com" \
     org.opencontainers.image.version="0.1.0"
