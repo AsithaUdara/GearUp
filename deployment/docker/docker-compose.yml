@@ -239,7 +239,7 @@ services:
     container_name: gearup-template-service
     # Map host 8083 -> container 8083 (internal server.port)
     ports:
-      - "8083:8083"
+      - "8085:8085"
     env_file:
       - ./.env
     environment:
