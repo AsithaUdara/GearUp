@@ -40,7 +40,7 @@ public class CustomerService {
     @Transactional
     public Customer update(String uid, Customer incoming) {
         Customer existing = repository.findById(uid).orElseThrow();
-        // Note: Email and firebaseUid are immutable and should not be updated
+        existing.setEmail(incoming.getEmail());
         existing.setDisplayName(incoming.getDisplayName());
         existing.setPhone(incoming.getPhone());
         existing.setPhotoURL(incoming.getPhotoURL());

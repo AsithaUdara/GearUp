@@ -29,13 +29,9 @@ spring:
 
   # Disable RabbitMQ for tests
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+    listener:
+      simple:
+        auto-startup: false
 
 # Disable Eureka for tests
 eureka:
