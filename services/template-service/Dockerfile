@@ -12,7 +12,7 @@ RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 COPY --from=build /build/services/template-service/target/template-service-*.jar /app/app.jar
 USER app
-EXPOSE 8090
+EXPOSE 8085
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8090/actuator/health || exit 1
