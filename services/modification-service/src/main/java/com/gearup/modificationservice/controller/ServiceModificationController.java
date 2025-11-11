@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/service-modifications")
+@RequestMapping("/api/v1/service-modifications")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
