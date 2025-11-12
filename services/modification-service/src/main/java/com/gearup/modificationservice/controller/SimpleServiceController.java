@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/services")
+@RequestMapping("/api/services")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
@@ -32,7 +32,7 @@ public class SimpleServiceController {
                             s.getDescription(),
                             s.getBasePrice(),
                             s.getEstimatedDurationHours(),
-                            s.getIsActive()
+                            s.getActive()
                     ))
                     .collect(Collectors.toList());
             return ResponseEntity.ok(dtos);
@@ -53,7 +53,7 @@ public class SimpleServiceController {
                             s.getDescription(),
                             s.getBasePrice(),
                             s.getEstimatedDurationHours(),
-                            s.getIsActive()
+                            s.getActive()
                     ))
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());

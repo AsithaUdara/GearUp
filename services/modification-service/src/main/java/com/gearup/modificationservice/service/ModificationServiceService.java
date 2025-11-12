@@ -1,16 +1,14 @@
 package com.gearup.modificationservice.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-
 import com.gearup.modificationservice.dto.ModificationServiceDTO;
 import com.gearup.modificationservice.entity.ModificationService;
 import com.gearup.modificationservice.repository.ModificationServiceRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +38,7 @@ public class ModificationServiceService {
                 service.getDescription(),
                 service.getBasePrice(),
                 service.getEstimatedDurationHours(),
-                service.getIsActive()
+                service.getActive()
         );
     }
 }
