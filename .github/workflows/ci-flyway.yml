@@ -13,10 +13,10 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          SPRING_DATASOURCE_DB: as_notification
-          SPRING_DATASOURCE_USERNAME: svc_notification
+          POSTGRES_DB: as_notification
+          POSTGRES_USER: svc_notification
           # Use the repository secret directly for the service container password
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-

@@ -22,8 +22,7 @@ function Write-ErrorAndExit([string]$msg, [int]$code = 1) {
     exit $code
 }
 
-$scriptDir = Split-Path -Path $PSScriptRoot -Parent  # scripts\ci -> scripts
-$repoRoot = Resolve-Path -Path (Join-Path $scriptDir '..')
+$repoRoot = Split-Path -Path $PSScriptRoot -Parent  # scripts -> repo root
 
 $composePath = Join-Path $repoRoot 'deployment\docker\docker-compose.yml'
 $servicesDir = Join-Path $repoRoot 'services'
@@ -44,7 +43,7 @@ $inServices = $false
 $composeServices = @{}
 
 foreach ($raw in $lines) {
-    $line = $raw -replace "`r",""
+    $line = $raw -replace "`r", ""
     if (-not $inServices) {
         if ($line -match '^[ \t]*services:\s*$') {
             $inServices = $true

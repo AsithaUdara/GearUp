@@ -15,9 +15,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          SPRING_DATASOURCE_USERNAME: postgres
+          POSTGRES_USER: postgres
           # Pass the CI job password into the service container
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
