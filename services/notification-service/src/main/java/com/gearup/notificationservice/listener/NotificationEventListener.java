@@ -12,7 +12,7 @@ import com.gearup.shared.event.payment.InvoicePaidEvent;
 import com.gearup.shared.event.payment.InvoiceUpdatedEvent;
 import com.gearup.shared.event.tracking.TaskAssignedEvent;
 import com.gearup.shared.event.tracking.TaskCompletedEvent;
-import com.gearup.shared.messaging.RabbitMQConfig;
+import com.gearup.shared.messaging.RabbitMQConstants;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class NotificationEventListener {
     /**
      * Listen to invoice created events
      */
-    @RabbitListener(queues = RabbitMQConfig.NOTIFICATION_QUEUE)
+    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
     public void handleInvoiceCreatedEvent(InvoiceCreatedEvent event) {
         log.info("Received InvoiceCreatedEvent: {}", event);
         
@@ -54,7 +54,7 @@ public class NotificationEventListener {
     /**
      * Listen to invoice updated events
      */
-    @RabbitListener(queues = RabbitMQConfig.NOTIFICATION_QUEUE)
+    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
     public void handleInvoiceUpdatedEvent(InvoiceUpdatedEvent event) {
         log.info("Received InvoiceUpdatedEvent: {}", event);
         
@@ -81,7 +81,7 @@ public class NotificationEventListener {
     /**
      * Listen to invoice paid events
      */
-    @RabbitListener(queues = RabbitMQConfig.NOTIFICATION_QUEUE)
+    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
     public void handleInvoicePaidEvent(InvoicePaidEvent event) {
         log.info("Received InvoicePaidEvent: {}", event);
         
@@ -108,7 +108,7 @@ public class NotificationEventListener {
     /**
      * Listen to task assigned events
      */
-    @RabbitListener(queues = RabbitMQConfig.NOTIFICATION_QUEUE)
+    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
     public void handleTaskAssignedEvent(TaskAssignedEvent event) {
         log.info("Received TaskAssignedEvent: {}", event);
         
@@ -135,7 +135,7 @@ public class NotificationEventListener {
     /**
      * Listen to task completed events
      */
-    @RabbitListener(queues = RabbitMQConfig.NOTIFICATION_QUEUE)
+    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
     public void handleTaskCompletedEvent(TaskCompletedEvent event) {
         log.info("Received TaskCompletedEvent: {}", event);
         
