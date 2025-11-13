@@ -24,6 +24,7 @@ public final class RabbitMQConstants {
     public static final String NOTIFICATION_EXCHANGE = "notification.exchange";
     public static final String ANALYTICS_EXCHANGE = "analytics.exchange";
     public static final String CHATBOT_EXCHANGE = "chatbot.exchange";
+    public static final String TEMPLATE_EXCHANGE = "template.exchange";
 
     // ==================== QUEUES ====================
     
@@ -42,6 +43,7 @@ public final class RabbitMQConstants {
     public static final String CUSTOMER_QUEUE = "customer.queue";
     public static final String PARTS_QUEUE = "parts.queue";
     public static final String VEHICLE_QUEUE = "vehicle.queue";
+    public static final String TEMPLATE_QUEUE = "template.queue";
 
     // ==================== ROUTING KEYS ====================
     
@@ -123,6 +125,11 @@ public final class RabbitMQConstants {
     public static final String CHAT_SESSION_STARTED_KEY = "chatbot.session.started";
     public static final String CHAT_SESSION_CLOSED_KEY = "chatbot.session.closed";
     public static final String CUSTOMER_ESCALATION_REQUESTED_KEY = "chatbot.escalation.requested";
+
+    // TEMPLATE SERVICE ROUTING KEYS
+    public static final String TEMPLATE_CREATED_KEY = "template.created";
+    public static final String TEMPLATE_UPDATED_KEY = "template.updated";
+    public static final String TEMPLATE_DELETED_KEY = "template.deleted";
 
     // ==================== ROUTING PATTERNS ====================
     

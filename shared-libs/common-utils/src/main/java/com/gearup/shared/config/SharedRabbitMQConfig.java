@@ -1,6 +1,11 @@
 package com.gearup.shared.config;
 
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.ExchangeBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -113,6 +118,13 @@ public class SharedRabbitMQConfig {
     @Bean
     public TopicExchange analyticsExchange() {
         return ExchangeBuilder.topicExchange(RabbitMQConstants.ANALYTICS_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange templateExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.TEMPLATE_EXCHANGE)
                 .durable(true)
                 .build();
     }

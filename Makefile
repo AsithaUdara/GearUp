@@ -1,7 +1,7 @@
 ## Makefile helpers for Flyway migrations and local Postgres
 ## Each service has its own database and migration scripts managed by Flyway
 
-.PHONY: docker-run-postgres docker-stop-postgres flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification flyway-all
+.PHONY: docker-run-postgres docker-stop-postgres flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification flyway-template flyway-all
 
 docker-run-postgres:
 	@if [ -f .env ]; then ENV_FILE="--env-file .env"; else ENV_FILE=""; fi; \
@@ -98,7 +98,15 @@ flyway-modification:
 		-Dflyway.user=$${FLYWAY_USER_MODIFICATION:-svc_modification_service} \
 		-Dflyway.password=$${FLYWAY_PASSWORD_MODIFICATION:-modification_pass_2024}
 
+# Run Flyway migrations for template-service
+flyway-template:
+	@echo "Running Flyway migrations for template-service..."
+	./mvnw -pl services/template-service flyway:migrate \
+		-Dflyway.url=$${FLYWAY_URL_TEMPLATE:-jdbc:postgresql://localhost:5432/as_template_service} \
+		-Dflyway.user=$${FLYWAY_USER_TEMPLATE:-svc_template_service} \
+		-Dflyway.password=$${FLYWAY_PASSWORD_TEMPLATE:-template_svc_pass_2024}
+
 # Run all Flyway migrations
-flyway-all: flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification
+flyway-all: flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification flyway-template
 	@echo "All migrations completed successfully!"
 

@@ -12,8 +12,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @ComponentScan(basePackages = {
     "com.gearup.userauth",
-    "com.gearup.security",  // Include shared security lib
-    "com.gearup.shared"     // Include shared messaging and utils
+    "com.gearup.security",   // shared security lib
+    "com.gearup.shared"      // include shared messaging and other shared beans
 })
 @EnableJpaRepositories(basePackages = "com.gearup.userauth.repository")
 public class UserAuthServiceApplication {
