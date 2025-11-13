@@ -4,7 +4,7 @@ set -e
 # This script runs during PostgreSQL container initialization
 # Environment variables are passed from docker-compose
 
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "$SPRING_DATASOURCE_DB" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "postgres" <<-EOSQL
     -- Create databases for each service
     CREATE DATABASE as_automobile_service;
     CREATE DATABASE as_notification_service;

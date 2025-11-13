@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,14 +14,19 @@ import java.util.UUID;
 
 /**
  * Generic Event Publisher for all microservices
- * Handles publishing events to RabbitMQ with Redis-based deduplication
+ * Handles publishing events to RabbitMQ with optional Redis-based deduplication
  * 
  * Usage:
  * 1. Inject this component into your service
  * 2. Call publish() with exchange, routing key, and event object
- * 3. Events are automatically deduplicated using Redis
+ * 3. Events are automatically deduplicated using Redis (if available)
+ * 
+ * Note: 
+ * - This bean is only created when RabbitMQ is available (spring-boot-starter-amqp on classpath)
+ * - Redis is optional - if not configured, events will be published without deduplication
  */
 @Component
+@ConditionalOnClass(RabbitTemplate.class)
 public class EventPublisher {
     
     private static final Logger log = LoggerFactory.getLogger(EventPublisher.class);
@@ -29,11 +35,20 @@ public class EventPublisher {
     
     private final RabbitTemplate rabbitTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final boolean redisAvailable;
     
     @Autowired
-    public EventPublisher(RabbitTemplate rabbitTemplate, RedisTemplate<String, Object> redisTemplate) {
+    public EventPublisher(RabbitTemplate rabbitTemplate, 
+                         @Autowired(required = false) RedisTemplate<String, Object> redisTemplate) {
         this.rabbitTemplate = rabbitTemplate;
         this.redisTemplate = redisTemplate;
+        this.redisAvailable = (redisTemplate != null);
+        
+        if (!redisAvailable) {
+            log.warn("⚠️ Redis not available - event deduplication is disabled");
+        } else {
+            log.info("✅ Redis available - event deduplication is enabled");
+        }
     }
     
     /**
@@ -111,6 +126,10 @@ public class EventPublisher {
      * Check if an event has already been published
      */
     private boolean isDuplicate(String eventId) {
+        if (!redisAvailable) {
+            return false; // No Redis, no deduplication
+        }
+        
         try {
             String key = EVENT_DEDUP_KEY_PREFIX + eventId;
             Boolean exists = redisTemplate.hasKey(key);
@@ -125,6 +144,10 @@ public class EventPublisher {
      * Mark an event as published in Redis
      */
     private void markAsPublished(String eventId) {
+        if (!redisAvailable) {
+            return; // No Redis, skip deduplication
+        }
+        
         try {
             String key = EVENT_DEDUP_KEY_PREFIX + eventId;
             redisTemplate.opsForValue().set(key, "published", DEDUP_TTL);
@@ -138,6 +161,11 @@ public class EventPublisher {
      * Clear deduplication cache for an event (admin/testing use)
      */
     public void clearDeduplication(String eventId) {
+        if (!redisAvailable) {
+            log.warn("Cannot clear deduplication - Redis not available");
+            return;
+        }
+        
         try {
             String key = EVENT_DEDUP_KEY_PREFIX + eventId;
             redisTemplate.delete(key);

@@ -568,6 +568,12 @@ jobs:
             echo "⚠️  Eureka pod not found"
           fi
 
+      - name: Run compose vs services check (PowerShell)
+        if: env.SKIP_VERIFY == 'false'
+        shell: pwsh
+        run: |
+          ./scripts/ci/check_compose_services.ps1
+
       - name: Display deployment summary
         if: always() && env.SKIP_VERIFY == 'false'
         env:

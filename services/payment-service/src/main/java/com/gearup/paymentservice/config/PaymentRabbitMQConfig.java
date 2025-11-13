@@ -7,13 +7,14 @@ import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * RabbitMQ Configuration for Payment Service
- * Defines exchanges, queues, and bindings for payment-related events
- * Note: MessageConverter and RabbitTemplate are provided by shared-libs/common-utils
+ * Defines queues and bindings for payment-related events
+ * Note: Exchanges are defined in shared-libs/common-utils SharedRabbitMQConfig
  */
 @Configuration
 public class PaymentRabbitMQConfig {
@@ -36,28 +37,6 @@ public class PaymentRabbitMQConfig {
     public static final String PAYMENT_REQUEST_REJECTED_KEY = "payment.request.rejected";
     public static final String BILL_CREATED_KEY = "bill.created";
     public static final String BILL_PAID_KEY = "bill.paid";
-
-    /**
-     * Payment Exchange - Topic exchange for payment events
-     */
-    @Bean
-    public TopicExchange paymentExchange() {
-        return ExchangeBuilder
-                .topicExchange(PAYMENT_EXCHANGE)
-                .durable(true)
-                .build();
-    }
-
-    /**
-     * Notification Exchange - For sending notifications to notification service
-     */
-    @Bean
-    public TopicExchange notificationExchange() {
-        return ExchangeBuilder
-                .topicExchange(NOTIFICATION_EXCHANGE)
-                .durable(true)
-                .build();
-    }
 
     /**
      * Payment Queue - Receives all payment-related events
@@ -118,10 +97,10 @@ public class PaymentRabbitMQConfig {
      * Binding: Payment Queue to Payment Exchange
      */
     @Bean
-    public Binding paymentQueueBinding() {
+    public Binding paymentQueueBinding(@Qualifier("paymentExchange") TopicExchange paymentExchange) {
         return BindingBuilder
                 .bind(paymentQueue())
-                .to(paymentExchange())
+                .to(paymentExchange)
                 .with("payment.*");
     }
 
@@ -129,10 +108,10 @@ public class PaymentRabbitMQConfig {
      * Binding: Payment Request Queue to Payment Exchange
      */
     @Bean
-    public Binding paymentRequestQueueBinding() {
+    public Binding paymentRequestQueueBinding(@Qualifier("paymentExchange") TopicExchange paymentExchange) {
         return BindingBuilder
                 .bind(paymentRequestQueue())
-                .to(paymentExchange())
+                .to(paymentExchange)
                 .with("payment.request.*");
     }
 
@@ -140,10 +119,10 @@ public class PaymentRabbitMQConfig {
      * Binding: Billing Queue to Payment Exchange
      */
     @Bean
-    public Binding paymentBillingQueueBinding() {
+    public Binding paymentBillingQueueBinding(@Qualifier("paymentExchange") TopicExchange paymentExchange) {
         return BindingBuilder
                 .bind(paymentBillingQueue())
-                .to(paymentExchange())
+                .to(paymentExchange)
                 .with("bill.*");
     }
 

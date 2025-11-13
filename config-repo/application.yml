@@ -18,6 +18,8 @@ tracing:
 
 # Default backing services for local/dev (use Docker Compose service names)
 spring:
+  main:
+    allow-bean-definition-overriding: true
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
