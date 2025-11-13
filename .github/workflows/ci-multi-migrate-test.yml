@@ -159,6 +159,8 @@ jobs:
           FIREBASE_CONFIG_PATH: ""
           # Pass the same postgres password used for database setup
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          # Also pass as SPRING_DATASOURCE_PASSWORD for backward compatibility with test configs
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           # Disable Flyway during tests since migrations already ran
           FLYWAY_ENABLED: false
         run: |
