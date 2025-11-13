@@ -316,7 +316,7 @@ flyway-your-service:
 		-Dflyway.user=$${FLYWAY_USER_YOUR:-svc_your_service} \
 		-Dflyway.password=$${FLYWAY_PASSWORD_YOUR:-your_pass_2024}
 
-flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-your-service
+flyway-all: flyway-notification flyway-user-auth flyway-template flyway-your-service
 ```
 
 ---
@@ -782,7 +782,7 @@ spring:
 
 ```xml
 <modules>
-    <module>services/automobile-service</module>
+
     <module>services/notification-service</module>
     <module>services/template-service</module>
     <module>services/user-auth-service</module>
@@ -2021,7 +2021,7 @@ curl http://localhost:8087/actuator/health
 - 9090 - API Gateway
 - 8081 - Notification Service
 - 8082 - User Auth Service
-- 8085 - Automobile Service
+
 - 8086 - Chatbot Service
 - 8087 - **Your Service** (example)
 

@@ -121,15 +121,6 @@ spring:
           filters:
             - StripPrefix=0
         
-        # ========================================
-        # Automobile Service - v1 API
-        # ========================================
-        - id: automobile-service
-          uri: lb://automobile-service
-          predicates:
-            - Path=/api/v1/public/**, /api/v1/secure/**
-          filters:
-            - StripPrefix=0
       
       globalcors:
         cors-configurations:

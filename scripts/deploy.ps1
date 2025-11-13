@@ -124,7 +124,6 @@ Write-Host "Deployment Complete!" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Services are running at:" -ForegroundColor Green
-Write-Host "  - Automobile Service:   http://localhost:8080" -ForegroundColor White
 Write-Host "  - Notification Service: http://localhost:8081" -ForegroundColor White
 Write-Host "  - User Auth Service:    http://localhost:8082" -ForegroundColor White
 Write-Host "  - PostgreSQL:           localhost:5432" -ForegroundColor White

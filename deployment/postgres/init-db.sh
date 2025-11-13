@@ -6,7 +6,6 @@ set -e
 
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "postgres" <<-EOSQL
     -- Create databases for each service
-    CREATE DATABASE as_automobile_service;
     CREATE DATABASE as_notification_service;
     CREATE DATABASE as_user_auth_service;
     CREATE DATABASE as_chatbot_service;
@@ -20,7 +19,6 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "postg
     CREATE DATABASE as_modification_service;
 
     -- Create dedicated service users with passwords from environment
-    CREATE USER svc_automobile_service WITH PASSWORD '$AUTOMOBILE_DB_PASSWORD';
     CREATE USER svc_notification_service WITH PASSWORD '$NOTIFICATION_DB_PASSWORD';
     CREATE USER svc_user_auth_service WITH PASSWORD '$USER_AUTH_DB_PASSWORD';
     CREATE USER svc_chatbot_service WITH PASSWORD '$CHATBOT_DB_PASSWORD';
@@ -34,7 +32,6 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "postg
     CREATE USER svc_modification_service WITH PASSWORD '$MODIFICATION_DB_PASSWORD';
 
     -- Grant all privileges on respective databases to service users
-    GRANT ALL PRIVILEGES ON DATABASE as_automobile_service TO svc_automobile_service;
     GRANT ALL PRIVILEGES ON DATABASE as_notification_service TO svc_notification_service;
     GRANT ALL PRIVILEGES ON DATABASE as_user_auth_service TO svc_user_auth_service;
     GRANT ALL PRIVILEGES ON DATABASE as_chatbot_service TO svc_chatbot_service;
@@ -46,21 +43,6 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "postg
     GRANT ALL PRIVILEGES ON DATABASE as_parts_service TO svc_parts_service;
     GRANT ALL PRIVILEGES ON DATABASE as_appointment_service TO svc_appointment_service;
     GRANT ALL PRIVILEGES ON DATABASE as_modification_service TO svc_modification_service;
-EOSQL
-
-# Setup pgvector extension and permissions for automobile service
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_automobile_service" <<-EOSQL
-    -- Create pgvector extension
-    CREATE EXTENSION IF NOT EXISTS vector;
-
-    -- Grant schema permissions
-    GRANT ALL ON SCHEMA public TO svc_automobile_service;
-    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_automobile_service;
-    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_automobile_service;
-
-    -- Grant default privileges for future objects
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_automobile_service;
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_automobile_service;
 EOSQL
 
 # Setup notification service database

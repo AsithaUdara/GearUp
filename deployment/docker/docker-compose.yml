@@ -93,48 +93,6 @@ services:
       retries: 3
       start_period: 60s
 
-  automobile-service:
-    build:
-      # Use repository root as build context so the Docker build can access shared modules
-      context: ../../
-      # Dockerfile for this service, path relative to the build context
-      dockerfile: ./services/automobile-service/Dockerfile
-    container_name: gearup-automobile-service
-    ports:
-      - "8085:8085"
-    # Use local .env file in deployment/docker directory for Docker-specific variables
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8085
-      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
-      - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${AUTOMOBILE_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
-    volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8085/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
   notification-service:
     build:
       # Use repository root as build context so the Docker build can access shared modules
@@ -685,7 +643,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: trust # Allow all connections without password for local dev
       # Pass service passwords to init script
-      AUTOMOBILE_DB_PASSWORD: ${AUTOMOBILE_DB_PASSWORD}
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       USER_AUTH_DB_PASSWORD: ${USER_AUTH_DB_PASSWORD}
       PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD}

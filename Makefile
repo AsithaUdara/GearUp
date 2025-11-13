@@ -1,7 +1,7 @@
 ## Makefile helpers for Flyway migrations and local Postgres
 ## Each service has its own database and migration scripts managed by Flyway
 
-.PHONY: docker-run-postgres docker-stop-postgres flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification flyway-all
+.PHONY: docker-run-postgres docker-stop-postgres flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification flyway-all
 
 docker-run-postgres:
 	@if [ -f .env ]; then ENV_FILE="--env-file .env"; else ENV_FILE=""; fi; \
@@ -9,14 +9,6 @@ docker-run-postgres:
 
 docker-stop-postgres:
 	docker stop local_postgres || true && docker rm local_postgres || true
-
-# Run Flyway migrations for automobile-service
-flyway-automobile:
-	@echo "Running Flyway migrations for automobile-service..."
-	./mvnw -pl services/automobile-service flyway:migrate \
-		-Dflyway.url=$${FLYWAY_URL_AUTO:-jdbc:postgresql://localhost:5432/as_automobile_service} \
-		-Dflyway.user=$${FLYWAY_USER_AUTO:-svc_automobile_service} \
-		-Dflyway.password=$${FLYWAY_PASSWORD_AUTO:-auto_svc_pass_2024}
 
 # Run Flyway migrations for notification-service
 flyway-notification:
@@ -107,6 +99,6 @@ flyway-modification:
 		-Dflyway.password=$${FLYWAY_PASSWORD_MODIFICATION:-modification_pass_2024}
 
 # Run all Flyway migrations
-flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification
+flyway-all: flyway-notification flyway-user-auth flyway-template flyway-customer flyway-vehicle flyway-payment flyway-analytical flyway-tracking flyway-parts flyway-appointment flyway-modification
 	@echo "All migrations completed successfully!"
 

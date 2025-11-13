@@ -113,11 +113,6 @@ jobs:
     strategy:
       matrix:
         service:
-          - name: automobile-service
-            module: services/automobile-service
-            db: as_automobile_service
-            user: svc_automobile_service
-            password: auto_svc_pass_2024
           - name: notification-service
             module: services/notification-service
             db: as_notification_service
@@ -298,8 +293,6 @@ jobs:
             module: services/notification-service
           - name: user-auth-service
             module: services/user-auth-service
-          - name: automobile-service
-            module: services/automobile-service
           - name: chatbot-service
             module: services/chatbot-service
           - name: payment-service
@@ -528,7 +521,6 @@ jobs:
             "config-server:8888"
             "service-discovery:8761"
             "user-auth-service:8082"
-            "automobile-service:8085"
             "notification-service:8081"
             "chatbot-service:8086"
             "payment-service:8083"

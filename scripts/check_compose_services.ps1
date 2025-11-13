@@ -5,7 +5,7 @@
 .DESCRIPTION
   Reads `deployment/docker/docker-compose.yml`, extracts the top-level
   `services:` keys, then compares with directories under `services/` that
-  end with `-service`. `automobile-service` is explicitly excluded.
+  end with `-service`.
 
   Exits with code 1 when expected service directories are not present in
   the compose file (so CI will fail). Prints informational 'extras' when
@@ -65,9 +65,9 @@ foreach ($raw in $lines) {
 
 $composeServiceNames = $composeServices.Keys
 
-# Discover service directories under /services ending with -service, exclude automobile-service
+# Discover service directories under /services ending with -service
 $svcDirs = Get-ChildItem -Path $servicesDir -Directory -ErrorAction Stop | ForEach-Object { $_.Name }
-$expected = $svcDirs | Where-Object { $_ -like '*-service' -and $_ -ne 'automobile-service' }
+$expected = $svcDirs | Where-Object { $_ -like '*-service' }
 
 $expectedSet = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($s in $expected) { [void]$expectedSet.Add($s) }
