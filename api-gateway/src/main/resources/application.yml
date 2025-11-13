@@ -23,6 +23,16 @@ spring:
                   args:
                     parts: 0 # Don't strip prefix, chatbot service expects /api/chat
 
+            # Chatbot Test Endpoint Route
+            - id: chatbot-test-route
+              uri: lb://chatbot-service
+              predicates:
+                - Path=/api/v1/hello
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path
+
             - id: user-auth-route
               uri: lb://user-auth-service
               predicates:
