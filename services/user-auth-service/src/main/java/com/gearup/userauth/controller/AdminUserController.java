@@ -24,6 +24,19 @@ public class AdminUserController {
     }
 
     /**
+     * Update user's full name using single-field input
+     */
+    @PatchMapping("/{userId}/name")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserName(
+            @PathVariable Long userId,
+            @Valid @RequestBody AdminUpdateUserNameRequest request,
+            @RequestAttribute("firebaseUid") String adminFirebaseUid) {
+        logger.info("Admin updating user {} name to '{}'", userId, request.getName());
+        UserResponse userResponse = adminUserService.updateUserName(userId, request, adminFirebaseUid);
+        return ResponseEntity.ok(ApiResponse.success("User name updated successfully", userResponse));
+    }
+
+    /**
      * Get all users with pagination, filtering, and search
      * 
      * @param page Page number (0-indexed)
@@ -64,18 +77,18 @@ public class AdminUserController {
     }
 
     /**
-     * Create new employee/admin account
-     * This will create a user WITHOUT Firebase UID (to be linked when they first login)
+     * Create new employee/admin account with OTP
+     * Admin will receive an OTP to share with the new user for password setup
      */
     @PostMapping("/employees")
-    public ResponseEntity<ApiResponse<UserResponse>> createEmployee(
+    public ResponseEntity<ApiResponse<OTPResponse>> createEmployee(
             @Valid @RequestBody AdminCreateEmployeeRequest request,
             @RequestAttribute("firebaseUid") String creatorFirebaseUid) {
         
         logger.info("Admin creating new employee: {} with role: {}", request.getEmail(), request.getRole());
-        UserResponse userResponse = adminUserService.createEmployee(request, creatorFirebaseUid);
+        OTPResponse otpResponse = adminUserService.createEmployee(request, creatorFirebaseUid);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Employee account created successfully. User can sign up with this email.", userResponse));
+                .body(ApiResponse.success("Employee created successfully. Share the OTP with the user.", otpResponse));
     }
 
     /**

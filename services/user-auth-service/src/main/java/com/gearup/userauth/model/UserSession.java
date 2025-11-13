@@ -51,6 +51,7 @@ public class UserSession {
     private LocalDateTime lastAccessedAt;
     
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
     
     @PrePersist

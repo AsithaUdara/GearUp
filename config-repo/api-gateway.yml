@@ -130,6 +130,38 @@ spring:
             - Path=/api/v1/public/**, /api/v1/secure/**
           filters:
             - StripPrefix=0
+
+        # User Auth Service - Authentication endpoints (public for login/register/refresh as defined in service security config)
+        - id: user-auth-service-auth
+          uri: lb://user-auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+
+        # User Auth Service - User profile & registration endpoints (secured except /register handled inside service)
+        - id: user-auth-service-users
+          uri: lb://user-auth-service
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=0
+
+        # User Auth Service - Admin user management endpoints
+        - id: user-auth-service-admin-users
+          uri: lb://user-auth-service
+          predicates:
+            - Path=/api/v1/admin/users/**
+          filters:
+            - StripPrefix=0
+
+        # Template Service - Admin template CRUD endpoints
+        - id: template-service-admin
+          uri: lb://template-service
+          predicates:
+            - Path=/api/v1/admin/service-templates/**
+          filters:
+            - StripPrefix=0
       
       globalcors:
         cors-configurations:
