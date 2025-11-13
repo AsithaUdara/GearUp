@@ -9,6 +9,8 @@ on:
 jobs:
   migrate-and-test-all:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
     services:
       postgres:
         image: postgres:15
