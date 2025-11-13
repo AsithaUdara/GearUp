@@ -1,5 +1,16 @@
 package com.gearup.paymentservice.service.impl;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.gearup.paymentservice.dto.request.CreatePaymentRequestDTO;
 import com.gearup.paymentservice.dto.response.PaymentRequestResponseDTO;
 import com.gearup.paymentservice.dto.response.PaymentStatsDTO;
@@ -13,19 +24,11 @@ import com.gearup.paymentservice.model.PaymentRequest;
 import com.gearup.paymentservice.model.ServiceItem;
 import com.gearup.paymentservice.repository.CustomerBillRepository;
 import com.gearup.paymentservice.repository.PaymentRequestRepository;
+import com.gearup.paymentservice.service.PaymentEventPublisher;
 import com.gearup.paymentservice.service.PaymentRequestService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class PaymentRequestServiceImpl implements PaymentRequestService {
 
     private final PaymentRequestRepository paymentRequestRepository;
     private final CustomerBillRepository customerBillRepository;
+    private final PaymentEventPublisher paymentEventPublisher;
 
     @Value("${payment.tax.rate:0.10}")
     private BigDecimal taxRate;
@@ -191,8 +195,22 @@ public class PaymentRequestServiceImpl implements PaymentRequestService {
         bill.setPaymentStatus(PaymentStatus.UNPAID);
         bill.setReviewSubmitted(false);
 
-        customerBillRepository.save(bill);
+        CustomerBill savedBill = customerBillRepository.save(bill);
         log.info("Customer bill created for payment request: {}", paymentRequest.getId());
+        
+        // Publish InvoiceCreatedEvent to RabbitMQ for notification service
+        try {
+            paymentEventPublisher.publishInvoiceCreatedEvent(
+                savedBill.getId().toString(),
+                savedBill.getId().toString(), // Using bill ID as invoice number
+                paymentRequest.getSubmittedBy(),
+                finalAmount.doubleValue(),
+                paymentRequest.getCustomerName()
+            );
+            log.info("Published InvoiceCreatedEvent for bill: {}", savedBill.getId());
+        } catch (Exception e) {
+            log.error("Failed to publish InvoiceCreatedEvent for bill: {}", savedBill.getId(), e);
+        }
     }
 
     /**
