@@ -59,6 +59,12 @@ public class PartsRequestService {
                 .map(this::mapToDTO);
     }
 
+    @Transactional(readOnly = true)
+    public Page<PartsRequestDTO> getAllRequests(Pageable pageable) {
+        return partsRequestRepository.findAll(pageable)
+                .map(this::mapToDTO);
+    }
+
     @Transactional
     public PartsRequestDTO updateRequestStatus(UUID requestId, PartsRequestStatus newStatus, UUID approverId) {
         PartsRequest request = partsRequestRepository.findById(requestId)
@@ -85,12 +91,15 @@ public class PartsRequestService {
 
     private PartsRequestDTO mapToDTO(PartsRequest entity) {
         PartsRequestDTO dto = new PartsRequestDTO();
+        dto.setId(entity.getId());
         dto.setRequestId(entity.getRequestId());
         dto.setMaterial(entity.getMaterial());
         dto.setQuantity(entity.getQuantity());
         dto.setNotes(entity.getNotes());
         dto.setStatus(entity.getStatus());
+        dto.setCreatedBy(entity.getCreatedBy());
         dto.setDate(entity.getCreatedAt().format(DATE_FORMATTER));
+        dto.setCreatedAt(entity.getCreatedAt().toString());
         return dto;
     }
 }

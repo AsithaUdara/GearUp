@@ -36,6 +36,12 @@ public class PartsRequestController {
         return ResponseEntity.ok(partsRequestService.getUserRequests(userId, pageable));
     }
 
+    @GetMapping
+    public ResponseEntity<Page<PartsRequestDTO>> getAllRequests(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(partsRequestService.getAllRequests(pageable));
+    }
+
     @GetMapping("/by-status/{status}")
     public ResponseEntity<Page<PartsRequestDTO>> getRequestsByStatus(
             @PathVariable(value = "status") PartsRequestStatus status,
