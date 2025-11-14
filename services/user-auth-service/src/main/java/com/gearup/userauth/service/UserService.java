@@ -54,6 +54,9 @@ public class UserService {
         user.setFirebaseUid(request.getFirebaseUid());
         user.setEmail(request.getEmail());
         user.setDisplayName(request.getDisplayName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setProfileImageUrl(request.getPhotoUrl());
+        
         // Satisfy NOT NULL constraints on first_name and last_name
         String display = request.getDisplayName() == null ? "" : request.getDisplayName().trim();
         if (display.isEmpty()) {
@@ -66,8 +69,6 @@ public class UserService {
             user.setFirstName(parts[0]);
             user.setLastName(parts.length > 1 ? parts[1] : "");
         }
-        user.setPhoneNumber(request.getPhoneNumber());
-        user.setPhotoUrl(request.getPhotoUrl());
         user.setAccountStatus(User.AccountStatus.ACTIVE);
         user.setRoles(Collections.singleton(defaultRole));
         user.setCreatedAt(LocalDateTime.now());
