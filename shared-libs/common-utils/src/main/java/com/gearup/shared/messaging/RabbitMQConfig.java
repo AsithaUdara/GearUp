@@ -18,9 +18,11 @@ public class RabbitMQConfig {
 
     // Exchange name
     public static final String NOTIFICATION_EXCHANGE = "notification.exchange";
+    public static final String TEMPLATE_EXCHANGE = "template.exchange"; // For service template events
     
     // Queue names
     public static final String NOTIFICATION_QUEUE = "notification.queue";
+    public static final String TEMPLATE_QUEUE = "template.queue"; // Carries create/update/delete template events
     
     // Routing keys
     public static final String INVOICE_CREATED_KEY = "invoice.created";
@@ -28,6 +30,9 @@ public class RabbitMQConfig {
     public static final String INVOICE_PAID_KEY = "invoice.paid";
     public static final String TASK_ASSIGNED_KEY = "task.assigned";
     public static final String TASK_COMPLETED_KEY = "task.completed";
+    public static final String TEMPLATE_CREATED_KEY = "template.created";
+    public static final String TEMPLATE_UPDATED_KEY = "template.updated";
+    public static final String TEMPLATE_DELETED_KEY = "template.deleted";
 
     /**
      * RabbitAdmin - CRITICAL for auto-declaration of exchanges, queues, and bindings
@@ -46,12 +51,30 @@ public class RabbitMQConfig {
     }
 
     /**
+     * Exchange for template events
+     */
+    @Bean
+    public TopicExchange templateExchange() {
+        return new TopicExchange(TEMPLATE_EXCHANGE);
+    }
+
+    /**
      * Create notification queue
      */
     @Bean
     public Queue notificationQueue() {
         return QueueBuilder.durable(NOTIFICATION_QUEUE)
                 .withArgument("x-message-ttl", 86400000) // 24 hours TTL
+                .build();
+    }
+
+    /**
+     * Template queue (durable). Separate from notification queue to isolate consumer load.
+     */
+    @Bean
+    public Queue templateQueue() {
+        return QueueBuilder.durable(TEMPLATE_QUEUE)
+                .withArgument("x-message-ttl", 604800000) // 7 days TTL for template events
                 .build();
     }
 
@@ -96,6 +119,31 @@ public class RabbitMQConfig {
                 .bind(notificationQueue())
                 .to(notificationExchange())
                 .with(TASK_COMPLETED_KEY);
+    }
+
+    // Template event bindings
+    @Bean
+    public Binding templateCreatedBinding() {
+        return BindingBuilder
+                .bind(templateQueue())
+                .to(templateExchange())
+                .with(TEMPLATE_CREATED_KEY);
+    }
+
+    @Bean
+    public Binding templateUpdatedBinding() {
+        return BindingBuilder
+                .bind(templateQueue())
+                .to(templateExchange())
+                .with(TEMPLATE_UPDATED_KEY);
+    }
+
+    @Bean
+    public Binding templateDeletedBinding() {
+        return BindingBuilder
+                .bind(templateQueue())
+                .to(templateExchange())
+                .with(TEMPLATE_DELETED_KEY);
     }
 
     /**
