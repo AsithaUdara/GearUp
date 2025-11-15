@@ -1,22 +1,31 @@
-# Multi-stage build for modification-service
-
-# Stage 1: Build
-FROM maven:3.9.5-eclipse-temurin-21 AS build
-WORKDIR /build
-COPY . /build
-RUN mvn -B -DskipTests clean package -pl services/modification-service -am
-
-# Stage 2: Runtime
+# Lightweight runtime-only image
 FROM eclipse-temurin:21-jre-alpine AS runtime
+
+# Create a secure non-root user
 RUN addgroup -S app && adduser -S app -G app
+
+# Set working directory
 WORKDIR /app
-# Spring Boot fat jar has fixed name 'modification-service.jar' (finalName in pom.xml)
-COPY --from=build /build/services/modification-service/target/modification-service.jar /app/app.jar
+
+# Copy the prebuilt service jar (CI will build the module before the Docker build)
+COPY services/modification-service/target/modification-service-*.jar app.jar
+
+# Set ownership and permissions
 RUN chown -R app:app /app
 USER app
-# Document the correct internal port (matches docker-compose and config)
-EXPOSE 8092
 
+# Expose service port
+EXPOSE 8089
+
+# Health check to monitor service health
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
-	CMD wget --no-verbose --tries=1 --spider http://localhost:8092/actuator/health || exit 1
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8089/actuator/health || exit 1
+
+# Metadata labels for observability
+LABEL maintainer="ops@gearup.com" \
+    org.opencontainers.image.version="1.0.0" \
+    org.opencontainers.image.title="GearUp Modification Service" \
+    org.opencontainers.image.description="Handles modifications and updates within the GearUp platform"
+
+# Start the application
+ENTRYPOINT ["java","-jar","/app/app.jar"]

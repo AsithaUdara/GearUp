@@ -18,6 +18,11 @@
     <description>Common DTOs used across services (small, stable contracts)</description>
 
     <dependencies>
+        <!-- Jackson for JSON serialization -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

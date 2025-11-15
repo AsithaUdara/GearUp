@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/tracking/progress")
+@RequestMapping("/api/v1/tracking/progress")
 @RequiredArgsConstructor
 @Slf4j
 public class ProgressController {

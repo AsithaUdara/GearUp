@@ -18,6 +18,13 @@
     <description>Small utilities and base classes shared across services</description>
 
     <dependencies>
+        <!-- Common DTO module for shared data transfer objects -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-common-dto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Provide shared Redis and RabbitMQ configuration and utilities -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -29,10 +36,23 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- Spring Web for exception handling -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Actuator for health checks -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Lombok is required for our exception classes -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
         </dependency>
 
     </dependencies>

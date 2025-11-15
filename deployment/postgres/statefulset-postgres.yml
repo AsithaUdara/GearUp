@@ -37,21 +37,21 @@ spec:
             - containerPort: 5432
               name: postgres
           env:
-            - name: POSTGRES_DB
+            - name: SPRING_DATASOURCE_DB
               valueFrom:
                 secretKeyRef:
                   name: postgres-credentials-{{service}}
-                  key: POSTGRES_DB
-            - name: POSTGRES_USER
+                  key: SPRING_DATASOURCE_DB
+            - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: postgres-credentials-{{service}}
-                  key: POSTGRES_USER
-            - name: POSTGRES_PASSWORD
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgres-credentials-{{service}}
-                  key: POSTGRES_PASSWORD
+                  key: SPRING_DATASOURCE_PASSWORD
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data

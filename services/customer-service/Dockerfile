@@ -1,26 +1,31 @@
-## Multi-stage Dockerfile — customer-service
-
-# Build stage: compile the module using Maven with JDK 21
-FROM maven:3.9.5-eclipse-temurin-21 AS build
-WORKDIR /build
-# Copy the entire repository (build context must be repo root)
-COPY . /build
-# Build only this module and its dependencies
-RUN mvn -B -DskipTests clean package -pl services/customer-service -am
-
-# Runtime stage: run the built JAR on a slim JRE
+# Lightweight runtime-only image
 FROM eclipse-temurin:21-jre-alpine AS runtime
+
+# Create a secure non-root user
 RUN addgroup -S app && adduser -S app -G app
+
+# Set working directory
 WORKDIR /app
 
-# Copy the built artifact from the build stage
-COPY --from=build /build/services/customer-service/target/customer-service-*.jar /app/app.jar
+# Copy only the prebuilt JAR from the host (ensure mvnw build is done before)
+COPY services/customer-service/target/customer-service-*.jar app.jar
 
+# Adjust ownership and permissions
 RUN chown -R app:app /app
 USER app
+
+# Expose service port
 EXPOSE 8088
+
+# Health check to verify application readiness
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8088/actuator/health || exit 1
-LABEL maintainer="ops@company.com" \
-    org.opencontainers.image.version="0.1.0"
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8088/actuator/health || exit 1
+
+# Metadata labels for observability
+LABEL maintainer="ops@gearup.com" \
+  org.opencontainers.image.version="1.0.0" \
+  org.opencontainers.image.title="GearUp Customer Service" \
+  org.opencontainers.image.description="Handles customer management and profile data for the GearUp platform"
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]

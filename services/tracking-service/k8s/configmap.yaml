@@ -6,7 +6,7 @@ metadata:
 data:
   POSTGRES_HOST: "postgres-service"
   POSTGRES_PORT: "5432"
-  POSTGRES_DB: "gearup_tracking"
+  SPRING_DATASOURCE_DB: "gearup_tracking"
   SERVER_PORT: "8086"
   EUREKA_ENABLED: "true"
   EUREKA_SERVER: "http://service-discovery:8761/eureka/"

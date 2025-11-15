@@ -1,0 +1,4 @@
+apiVersion: v2
+name: appointment-service
+description: Helm chart for appointment-service
+version: 0.1.0

@@ -1,28 +1,36 @@
-## Multi-stage Dockerfile — chatbot-service
-## Builder stage: use Maven image to compile the service
-FROM maven:3.9.5-eclipse-temurin-21 AS build
-WORKDIR /build
+# Lightweight runtime-only image
+FROM eclipse-temurin:21-jre-alpine AS runtime
 
-# Copy the entire repository (needed for parent POM and shared modules)
-COPY . .
-
-# Build only the chatbot-service module and its dependencies
-RUN mvn -q -pl services/chatbot-service -am -DskipTests package
-
-## Runtime stage: slim JRE image
-FROM eclipse-temurin:21-jre-alpine
+# Set working directory
 WORKDIR /app
 
-# Create non-root user (match naming convention used elsewhere)
-RUN addgroup -S spring && adduser -S spring -G spring
+# Create non-root user for security
+RUN addgroup -S app && adduser -S app -G app
 
-# Copy built jar from builder stage
-COPY --from=build /build/services/chatbot-service/target/*.jar app.jar
+# Copy only the prebuilt JAR (ensure it's built before this step)
+COPY services/chatbot-service/target/chatbot-service-*.jar app.jar
 
-USER spring:spring
+# Set proper ownership and switch to non-root user
+RUN chown -R app:app /app
+USER app
+
+# Expose service port
 EXPOSE 8086
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8086/actuator/health || exit 1
+# Health check to ensure service availability
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8086/actuator/health || exit 1
 
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+# Metadata for better traceability
+LABEL maintainer="ops@gearup.com" \
+  org.opencontainers.image.version="1.0.0" \
+  org.opencontainers.image.title="GearUp Chatbot Service" \
+  org.opencontainers.image.description="AI-powered Chatbot Service for GearUp Platform"
+
+# Start the service with optimal JVM flags for containers
+ENTRYPOINT ["java", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=75.0", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-jar", \
+  "app.jar"]

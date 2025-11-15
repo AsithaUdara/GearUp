@@ -25,7 +25,7 @@ jobs:
 
     env:
       # Expose commonly-used values to steps via environment variables
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       FLYWAY_URL: jdbc:postgresql://localhost:5432/as_notification
       FLYWAY_USER: svc_notification
       FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}

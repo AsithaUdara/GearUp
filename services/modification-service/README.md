@@ -1,113 +1,95 @@
 # Modification Service
 
-Vehicle modification request management service for GearUp platform.
-
-## Overview
-
-Allows customers to submit modification requests for their registered vehicles. Admins can review, approve, and track these requests through various status stages.
+The Modification Service handles all vehicle modification requests for the GearUp platform. It provides REST APIs for managing modification services, customer requests, and tracking modification status.
 
 ## Features
 
-- Create modification requests
-- Track request status (pending → approved → in_progress → completed/rejected)
-- Query by user, vehicle, or status
-- RabbitMQ event publishing for notifications
-- Eureka service discovery integration
-
-## Database
-
-**Table**: `modifications`
-
-**Columns**:
-- `id` (UUID, PK)
-- `user_id` (VARCHAR(64))
-- `vehicle_id` (VARCHAR(255))
-- `vehicle_label` (VARCHAR(500), optional)
-- `subject` (VARCHAR(500))
-- `message` (TEXT)
-- `status` (VARCHAR(50), CHECK constraint)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
-
-**Statuses**: `pending`, `approved`, `in_progress`, `completed`, `rejected`
+- **Service Management**: List available modification services
+- **Request Management**: Create, retrieve, update, and delete modification requests
+- **Customer Tracking**: Track services per customer
+- **Status Workflow**: Manage request lifecycle (Pending → Approved/Rejected → In Progress → Completed)
 
 ## API Endpoints
 
-### Create Modification Request
-```
-POST /api/modifications
-Headers: X-User-ID (optional, can be in body)
-Body: {
-  "userId": "firebase-uid",
-  "vehicleId": "vehicle-uuid",
-  "vehicleLabel": "2025 Toyota GR Hilux — CBE-2938",
-  "subject": "TOYOTA HILUX ROOF MOUNTING KIT",
-  "message": "I would like to install a roof mounting kit..."
-}
-```
+### Service Modifications
+- `GET /api/service-modifications/:serviceId` - Fetch one service + all related modification data
+- `GET /api/service-modifications/:serviceId/refresh` - Refresh latest service info
+- `POST /api/service-modifications/:serviceId/requests` - Submit new modification request
+- `GET /api/service-modifications/:serviceId/requests` - List all modification requests for a service
 
-### Get User's Modifications
-```
-GET /api/modifications/user/{userId}
-```
+### Modification Requests
+- `GET /api/modification-requests/:requestId` - Get single modification request
+- `PATCH /api/modification-requests/:requestId` - Update modification (approve/reject/notes)
+- `DELETE /api/modification-requests/:requestId` - Delete modification (optional)
 
-### Get Vehicle's Modifications
-```
-GET /api/modifications/vehicle/{vehicleId}
-```
+### Customers
+- `GET /api/customers/:customerId/services` - List all services per customer
 
-### Get Single Modification
-```
-GET /api/modifications/{id}
-```
+## Database Schema
 
-### Update Status (Admin)
-```
-PATCH /api/modifications/{id}/status?status=approved
-```
+### Tables
+- **services**: Available modification services (engine upgrades, body kits, etc.)
+- **customers**: Customer information
+- **modification_requests**: Vehicle modification requests with status tracking
 
-### Delete Modification
-```
-DELETE /api/modifications/{id}
-```
+### Sample Services
+The service comes pre-populated with sample modification services:
+- Engine Performance Upgrade ($1,500, 8 hours)
+- Suspension Modification ($1,200, 6 hours)
+- Exhaust System Upgrade ($800, 4 hours)
+- Body Kit Installation ($2,000, 12 hours)
+- Interior Customization ($1,000, 10 hours)
+- Lighting System Upgrade ($500, 3 hours)
+- Wheel and Tire Package ($1,800, 2 hours)
 
 ## Configuration
 
+The service runs on port 8085 by default and connects to a PostgreSQL database.
+
 ### Environment Variables
-
-- `SERVER_PORT`: Service port (default: 8087)
-- `SPRING_DATASOURCE_URL`: Database connection string
-- `SPRING_DATASOURCE_USERNAME`: Database user
+- `SPRING_DATASOURCE_URL`: Database URL
+- `SPRING_DATASOURCE_USERNAME`: Database username
 - `SPRING_DATASOURCE_PASSWORD`: Database password
-- `RABBITMQ_HOST`: RabbitMQ host (default: localhost)
-- `RABBITMQ_PORT`: RabbitMQ port (default: 5672)
-- `EUREKA_CLIENT_SERVICEURL_DEFAULTZONE`: Eureka server URL
+- `SPRING_JPA_HIBERNATE_DDL_AUTO`: Hibernate DDL mode (validate for production)
 
-## Events Published
+## Running the Service
 
-- `modification.created`: When new request is created
-- `modification.status.changed`: When status is updated
-- `modification.deleted`: When request is deleted
+```powershell
+# Build the service
+.\mvnw.cmd clean package -pl services/modification-service -am -DskipTests
 
-All events published to `modification.exchange` topic exchange.
+# Run database migrations
+.\mvnw.cmd -pl services/modification-service flyway:migrate
 
-## Running Locally
-
-```bash
-# With Maven
-mvn spring-boot:run
-
-# With Docker
-docker build -t modification-service .
-docker run -p 8087:8087 modification-service
+# Start the service
+.\mvnw.cmd -pl services/modification-service spring-boot:run
 ```
 
-## Health Check
+## Testing
 
-```
-GET /actuator/health
-```
+The service includes comprehensive logging and validation:
+- Input validation on all API endpoints
+- Proper error handling and response codes
+- Transaction management for request operations
+- Status workflow management
 
-## Port
+## Business Logic
 
-Default: **8087** (configurable via SERVER_PORT)
+1. **Request Creation**: 
+   - Validates service existence
+   - Creates or retrieves customer record
+   - Sets initial status to PENDING
+   - Estimates cost based on service base price
+
+2. **Request Update**:
+   - Supports status changes with automatic timestamps
+   - Tracks approval, rejection, and completion times
+   - Allows admin notes and cost updates
+
+3. **Status Workflow**:
+   - PENDING → Initial state
+   - APPROVED → Admin approved request
+   - REJECTED → Admin rejected request
+   - IN_PROGRESS → Work started
+   - COMPLETED → Work finished
+   - CANCELLED → Request cancelled

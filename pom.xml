@@ -11,10 +11,14 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>services/automobile-service</module>
+        <module>services/appointment-service</module>
+        <module>services/modification-service</module>
         <module>services/notification-service</module>
         <module>services/payment-service</module>
+        <module>services/parts-service</module>
         <module>services/user-auth-service</module>
+        <!-- Restored minimal service: template-service -->
+        <module>services/template-service</module>
         <module>services/chatbot-service</module>
         <module>services/vehicle-service</module>
         <module>services/customer-service</module>

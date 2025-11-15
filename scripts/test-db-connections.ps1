@@ -9,18 +9,6 @@ Start-Sleep -Seconds 5
 $testsPassed = 0
 $testsFailed = 0
 
-Write-Host "Testing Automobile Service..." -ForegroundColor Yellow
-docker exec -it gearup-postgres psql -U postgres -d as_automobile_service -c "SELECT current_database(), current_user;" 2>$null
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "Automobile Service connection: SUCCESS" -ForegroundColor Green
-    $testsPassed++
-}
-else {
-    Write-Host "Automobile Service connection: FAILED" -ForegroundColor Red
-    $testsFailed++
-}
-Write-Host ""
-
 Write-Host "Testing Notification Service..." -ForegroundColor Yellow
 docker exec -it gearup-postgres psql -U postgres -d as_notification_service -c "SELECT current_database(), current_user;" 2>$null
 if ($LASTEXITCODE -eq 0) {

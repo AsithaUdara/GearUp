@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  parts-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - PARTS_DB_URL=parts-db:5432
+      - PARTS_DB_USERNAME=parts_user
+      - PARTS_DB_PASSWORD=parts_password
+      - SERVER_PORT=8082
+    ports:
+      - "8082:8082"
+    depends_on:
+      - parts-db
+    networks:
+      - parts-network
+
+  parts-db:
+    image: postgres:15-alpine
+    environment:
+      - SPRING_DATASOURCE_DB=parts_db
+      - SPRING_DATASOURCE_USERNAME=parts_user
+      - SPRING_DATASOURCE_PASSWORD=parts_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - parts-db-data:/var/lib/postgresql/data
+    networks:
+      - parts-network
+
+volumes:
+  parts-db-data:
+
+networks:
+  parts-network:
+    driver: bridge

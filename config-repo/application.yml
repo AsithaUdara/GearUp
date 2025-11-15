@@ -18,12 +18,14 @@ tracing:
 
 # Default backing services for local/dev (use Docker Compose service names)
 spring:
+  main:
+    allow-bean-definition-overriding: true
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
   redis:
-    host: ${SPRING_REDIS_HOST:redis}
-    port: ${SPRING_REDIS_PORT:6379}
+    host: ${SPRING_DATA_REDIS_HOST:redis}
+    port: ${SPRING_DATA_REDIS_PORT:6379}
 
 # Eureka client configuration
 eureka:

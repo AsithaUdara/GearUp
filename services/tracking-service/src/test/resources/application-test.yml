@@ -1,17 +1,44 @@
+# Test Configuration for Tracking Service
 spring:
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
     username: sa
     password:
-  
+
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
-  
+
   flyway:
     enabled: false
+
+  # Disable Config Server for tests
+  cloud:
+    config:
+      enabled: false
+
+  # Disable Redis for tests
+  data:
+    redis:
+      repositories:
+        enabled: false
+  cache:
+    type: none
+
+  # Disable RabbitMQ for tests
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: false
+
+# Disable Eureka for tests
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
 
 logging:
   level:

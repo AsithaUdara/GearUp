@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: parts-db
+  namespace: gearup
+spec:
+  serviceName: parts-db-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parts-db
+  template:
+    metadata:
+      labels:
+        app: parts-db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: SPRING_DATASOURCE_DB
+          value: parts_db
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: parts-service-secrets
+              key: PARTS_DB_USERNAME
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: parts-service-secrets
+              key: PARTS_DB_PASSWORD
+        volumeMounts:
+        - name: parts-db-data
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: parts-db-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

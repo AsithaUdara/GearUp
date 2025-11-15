@@ -16,10 +16,6 @@ Write-Host ""
 Write-Host "3. Verifying Database Tables..." -ForegroundColor Yellow
 Write-Host "----------------------------------------" -ForegroundColor Gray
 
-Write-Host "Automobile Service Tables:" -ForegroundColor Cyan
-docker exec -it gearup-postgres psql -U postgres -d as_automobile_service -c "\dt" 2>$null
-
-Write-Host ""
 Write-Host "Notification Service Tables:" -ForegroundColor Cyan
 docker exec -it gearup-postgres psql -U postgres -d as_notification_service -c "\dt" 2>$null
 
@@ -28,13 +24,25 @@ Write-Host "User Auth Service Tables:" -ForegroundColor Cyan
 docker exec -it gearup-postgres psql -U postgres -d as_user_auth_service -c "\dt" 2>$null
 
 Write-Host ""
+Write-Host "Payment Service Tables:" -ForegroundColor Cyan
+docker exec -it gearup-postgres psql -U postgres -d as_payment_service -c "\dt" 2>$null
+
+Write-Host ""
+Write-Host "Appointment Service Tables:" -ForegroundColor Cyan
+docker exec -it gearup-postgres psql -U postgres -d as_appointment_service -c "\dt" 2>$null
+
+Write-Host ""
+Write-Host "Modification Service Tables:" -ForegroundColor Cyan
+docker exec -it gearup-postgres psql -U postgres -d as_modification_service -c "\dt" 2>$null
+
+Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Verification Complete!" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Summary:" -ForegroundColor Green
 Write-Host "- PostgreSQL: Running on port 5432" -ForegroundColor White
-Write-Host "- Databases: 3 service databases created" -ForegroundColor White
+Write-Host "- Databases: All service databases created (including appointment & modification)" -ForegroundColor White
 Write-Host "- Tables: Initialized with schemas" -ForegroundColor White
 Write-Host "- Users: Dedicated users per service" -ForegroundColor White
 Write-Host "- Docker: All containers orchestrated" -ForegroundColor White
