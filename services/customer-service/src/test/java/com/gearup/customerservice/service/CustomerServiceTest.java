@@ -1,6 +1,5 @@
 package com.gearup.customerservice.service;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.gearup.customerservice.domain.Customer;
 import com.gearup.customerservice.domain.KycStatus;
 import com.gearup.customerservice.repository.CustomerRepository;
+import com.gearup.shared.exception.GearUpResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CustomerService Unit Tests")
@@ -157,7 +157,7 @@ class CustomerServiceTest {
 
         // Act & Assert
         assertThatThrownBy(() -> customerService.update("non-existent-uid", updatedData))
-                .isInstanceOf(NoSuchElementException.class);
+                .isInstanceOf(GearUpResourceNotFoundException.class);
         
         verify(repository, times(1)).findById("non-existent-uid");
         verify(repository, never()).save(any(Customer.class));
