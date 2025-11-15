@@ -22,7 +22,6 @@
         <module>services/chatbot-service</module>
         <module>services/vehicle-service</module>
         <module>services/customer-service</module>
-        <module>services/modification-service</module>
         <module>services/tracking-service</module>
         <module>services/analytical-service</module>
 

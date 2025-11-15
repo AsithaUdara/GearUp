@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -135,5 +136,14 @@ public class VehicleService {
     @Transactional
     public void delete(UUID id) {
         repository.deleteById(id);
+    }
+
+    private void publishEvent(String routingKey, Map<String, Object> payload) {
+        try {
+            eventPublisher.publish(RabbitMQConstants.VEHICLE_EXCHANGE, routingKey, payload);
+            log.debug("Published event [{}]: {}", routingKey, payload);
+        } catch (Exception e) {
+            log.warn("Failed to publish event [{}]: {}", routingKey, e.getMessage());
+        }
     }
 }

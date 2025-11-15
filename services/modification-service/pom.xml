@@ -53,12 +53,12 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- Database -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
 
+        <!-- Messaging / Redis -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
@@ -69,25 +69,14 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-        <!-- Spring Cloud -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-config</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
-
-        <!-- PostgreSQL Driver -->
+        <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Flyway for Database Migrations -->
+        <!-- Flyway -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -97,11 +86,7 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
-        <!-- RabbitMQ -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        <!-- Shared Libraries -->
+        <!-- Shared libs -->
         <dependency>
             <groupId>com.gearup</groupId>
             <artifactId>shared-security-lib</artifactId>
@@ -127,7 +112,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Test Dependencies -->
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -159,12 +144,13 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
             </plugin>
 
+            <!-- Ensure executable Spring Boot jar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -172,11 +158,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
                 <configuration>
                     <mainClass>com.gearup.modificationservice.ModificationServiceApplication</mainClass>
                     <excludes>
@@ -187,12 +168,8 @@
                     </excludes>
                 </configuration>
             </plugin>
-        </plugins>
-        <finalName>modification-service</finalName>
-    </build>
-</project>
 
-            <!-- Compiler Plugin -->
+            <!-- Compiler plugin uses release from parent pluginManagement -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -202,5 +179,8 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <finalName>modification-service</finalName>
     </build>
+
 </project>

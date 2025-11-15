@@ -8,18 +8,20 @@ RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 
 # Copy the prebuilt service jar (CI will build the module before the Docker build)
-COPY services/modification-service/target/modification-service-*.jar app.jar
+# Use the exact jar name produced by the local Maven build.
+COPY services/modification-service/target/modification-service.jar app.jar
 
 # Set ownership and permissions
 RUN chown -R app:app /app
 USER app
 
 # Expose service port
-EXPOSE 8089
+# Align with compose which uses 8092 for this service
+EXPOSE 8092
 
 # Health check to monitor service health
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8089/actuator/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8092/actuator/health || exit 1
 
 # Metadata labels for observability
 LABEL maintainer="ops@gearup.com" \

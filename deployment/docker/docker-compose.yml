@@ -93,47 +93,8 @@ services:
       retries: 3
       start_period: 60s
 
-  automobile-service:
-    build:
-      # Use repository root as build context so the Docker build can access shared modules
-      context: ../../
-      # Dockerfile for this service, path relative to the build context
-      dockerfile: ./services/automobile-service/Dockerfile
-    container_name: gearup-automobile-service
-    ports:
-      - "8085:8085"
-    # Use local .env file in deployment/docker directory for Docker-specific variables
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8085
-      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
-      - FIREBASE_CONFIG_PATH=${FIREBASE_CONFIG_PATH}
-      - APP_FIREBASE_CONFIGURATION_FILE=/app/secrets/firebase-service-account.json
-      - SPRING_DATASOURCE_URL=${AUTOMOBILE_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${AUTOMOBILE_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${AUTOMOBILE_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-    volumes:
-        - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8085/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+  # automobile-service removed: no Dockerfile present in repo. Add the service
+  # back once `services/automobile-service/Dockerfile` is added.
 
   notification-service:
     build:
@@ -513,7 +474,7 @@ services:
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
       - EUREKA_CLIENT_FETCH_REGISTRY=true
     volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+      - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -564,7 +525,7 @@ services:
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
       - EUREKA_CLIENT_FETCH_REGISTRY=true
     volumes:
-      - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+      - ../../firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -716,49 +677,8 @@ services:
       retries: 3
       start_period: 60s
 
-  modification-service:
-    build:
-      context: ../../
-      dockerfile: ./services/modification-service/Dockerfile
-    container_name: gearup-modification-service
-    ports:
-      - "8089:8089"
-    env_file:
-      - ./.env
-    environment:
-      - SERVER_PORT=8089
-      - SPRING_DATASOURCE_URL=${MODIFICATION_DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${MODIFICATION_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${MODIFICATION_DB_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
-      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
-      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
-      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}
-      - SPRING_DATA_REDIS_HOST=${SPRING_DATA_REDIS_HOST}
-      - SPRING_DATA_REDIS_PORT=${SPRING_DATA_REDIS_PORT}
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONFIG_USERNAME=configadmin
-      - SPRING_CLOUD_CONFIG_PASSWORD=change-me
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
-    depends_on:
-      service-discovery:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8089/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+  # Duplicate modification-service block removed. Using the configuration
+  # defined earlier (port 8092) which matches local service settings.
 
   db:
     image: pgvector/pgvector:pg15
