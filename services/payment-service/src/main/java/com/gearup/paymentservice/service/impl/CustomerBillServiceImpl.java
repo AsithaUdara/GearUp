@@ -10,6 +10,9 @@ import com.gearup.paymentservice.repository.CustomerBillRepository;
 import com.gearup.paymentservice.service.CustomerBillService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,7 @@ public class CustomerBillServiceImpl implements CustomerBillService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "customerBills", key = "#email")
     public List<CustomerBillResponseDTO> getCustomerBills(String email) {
         log.info("Fetching bills for customer: {}", email);
         return customerBillRepository.findByCustomerEmail(email).stream()
@@ -36,6 +40,7 @@ public class CustomerBillServiceImpl implements CustomerBillService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "customerBills", key = "#id")
     public CustomerBillResponseDTO getBillById(UUID id) {
         log.info("Fetching bill with ID: {}", id);
         CustomerBill bill = customerBillRepository.findById(id)
@@ -54,6 +59,7 @@ public class CustomerBillServiceImpl implements CustomerBillService {
 
     @Override
     @Transactional
+    @CachePut(value = "customerBills", key = "#id")
     public CustomerBillResponseDTO markBillAsPaid(UUID id) {
         log.info("Marking bill as paid with ID: {}", id);
 

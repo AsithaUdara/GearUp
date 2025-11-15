@@ -6,6 +6,9 @@ import com.gearup.templateservice.model.ServiceTemplate;
 import com.gearup.templateservice.repository.ServiceTemplateRepository;
 import com.gearup.templateservice.messaging.TemplateEventPublisher;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,17 +22,20 @@ public class ServiceTemplateService {
     private final ServiceTemplateRepository repository;
     private final TemplateEventPublisher eventPublisher;
 
+    @Cacheable(value = "activeTemplates", condition = "#onlyActive == true")
     public List<ServiceTemplateDto> findAll(boolean onlyActive) {
         var list = onlyActive ? repository.findByActiveTrue() : repository.findAll();
         return list.stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    @Cacheable(value = "serviceTemplates", key = "#id")
     public ServiceTemplateDto findById(Long id) {
         return repository.findById(id).map(this::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Template not found: " + id));
     }
 
     @Transactional
+    @CacheEvict(value = {"serviceTemplates", "activeTemplates"}, allEntries = true)
     public ServiceTemplateDto create(ServiceTemplateDto dto, String adminUid) {
         if (repository.existsByNameIgnoreCase(dto.getName())) {
             throw new IllegalArgumentException("A template with this name already exists");
@@ -50,6 +56,8 @@ public class ServiceTemplateService {
     }
 
     @Transactional
+    @CachePut(value = "serviceTemplates", key = "#id")
+    @CacheEvict(value = "activeTemplates", allEntries = true)
     public ServiceTemplateDto update(Long id, ServiceTemplateDto dto, String adminUid) {
         var entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Template not found: " + id));
@@ -70,6 +78,7 @@ public class ServiceTemplateService {
     }
 
     @Transactional
+    @CacheEvict(value = {"serviceTemplates", "activeTemplates"}, allEntries = true)
     public void delete(Long id, String adminUid) {
         var entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Template not found: " + id));
