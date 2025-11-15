@@ -137,8 +137,8 @@ if (-not $gatewayHealthy) {
 # Start all microservices
 Write-Host "`nStarting all microservices..." -ForegroundColor Green
 docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service payment-service parts-service appointment-service modification-service template-service pgadmin
-Write-Host "Waiting 60 seconds for microservices..." -ForegroundColor Yellow
-Start-Sleep -Seconds 60
+Write-Host "Waiting 120 seconds for microservices..." -ForegroundColor Yellow
+Start-Sleep -Seconds 120
 
 # Function to check service health
 function Test-ServiceHealth {

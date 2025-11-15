@@ -1,14 +1,20 @@
 package com.gearup.notificationservice.listener;
 
-import com.gearup.shared.event.payment.*;
-import com.gearup.shared.event.customer.*;
-import com.gearup.shared.event.user.*;
-import com.gearup.shared.event.vehicle.*;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
+
+import com.gearup.shared.event.customer.CustomerKycChangedEvent;
+import com.gearup.shared.event.customer.CustomerRegisteredEvent;
+import com.gearup.shared.event.payment.InvoiceCreatedEvent;
+import com.gearup.shared.event.payment.InvoicePaidEvent;
+import com.gearup.shared.event.payment.PaymentCompletedEvent;
+import com.gearup.shared.event.user.RoleAssignedEvent;
+import com.gearup.shared.event.user.UserRegisteredEvent;
+import com.gearup.shared.event.vehicle.VehicleRegisteredEvent;
+import com.gearup.shared.event.vehicle.VehicleUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
 
 /**
  * Event listener for cross-service notifications

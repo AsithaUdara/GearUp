@@ -129,6 +129,35 @@ public class SharedRabbitMQConfig {
                 .build();
     }
 
+    // ==================== TEMPLATE QUEUE + BINDINGS ====================
+
+    @Bean
+    public Queue templateQueue() {
+        return QueueBuilder.durable(RabbitMQConstants.TEMPLATE_QUEUE)
+                .build();
+    }
+
+    @Bean
+    public Binding templateCreatedBinding() {
+        return BindingBuilder.bind(templateQueue())
+                .to(templateExchange())
+                .with(RabbitMQConstants.TEMPLATE_CREATED_KEY);
+    }
+
+    @Bean
+    public Binding templateUpdatedBinding() {
+        return BindingBuilder.bind(templateQueue())
+                .to(templateExchange())
+                .with(RabbitMQConstants.TEMPLATE_UPDATED_KEY);
+    }
+
+    @Bean
+    public Binding templateDeletedBinding() {
+        return BindingBuilder.bind(templateQueue())
+                .to(templateExchange())
+                .with(RabbitMQConstants.TEMPLATE_DELETED_KEY);
+    }
+
     // ==================== DEAD LETTER EXCHANGE ====================
 
     @Bean
