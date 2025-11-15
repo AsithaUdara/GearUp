@@ -20,6 +20,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TrackingService {
     
+    // TODO: Add real-time GPS location tracking for service vehicles
+    // TODO: Implement geofencing for on-site arrival/departure detection
+    // TODO: Add photo/video capture for work progress documentation
+    // TODO: Implement barcode/QR code scanning for parts tracking
+    // TODO: Add time tracking accuracy validation (prevent backdating)
+    // TODO: Implement automated break time deduction
+    // TODO: Add overtime calculation and alerts
+    // TODO: Implement productivity metrics and KPI tracking
+    // TODO: Add task dependency management (sequential tasks)
+    // TODO: Implement route optimization for mobile technicians
+    // TODO: Add customer signature capture for service completion
+    // TODO: Implement parts consumption tracking per task
+    // TODO: Add service quality checklists and compliance verification
+    // TODO: Implement employee performance dashboards
+    // TODO: Add predictive analytics for task duration estimation
+    // TODO: Implement workforce capacity planning tools
+
     private final WorkTaskRepository workTaskRepository;
     
     @Transactional(readOnly = true)

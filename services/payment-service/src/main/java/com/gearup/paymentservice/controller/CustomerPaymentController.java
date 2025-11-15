@@ -1,15 +1,23 @@
 package com.gearup.paymentservice.controller;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.gearup.paymentservice.dto.response.CustomerBillResponseDTO;
 import com.gearup.paymentservice.enums.PaymentStatus;
 import com.gearup.paymentservice.service.CustomerBillService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/payments/customer")
@@ -17,6 +25,22 @@ import java.util.UUID;
 @Slf4j
 @CrossOrigin(origins = "*") // Allow frontend access
 public class CustomerPaymentController {
+
+    // TODO: Add payment gateway integration (Stripe, PayPal, Square)
+    // TODO: Implement payment intent creation and confirmation flow
+    // TODO: Add idempotency keys for payment operations to prevent duplicates
+    // TODO: Implement payment retry mechanism for failed transactions
+    // TODO: Add webhook handling for async payment notifications
+    // TODO: Implement fraud detection and risk scoring
+    // TODO: Add support for multiple payment methods (card, bank transfer, wallet)
+    // TODO: Implement refund and partial refund functionality
+    // TODO: Add payment dispute handling
+    // TODO: Implement payment reconciliation reports
+    // TODO: Add PCI-DSS compliance measures (no card data storage)
+    // TODO: Implement payment history export functionality
+    // TODO: Add real-time payment status notifications via WebSocket
+    // TODO: Implement payment reminders for overdue bills
+    // TODO: Add support for payment plans and installments
 
     private final CustomerBillService customerBillService;
 

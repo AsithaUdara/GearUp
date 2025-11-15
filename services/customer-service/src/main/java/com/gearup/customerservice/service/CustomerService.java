@@ -18,6 +18,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CustomerService {
 
+    // TODO: Add comprehensive input validation and sanitization
+    // TODO: Implement KYC document upload and verification workflow
+    // TODO: Add duplicate customer detection (by email, phone, ID number)
+    // TODO: Implement customer tier/loyalty program logic
+    // TODO: Add customer address validation and geocoding
+    // TODO: Implement GDPR compliance features (data export, deletion)
+    // TODO: Add customer profile completeness scoring
+    // TODO: Implement customer communication preferences management
+    // TODO: Add customer segmentation for marketing campaigns
+    // TODO: Implement customer lifetime value calculation
+    // TODO: Add fraud detection for suspicious customer behavior
+    // TODO: Implement customer merge functionality for duplicates
+    // TODO: Add customer referral program tracking
+    // TODO: Implement customer feedback and satisfaction scoring
+
     private final CustomerRepository repository;
     private final CustomerEventPublisher eventPublisher;
 

@@ -14,6 +14,17 @@ public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
+    // TODO: Add rate limiting per IP address for login endpoints
+    // TODO: Implement request validation middleware
+    // TODO: Add security headers to responses (X-Content-Type-Options, etc.)
+    // TODO: Implement audit logging for all authentication events
+    // TODO: Add suspicious activity detection (unusual login patterns)
+    // TODO: Implement CAPTCHA for repeated failed login attempts
+    // TODO: Add comprehensive API documentation with Swagger/OpenAPI
+    // TODO: Implement refresh token rotation for enhanced security
+    // TODO: Add endpoint for password strength checking
+    // TODO: Implement session listing endpoint for users to see active sessions
+
     private final AuthService authService;
 
     public AuthController(AuthService authService) {

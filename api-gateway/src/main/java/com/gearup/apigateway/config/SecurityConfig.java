@@ -15,6 +15,15 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
  * Minimal reactive security configuration: disable default login page and
  * let the Gateway's authentication filter handle auth. Permit actuator endpoints
  * and public endpoints like chatbot.
+ * 
+ * TODO: Add proper role-based access control (RBAC) for admin endpoints
+ * TODO: Implement CSRF protection for state-changing operations
+ * TODO: Add security headers (HSTS, X-Content-Type-Options, X-Frame-Options, CSP)
+ * TODO: Configure proper CORS based on environment (production vs dev)
+ * TODO: Add request size limits to prevent DoS attacks
+ * TODO: Implement API versioning strategy and deprecation headers
+ * TODO: Add OAuth2 resource server configuration for multi-provider support
+ * TODO: Implement secure session management with Redis
  */
 @Configuration
 public class SecurityConfig {
