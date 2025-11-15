@@ -56,6 +56,16 @@ spring:
                   args:
                     parts: 0 # Keep full path as customer service expects /api/v1/customers
 
+            # Modification Service Route
+            - id: modification-service-route
+              uri: lb://modification-service
+              predicates:
+                - Path=/api/modifications/**
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path as modification service expects /api/modifications
+
             # Analytical Service Route
             - id: analytical-service-route
               uri: lb://analytical-service

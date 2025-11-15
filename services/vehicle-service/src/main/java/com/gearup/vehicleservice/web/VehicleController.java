@@ -39,6 +39,12 @@ public class VehicleController {
         if (userId == null || userId.isBlank()) {
             userId = body.getUserId();
         }
+        
+        // Validate that userId is provided either via header or body
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         Vehicle v = Vehicle.builder()
                 .userId(userId)
                 .make(body.getMake())

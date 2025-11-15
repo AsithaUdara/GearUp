@@ -34,12 +34,12 @@ public class VehicleService {
         publishEvent("vehicle.created", Map.of(
                 "eventId", UUID.randomUUID().toString(),
                 "vehicleId", saved.getId().toString(),
-                "userId", saved.getUserId(),
-                "make", saved.getMake(),
-                "model", saved.getModel(),
+                "userId", Objects.toString(saved.getUserId(), ""),
+                "make", Objects.toString(saved.getMake(), ""),
+                "model", Objects.toString(saved.getModel(), ""),
                 "year", saved.getYear(),
-                "numberPlate", saved.getNumberPlate(),
-                "photoURL", saved.getPhotoURL(),
+                "numberPlate", Objects.toString(saved.getNumberPlate(), ""),
+                "photoURL", Objects.toString(saved.getPhotoURL(), ""),
                 "timestamp", Instant.now().toString()
         ));
         return saved;
@@ -57,7 +57,7 @@ public class VehicleService {
         publishEvent("vehicle.updated", Map.of(
                 "eventId", UUID.randomUUID().toString(),
                 "vehicleId", saved.getId().toString(),
-                "userId", saved.getUserId(),
+                "userId", Objects.toString(saved.getUserId(), ""),
                 "timestamp", Instant.now().toString()
         ));
         return saved;
@@ -72,7 +72,7 @@ public class VehicleService {
         publishEvent("vehicle.status.changed", Map.of(
                 "eventId", UUID.randomUUID().toString(),
                 "vehicleId", saved.getId().toString(),
-                "userId", saved.getUserId(),
+                "userId", Objects.toString(saved.getUserId(), ""),
                 "oldStatus", old.name(),
                 "newStatus", newStatus.name(),
                 "timestamp", Instant.now().toString()

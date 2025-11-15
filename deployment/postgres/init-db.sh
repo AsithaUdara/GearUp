@@ -12,6 +12,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE DATABASE as_chatbot_service;
     CREATE DATABASE as_customer_service;
     CREATE DATABASE as_vehicle_service;
+    CREATE DATABASE as_modification_service;
     CREATE DATABASE as_analytical_service;
     CREATE DATABASE as_tracking_service;
     CREATE DATABASE as_payment_service;
@@ -23,6 +24,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE USER svc_chatbot_service WITH PASSWORD '$CHATBOT_DB_PASSWORD';
     CREATE USER svc_customer_service WITH PASSWORD '$CUSTOMER_DB_PASSWORD';
     CREATE USER svc_vehicle_service WITH PASSWORD '$VEHICLE_DB_PASSWORD';
+    CREATE USER svc_modification_service WITH PASSWORD '$MODIFICATION_DB_PASSWORD';
     CREATE USER svc_analytical_service WITH PASSWORD '$ANALYTICAL_DB_PASSWORD';
     CREATE USER svc_tracking_service WITH PASSWORD '$TRACKING_DB_PASSWORD';
     CREATE USER svc_payment_service WITH PASSWORD '$PAYMENT_DB_PASSWORD';
@@ -34,6 +36,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     GRANT ALL PRIVILEGES ON DATABASE as_chatbot_service TO svc_chatbot_service;
     GRANT ALL PRIVILEGES ON DATABASE as_customer_service TO svc_customer_service;
     GRANT ALL PRIVILEGES ON DATABASE as_vehicle_service TO svc_vehicle_service;
+    GRANT ALL PRIVILEGES ON DATABASE as_modification_service TO svc_modification_service;
     GRANT ALL PRIVILEGES ON DATABASE as_analytical_service TO svc_analytical_service;
     GRANT ALL PRIVILEGES ON DATABASE as_tracking_service TO svc_tracking_service;
     GRANT ALL PRIVILEGES ON DATABASE as_payment_service TO svc_payment_service;
@@ -151,6 +154,18 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_payment_service
     -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_payment_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_payment_service;
+EOSQL
+
+# Setup modification service database
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_modification_service" <<-EOSQL
+    -- Grant schema permissions
+    GRANT ALL ON SCHEMA public TO svc_modification_service;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_modification_service;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_modification_service;
+
+    -- Grant default privileges
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_modification_service;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_modification_service;
 EOSQL
 
 echo "Database initialization completed successfully!"

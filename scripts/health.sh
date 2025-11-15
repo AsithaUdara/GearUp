@@ -8,6 +8,7 @@ services=(
   "api-gateway:9090"
   "customer-service:8088"
   "vehicle-service:8090"
+  "modification-service:8086"
   "user-auth-service:8082"
   "notification-service:8081"
   "automobile-service:8085"
