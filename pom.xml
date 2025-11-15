@@ -12,7 +12,6 @@
 
     <modules>
         <module>services/appointment-service</module>
-        <module>services/automobile-service</module>
         <module>services/modification-service</module>
         <module>services/notification-service</module>
         <module>services/payment-service</module>

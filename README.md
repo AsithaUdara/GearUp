@@ -27,7 +27,6 @@ GearUp Backend
 │   ├── service-discovery/     # Eureka Server (Port 8761)
 │   └── config-server/         # Spring Cloud Config (Port 8888)
 ├── Business Services
-│   ├── automobile-service/    # Vehicle management (Port 8080)
 │   ├── notification-service/  # Notifications & alerts (Port 8081)
 │   ├── user-auth-service/     # Authentication (Port 8082)
 │   └── template-service/      # Template service (Port 8083)
@@ -121,7 +120,6 @@ notepad .env
 - **Eureka Dashboard**: http://localhost:8761
 - **Config Server**: http://localhost:8888
 - **Notification Service**: http://localhost:8081
-- **Automobile Service**: http://localhost:8082
 
 ## 📋 Requirements
 
@@ -951,8 +949,8 @@ SPRING_RABBITMQ_USERNAME=guest
 SPRING_RABBITMQ_PASSWORD=guest
 
 # Cache (Redis)
-SPRING_REDIS_HOST=redis
-SPRING_REDIS_PORT=6379
+SPRING_DATA_REDIS_HOST=redis
+SPRING_DATA_REDIS_PORT=6379
 ```
 
 ### Config Server (config-repo/)

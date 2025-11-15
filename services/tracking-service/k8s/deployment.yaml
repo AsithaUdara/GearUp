@@ -36,17 +36,17 @@ spec:
             configMapKeyRef:
               name: tracking-service-config
               key: POSTGRES_PORT
-        - name: POSTGRES_DB
+        - name: SPRING_DATASOURCE_DB
           valueFrom:
             configMapKeyRef:
               name: tracking-service-config
-              key: POSTGRES_DB
-        - name: POSTGRES_USER
+              key: SPRING_DATASOURCE_DB
+        - name: SPRING_DATASOURCE_USERNAME
           valueFrom:
             secretKeyRef:
               name: postgres-secret
               key: username
-        - name: POSTGRES_PASSWORD
+        - name: SPRING_DATASOURCE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: postgres-secret

@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     if: false # Skip this job - template-service is a placeholder only
     env:
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       FLYWAY_URL: jdbc:postgresql://localhost:5432/as_template_service
       FLYWAY_USER: svc_template_service
       FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -18,8 +18,8 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-

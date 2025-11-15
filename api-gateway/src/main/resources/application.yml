@@ -17,11 +17,20 @@ spring:
             - id: chatbot-service-route
               uri: lb://chatbot-service
               predicates:
-                - Path=/api/chat/**
+                - Path=/api/v1/chat/**
               filters:
                 - name: StripPrefix
                   args:
-                    parts: 0 # Don't strip prefix, chatbot service expects /api/chat
+                    parts: 0 # Don't strip prefix, chatbot service expects /api/v1/chat
+            # Chatbot Test Endpoint Route
+            - id: chatbot-test-route
+              uri: lb://chatbot-service
+              predicates:
+                - Path=/api/v1/hello
+              filters:
+                - name: StripPrefix
+                  args:
+                    parts: 0 # Keep full path
 
             # User Auth Service Routes
             - id: user-auth-auth-route
@@ -97,7 +106,7 @@ spring:
             - id: tracking-service-route
               uri: lb://tracking-service
               predicates:
-                - Path=/api/tracking/**
+                - Path=/api/v1/tracking/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -108,11 +117,11 @@ spring:
             - id: payment-service-route
               uri: lb://payment-service
               predicates:
-                - Path=/api/payments/**,/api/bills/**,/api/payment-requests/**
+                - Path=/api/v1/payments/**,/api/v1/bills/**,/api/v1/payment-requests/**
               filters:
                 - name: StripPrefix
                   args:
-                    parts: 0 # Keep full path as payment service expects /api/payments
+                    parts: 0 # Keep full path as payment service expects /api/v1/payments
                 - name: RequestRateLimiter
                   args:
                     redis-rate-limiter.replenishRate: 15
@@ -122,7 +131,7 @@ spring:
             - id: parts-service-route
               uri: lb://parts-service
               predicates:
-                - Path=/api/parts/**,/api/parts-requests/**
+                - Path=/api/v1/parts/**,/api/v1/parts-requests/**
               filters:
                 - name: StripPrefix
                   args:
@@ -150,11 +159,11 @@ spring:
             - id: appointment-service-route
               uri: lb://appointment-service
               predicates:
-                - Path=/api/appointments/**,/api/bookings/**,/api/timeslots/**
+                - Path=/api/v1/appointments/**,/api/v1/bookings/**,/api/v1/timeslots/**
               filters:
                 - name: StripPrefix
                   args:
-                    parts: 0 # Keep full path as appointment service expects /api/appointments
+                    parts: 0 # Keep full path as appointment service expects /api/v1/appointments
                 - name: RequestRateLimiter
                   args:
                     redis-rate-limiter.replenishRate: 20
@@ -164,7 +173,7 @@ spring:
             - id: modification-service-route
               uri: lb://modification-service
               predicates:
-                - Path=/api/modifications/**,/api/modification-requests/**
+                - Path=/api/v1/modifications/**,/api/v1/modification-requests/**
               filters:
                 - name: StripPrefix
                   args:
@@ -202,8 +211,10 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+      timeout: 2000ms
 
 eureka:
   client:

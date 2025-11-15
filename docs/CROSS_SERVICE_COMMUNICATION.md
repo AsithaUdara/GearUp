@@ -41,6 +41,7 @@ This guide explains how to implement and use cross-service communication in the 
 Best for: Event-driven workflows, background processing, decoupling services
 
 **How it works:**
+
 1. Service A publishes an event to RabbitMQ exchange
 2. RabbitMQ routes the event to appropriate queues based on routing keys
 3. Service B consumes the event from its queue
@@ -55,7 +56,7 @@ private EventPublisher eventPublisher;
 
 public void createBooking(BookingRequest request) {
     // Create booking logic...
-    
+
     VehicleBookingCreatedEvent event = new VehicleBookingCreatedEvent(
         UUID.randomUUID().toString(),
         userId,
@@ -68,7 +69,7 @@ public void createBooking(BookingRequest request) {
         endDate,
         totalAmount
     );
-    
+
     // Publish to RabbitMQ
     eventPublisher.publishVehicleBookingCreated(event);
 }
@@ -86,6 +87,7 @@ public void handleVehicleBookingCreatedEvent(VehicleBookingCreatedEvent event) {
 Best for: Real-time data queries, immediate responses needed, transactional operations
 
 **How it works:**
+
 1. Service A needs data from Service B
 2. Service A uses Feign client to make REST call
 3. Eureka resolves service name to actual instance(s)
@@ -108,14 +110,14 @@ public interface UserServiceClient {
 // 2. Use in your service
 @Service
 public class NotificationEnrichmentService {
-    
+
     @Autowired
     private UserServiceClient userServiceClient;
-    
+
     public EnrichedNotification enrichWithUserData(Notification notification) {
         // Synchronous call to user-auth-service
         UserDetailsResponse user = userServiceClient.getUserDetails(notification.getUserId());
-        
+
         return new EnrichedNotification(notification, user);
     }
 }
@@ -126,6 +128,7 @@ public class NotificationEnrichmentService {
 Best for: External client access, unified entry point, cross-cutting concerns
 
 **How it works:**
+
 1. Client sends request to API Gateway (port 8080)
 2. Gateway routes based on path patterns
 3. Service discovery via Eureka
@@ -139,7 +142,7 @@ spring:
     gateway:
       routes:
         - id: notification-route
-          uri: lb://notification-service  # Load-balanced via Eureka
+          uri: lb://notification-service # Load-balanced via Eureka
           predicates:
             - Path=/api/notifications/**
           filters:
@@ -197,12 +200,15 @@ cd services/notification-service
 ### 5. Verify Setup
 
 **Check Eureka Dashboard:**
+
 ```
 http://localhost:8761
 ```
+
 You should see all services registered.
 
 **Check RabbitMQ Management:**
+
 ```
 http://localhost:15672
 Username: guest
@@ -210,6 +216,7 @@ Password: guest
 ```
 
 **Test Cross-Service Communication:**
+
 ```bash
 # Via API Gateway
 curl http://localhost:8080/api/notifications/cross-service-test/health
@@ -249,7 +256,7 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true  # Auto-create routes from Eureka
+          enabled: true # Auto-create routes from Eureka
       routes:
         - id: notification-service
           uri: lb://notification-service
@@ -317,11 +324,11 @@ public TopicExchange notificationExchange() {
 
 ### Queue Bindings
 
-| Service | Queue Name | Routing Key Pattern | Purpose |
-|---------|-----------|---------------------|---------|
-| notification-service | notification.queue | `*.created`, `*.updated` | Receive all entity creation/update events |
-| billing-service | billing.queue | `invoice.*` | Invoice-related events |
-| vehicle-service | vehicle.queue | `booking.*`, `maintenance.*` | Vehicle operations |
+| Service              | Queue Name         | Routing Key Pattern          | Purpose                                   |
+| -------------------- | ------------------ | ---------------------------- | ----------------------------------------- |
+| notification-service | notification.queue | `*.created`, `*.updated`     | Receive all entity creation/update events |
+| billing-service      | billing.queue      | `invoice.*`                  | Invoice-related events                    |
+| vehicle-service      | vehicle.queue      | `booking.*`, `maintenance.*` | Vehicle operations                        |
 
 ### Publishing Events
 
@@ -340,7 +347,7 @@ eventPublisher.publishVehicleBookingCreated(event);
 ```java
 @Component
 public class EventListener {
-    
+
     @RabbitListener(queues = "notification.queue")
     public void handleEvent(BaseNotificationEvent event) {
         // Process event
@@ -357,7 +364,7 @@ Feign clients automatically use circuit breakers to prevent cascading failures:
 ```java
 @Component
 public class UserServiceClientFallback implements UserServiceClient {
-    
+
     @Override
     public UserDetailsResponse getUserDetails(String userId) {
         // Return cached or default data when service is down
@@ -389,10 +396,12 @@ public Queue notificationDeadLetterQueue() {
 ## Monitoring and Debugging
 
 ### Eureka Dashboard
+
 - **URL:** http://localhost:8761
 - Shows all registered services, health status, instances
 
 ### RabbitMQ Management
+
 - **URL:** http://localhost:15672
 - Monitor queues, exchanges, message rates
 - View message details and bindings
@@ -424,12 +433,14 @@ logging.level.org.springframework.amqp=DEBUG
 ### 1. **When to Use Async vs Sync**
 
 **Use RabbitMQ (Async):**
+
 - ✅ Event notifications (booking created, invoice generated)
 - ✅ Background processing (email sending, report generation)
 - ✅ Fire-and-forget operations
 - ✅ Services should remain decoupled
 
 **Use Feign (Sync):**
+
 - ✅ Immediate data needed (user details, inventory check)
 - ✅ Transactional operations requiring confirmation
 - ✅ Direct request-response pattern
@@ -471,12 +482,14 @@ Examples:
 ### Service Not Registering with Eureka
 
 **Check:**
+
 1. Eureka server is running
 2. `spring.application.name` is set
 3. `eureka.client.register-with-eureka=true`
 4. Network connectivity to Eureka server
 
 **Fix:**
+
 ```bash
 # Verify Eureka URL
 curl http://localhost:8761/eureka/apps
@@ -484,16 +497,19 @@ curl http://localhost:8761/eureka/apps
 
 ### Feign Client Fails
 
-**Symptoms:** 
+**Symptoms:**
+
 - `FeignException: Service not found`
 - Connection timeout
 
 **Check:**
+
 1. Target service is registered in Eureka
 2. Service name matches exactly
 3. Fallback is implemented
 
 **Debug:**
+
 ```properties
 feign.client.config.default.loggerLevel=FULL
 logging.level.com.gearup.notificationservice.client=DEBUG
@@ -502,12 +518,14 @@ logging.level.com.gearup.notificationservice.client=DEBUG
 ### RabbitMQ Messages Not Consumed
 
 **Check:**
+
 1. RabbitMQ is running
 2. Exchange and queue exist
 3. Binding is correct
 4. Message format matches consumer
 
 **Debug:**
+
 ```bash
 # List queues
 docker exec rabbitmq rabbitmqctl list_queues
@@ -521,39 +539,44 @@ docker exec rabbitmq rabbitmqctl list_bindings
 ### Scenario: User books a vehicle
 
 1. **User makes request via API Gateway:**
+
    ```
    POST http://localhost:8080/api/vehicles/bookings
    ```
 
 2. **API Gateway routes to vehicle-service:**
+
    ```
    Gateway → Eureka (resolve vehicle-service) → vehicle-service:8083
    ```
 
 3. **vehicle-service creates booking and publishes event:**
+
    ```java
    // Create booking in database
    Booking booking = bookingRepository.save(newBooking);
-   
+
    // Publish event to RabbitMQ
    VehicleBookingCreatedEvent event = new VehicleBookingCreatedEvent(...);
    eventPublisher.publishVehicleBookingCreated(event);
    ```
 
 4. **RabbitMQ routes event to notification-service:**
+
    ```
-   vehicle-service → RabbitMQ (notification.exchange) 
-                  → notification.queue 
+   vehicle-service → RabbitMQ (notification.exchange)
+                  → notification.queue
                   → notification-service
    ```
 
 5. **notification-service consumes event:**
+
    ```java
    @RabbitListener(queues = "notification.queue")
    public void handleBookingCreated(VehicleBookingCreatedEvent event) {
        // Fetch user details via Feign (synchronous)
        UserDetailsResponse user = userServiceClient.getUserDetails(event.getUserId());
-       
+
        // Create notification
        Notification notification = createNotification(event, user);
        notificationRepository.save(notification);
@@ -595,16 +618,16 @@ docker exec rabbitmq rabbitmqctl list_bindings
 
 ### Port Mapping
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| Eureka Server | 8761 | Service Discovery |
-| API Gateway | 8080 | External Entry Point |
-| notification-service | 8081 | Notifications |
-| user-auth-service | 8082 | Authentication |
-| RabbitMQ | 5672 | AMQP Protocol |
-| RabbitMQ Management | 15672 | Web UI |
-| Redis | 6379 | Cache/Session |
-| PostgreSQL | 5432 | Database |
+| Service              | Port  | Purpose              |
+| -------------------- | ----- | -------------------- |
+| Eureka Server        | 8761  | Service Discovery    |
+| API Gateway          | 8080  | External Entry Point |
+| notification-service | 8081  | Notifications        |
+| user-auth-service    | 8082  | Authentication       |
+| RabbitMQ             | 5672  | AMQP Protocol        |
+| RabbitMQ Management  | 15672 | Web UI               |
+| Redis                | 6379  | Cache/Session        |
+| PostgreSQL           | 5432  | Database             |
 
 ### Environment Variables
 
@@ -619,8 +642,8 @@ SPRING_RABBITMQ_USERNAME=guest
 SPRING_RABBITMQ_PASSWORD=guest
 
 # Redis
-SPRING_REDIS_HOST=redis
-SPRING_REDIS_PORT=6379
+SPRING_DATA_REDIS_HOST=redis
+SPRING_DATA_REDIS_PORT=6379
 ```
 
 ### Useful Commands
@@ -645,6 +668,7 @@ curl -X POST http://localhost:8081/api/events/simulate/all?userId=test-user
 ---
 
 **For more information, see:**
+
 - [RabbitMQ Documentation](https://www.rabbitmq.com/documentation.html)
 - [Spring Cloud Netflix Eureka](https://cloud.spring.io/spring-cloud-netflix/reference/html/)
 - [Spring Cloud OpenFeign](https://docs.spring.io/spring-cloud-openfeign/docs/current/reference/html/)

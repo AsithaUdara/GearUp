@@ -71,7 +71,7 @@ jobs:
             sleep 2
           done
         env:
-          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
       - name: Discover services with Flyway migrations
         id: discover
@@ -151,14 +151,16 @@ jobs:
             echo "✓ Permissions granted for $svc"
           done < services.txt
         env:
-          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
       - name: Run integration tests across modules
         env:
           APP_FIREBASE_CONFIGURATION_FILE: ""
           FIREBASE_CONFIG_PATH: ""
           # Pass the same postgres password used for database setup
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          # Also pass as SPRING_DATASOURCE_PASSWORD for backward compatibility with test configs
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           # Disable Flyway during tests since migrations already ran
           FLYWAY_ENABLED: false
         run: |

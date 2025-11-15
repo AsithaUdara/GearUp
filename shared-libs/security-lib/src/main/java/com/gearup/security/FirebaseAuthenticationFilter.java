@@ -3,6 +3,8 @@ package com.gearup.security;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,6 +26,8 @@ import jakarta.servlet.http.HttpServletResponse;
  * GrantedAuthorities empty — services should map roles/claims as needed.
  */
 public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(FirebaseAuthenticationFilter.class);
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -56,6 +60,9 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
             request.setAttribute("firebaseUid", uid);
 
         } catch (FirebaseAuthException e) {
+            // Log exception details to help diagnose verification failures (expired, revoked, wrong project, etc.)
+            log.warn("Firebase token verification failed: {}", e.getMessage());
+            log.debug("Firebase token verification exception", e);
             // On token verification failure return 401 JSON response
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");

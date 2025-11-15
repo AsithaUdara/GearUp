@@ -36,7 +36,7 @@ $env:RABBITMQ_PASSWORD = "123456"  # 👈 CHANGE THIS to your RabbitMQ password
 # ============================================
 Write-Host "✅ Environment variables set for current session:" -ForegroundColor Green
 Write-Host ""
-Write-Host "  POSTGRES_PASSWORD     = " -NoNewline -ForegroundColor White
+Write-Host "  SPRING_DATASOURCE_PASSWORD     = " -NoNewline -ForegroundColor White
 Write-Host "********" -ForegroundColor Gray
 Write-Host "  RABBITMQ_USERNAME     = $env:RABBITMQ_USERNAME" -ForegroundColor White
 Write-Host "  RABBITMQ_PASSWORD     = " -NoNewline -ForegroundColor White

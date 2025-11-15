@@ -225,8 +225,8 @@ spring:
 
   # Redis Configuration
   redis:
-    host: ${SPRING_REDIS_HOST:redis}
-    port: ${SPRING_REDIS_PORT:6379}
+    host: ${SPRING_DATA_REDIS_HOST:redis}
+    port: ${SPRING_DATA_REDIS_PORT:6379}
     timeout: 60000ms
     jedis:
       pool:
@@ -316,7 +316,7 @@ flyway-your-service:
 		-Dflyway.user=$${FLYWAY_USER_YOUR:-svc_your_service} \
 		-Dflyway.password=$${FLYWAY_PASSWORD_YOUR:-your_pass_2024}
 
-flyway-all: flyway-automobile flyway-notification flyway-user-auth flyway-template flyway-your-service
+flyway-all: flyway-notification flyway-user-auth flyway-template flyway-your-service
 ```
 
 ---
@@ -713,8 +713,8 @@ your-service:
     - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
     - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
     - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_DEFAULT_ZONE}
-    - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
-    - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
+    - SPRING_DATA_REDIS_HOST=${SPRING_DATA_REDIS_HOST}
+    - SPRING_DATA_REDIS_PORT=${SPRING_DATA_REDIS_PORT}
     - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST}
     - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT}
     - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}
@@ -782,7 +782,7 @@ spring:
 
 ```xml
 <modules>
-    <module>services/automobile-service</module>
+
     <module>services/notification-service</module>
     <module>services/template-service</module>
     <module>services/user-auth-service</module>
@@ -2021,7 +2021,7 @@ curl http://localhost:8087/actuator/health
 - 9090 - API Gateway
 - 8081 - Notification Service
 - 8082 - User Auth Service
-- 8085 - Automobile Service
+
 - 8086 - Chatbot Service
 - 8087 - **Your Service** (example)
 

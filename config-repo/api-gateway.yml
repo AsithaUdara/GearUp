@@ -2,8 +2,8 @@ spring:
   application:
     name: api-gateway
   redis:
-    host: ${SPRING_REDIS_HOST:redis}
-    port: ${SPRING_REDIS_PORT:6379}
+    host: ${SPRING_DATA_REDIS_HOST:redis}
+    port: ${SPRING_DATA_REDIS_PORT:6379}
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
@@ -121,16 +121,6 @@ spring:
           filters:
             - StripPrefix=0
         
-        # ========================================
-        # Automobile Service - v1 API
-        # ========================================
-        - id: automobile-service
-          uri: lb://automobile-service
-          predicates:
-            - Path=/api/v1/public/**, /api/v1/secure/**
-          filters:
-            - StripPrefix=0
-
         # User Auth Service - Authentication endpoints (public for login/register/refresh as defined in service security config)
         - id: user-auth-service-auth
           uri: lb://user-auth-service
@@ -192,3 +182,4 @@ eureka:
 messaging:
   rabbitmq:
     exchange: ${RABBIT_EXCHANGE:gateway-exchange}
+    

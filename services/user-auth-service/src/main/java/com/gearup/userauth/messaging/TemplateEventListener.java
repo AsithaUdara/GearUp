@@ -3,7 +3,7 @@ package com.gearup.userauth.messaging;
 import com.gearup.shared.event.ServiceTemplateCreatedEvent;
 import com.gearup.shared.event.ServiceTemplateDeletedEvent;
 import com.gearup.shared.event.ServiceTemplateUpdatedEvent;
-import com.gearup.shared.messaging.RabbitMQConfig;
+import com.gearup.shared.messaging.RabbitMQConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -16,7 +16,7 @@ public class TemplateEventListener {
     private static final Logger log = LoggerFactory.getLogger(TemplateEventListener.class);
 
     @RabbitListener(
-        queues = RabbitMQConfig.TEMPLATE_QUEUE,
+        queues = RabbitMQConstants.TEMPLATE_QUEUE,
         containerFactory = "rabbitListenerContainerFactory"
     )
     public void onTemplateCreated(@Payload ServiceTemplateCreatedEvent event) {
@@ -25,7 +25,7 @@ public class TemplateEventListener {
     }
 
     @RabbitListener(
-        queues = RabbitMQConfig.TEMPLATE_QUEUE,
+        queues = RabbitMQConstants.TEMPLATE_QUEUE,
         containerFactory = "rabbitListenerContainerFactory"
     )
     public void onTemplateUpdated(@Payload ServiceTemplateUpdatedEvent event) {
@@ -33,7 +33,7 @@ public class TemplateEventListener {
     }
 
     @RabbitListener(
-        queues = RabbitMQConfig.TEMPLATE_QUEUE,
+        queues = RabbitMQConstants.TEMPLATE_QUEUE,
         containerFactory = "rabbitListenerContainerFactory"
     )
     public void onTemplateDeleted(@Payload ServiceTemplateDeletedEvent event) {
