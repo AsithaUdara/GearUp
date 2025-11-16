@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 /**
  * Listens for chatbot-related events and sends notifications
  */
-@Component
+//@Component  // Temporarily disabled - events handled by consolidated dispatcher
 @RequiredArgsConstructor
 @Slf4j
 public class ChatbotEventListener {
@@ -24,7 +24,25 @@ public class ChatbotEventListener {
     private final NotificationService notificationService;
 
     @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleChatSessionStarted(ChatSessionStartedEvent event) {
+    public void handleMessage(org.springframework.messaging.Message<?> message) {
+        Object payload = message.getPayload();
+
+        try {
+            if (payload instanceof ChatSessionStartedEvent) {
+                handleChatSessionStarted((ChatSessionStartedEvent) payload);
+            } else if (payload instanceof ChatSessionClosedEvent) {
+                handleChatSessionClosed((ChatSessionClosedEvent) payload);
+            } else if (payload instanceof CustomerEscalationRequestedEvent) {
+                handleCustomerEscalationRequested((CustomerEscalationRequestedEvent) payload);
+            }
+            // Silently ignore other event types
+        } catch (Exception e) {
+            log.error("Error processing chatbot event: {}", payload.getClass().getName(), e);
+            throw e;
+        }
+    }
+
+    private void handleChatSessionStarted(ChatSessionStartedEvent event) {
         try {
             log.info("🔔 Received ChatSessionStartedEvent: sessionId={}, customer={}",
                     event.getSessionId(), event.getCustomerName());
@@ -48,8 +66,7 @@ public class ChatbotEventListener {
         }
     }
 
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleChatSessionClosed(ChatSessionClosedEvent event) {
+    private void handleChatSessionClosed(ChatSessionClosedEvent event) {
         try {
             log.info("🔔 Received ChatSessionClosedEvent: sessionId={}, customer={}, resolved={}",
                     event.getSessionId(), event.getCustomerName(), event.isWasResolved());
@@ -81,8 +98,7 @@ public class ChatbotEventListener {
         }
     }
 
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleCustomerEscalationRequested(CustomerEscalationRequestedEvent event) {
+    private void handleCustomerEscalationRequested(CustomerEscalationRequestedEvent event) {
         try {
             log.info("🔔 Received CustomerEscalationRequestedEvent: sessionId={}, customer={}, urgency={}",
                     event.getSessionId(), event.getCustomerName(), event.getUrgencyLevel());

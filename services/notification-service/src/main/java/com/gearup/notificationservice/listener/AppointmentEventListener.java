@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 /**
  * Listens for appointment-related events and sends notifications
  */
-@Component
+//@Component  // Temporarily disabled - events handled by consolidated dispatcher
 @RequiredArgsConstructor
 @Slf4j
 public class AppointmentEventListener {
@@ -22,10 +22,30 @@ public class AppointmentEventListener {
     private final NotificationService notificationService;
     
     @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleAppointmentCreated(AppointmentCreatedEvent event) {
+    public void handleMessage(org.springframework.messaging.Message<?> message) {
+        Object payload = message.getPayload();
+
+        try {
+            if (payload instanceof AppointmentCreatedEvent) {
+                handleAppointmentCreated((AppointmentCreatedEvent) payload);
+            } else if (payload instanceof EmployeeAssignedToAppointmentEvent) {
+                handleEmployeeAssigned((EmployeeAssignedToAppointmentEvent) payload);
+            } else if (payload instanceof AppointmentApprovedEvent) {
+                handleAppointmentApproved((AppointmentApprovedEvent) payload);
+            } else if (payload instanceof AppointmentCancelledEvent) {
+                handleAppointmentCancelled((AppointmentCancelledEvent) payload);
+            }
+            // Silently ignore other event types
+        } catch (Exception e) {
+            log.error("Error processing appointment event: {}", payload.getClass().getName(), e);
+            throw e;
+        }
+    }
+
+    private void handleAppointmentCreated(AppointmentCreatedEvent event) {
         try {
             log.info("🔔 Received AppointmentCreatedEvent: bookingId={}", event.getBookingId());
-            
+
             // Notify customer
             NotificationRequest notification = new NotificationRequest();
             notification.setUserId(event.getCustomerId());
@@ -37,21 +57,20 @@ public class AppointmentEventListener {
             notification.setRelatedEntityId(event.getBookingId().toString());
             notification.setRelatedEntityType("BOOKING");
             notification.setDeliveryChannels("[\"WEB\", \"EMAIL\"]");
-            
+
             notificationService.createNotification(notification);
             log.info("✅ Sent appointment confirmation notification to customer: {}", event.getCustomerName());
-            
+
         } catch (Exception e) {
             log.error("❌ Failed to send appointment created notification for booking: {}", event.getBookingId(), e);
         }
     }
-    
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleEmployeeAssigned(EmployeeAssignedToAppointmentEvent event) {
+
+    private void handleEmployeeAssigned(EmployeeAssignedToAppointmentEvent event) {
         try {
             log.info("🔔 Received EmployeeAssignedToAppointmentEvent: bookingId={}, employeeId={}",
                     event.getBookingId(), event.getEmployeeId());
-            
+
             // Notify customer about employee assignment
             NotificationRequest customerNotification = new NotificationRequest();
             customerNotification.setUserId(event.getCustomerId());
@@ -63,9 +82,9 @@ public class AppointmentEventListener {
             customerNotification.setRelatedEntityId(event.getBookingId().toString());
             customerNotification.setRelatedEntityType("BOOKING");
             customerNotification.setDeliveryChannels("[\"WEB\", \"EMAIL\", \"SMS\"]");
-            
+
             notificationService.createNotification(customerNotification);
-            
+
             // Notify employee about new assignment
             NotificationRequest employeeNotification = new NotificationRequest();
             employeeNotification.setUserId(event.getEmployeeId().toString());
@@ -77,22 +96,21 @@ public class AppointmentEventListener {
             employeeNotification.setRelatedEntityId(event.getBookingId().toString());
             employeeNotification.setRelatedEntityType("BOOKING");
             employeeNotification.setDeliveryChannels("[\"WEB\", \"PUSH\"]");
-            
+
             notificationService.createNotification(employeeNotification);
-            
+
             log.info("✅ Sent employee assignment notifications - Customer: {}, Employee: {}",
                     event.getCustomerName(), event.getEmployeeName());
-            
+
         } catch (Exception e) {
             log.error("❌ Failed to send employee assignment notifications for booking: {}", event.getBookingId(), e);
         }
     }
-    
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleAppointmentApproved(AppointmentApprovedEvent event) {
+
+    private void handleAppointmentApproved(AppointmentApprovedEvent event) {
         try {
             log.info("🔔 Received AppointmentApprovedEvent: bookingId={}", event.getBookingId());
-            
+
             NotificationRequest notification = new NotificationRequest();
             notification.setUserId(event.getCustomerId());
             notification.setTitle("Appointment Approved");
@@ -103,20 +121,19 @@ public class AppointmentEventListener {
             notification.setRelatedEntityId(event.getBookingId().toString());
             notification.setRelatedEntityType("BOOKING");
             notification.setDeliveryChannels("[\"WEB\", \"EMAIL\"]");
-            
+
             notificationService.createNotification(notification);
             log.info("✅ Sent appointment approval notification to customer: {}", event.getCustomerName());
-            
+
         } catch (Exception e) {
             log.error("❌ Failed to send appointment approval notification for booking: {}", event.getBookingId(), e);
         }
     }
-    
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleAppointmentCancelled(AppointmentCancelledEvent event) {
+
+    private void handleAppointmentCancelled(AppointmentCancelledEvent event) {
         try {
             log.info("🔔 Received AppointmentCancelledEvent: bookingId={}", event.getBookingId());
-            
+
             NotificationRequest notification = new NotificationRequest();
             notification.setUserId(event.getCustomerId());
             notification.setTitle("Appointment Cancelled");
@@ -127,10 +144,10 @@ public class AppointmentEventListener {
             notification.setRelatedEntityId(event.getBookingId().toString());
             notification.setRelatedEntityType("BOOKING");
             notification.setDeliveryChannels("[\"WEB\", \"EMAIL\", \"SMS\"]");
-            
+
             notificationService.createNotification(notification);
             log.info("✅ Sent appointment cancellation notification to customer: {}", event.getCustomerName());
-            
+
         } catch (Exception e) {
             log.error("❌ Failed to send appointment cancellation notification for booking: {}", event.getBookingId(), e);
         }
