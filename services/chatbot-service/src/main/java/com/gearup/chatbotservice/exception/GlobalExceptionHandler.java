@@ -25,14 +25,13 @@ public class GlobalExceptionHandler {
             ChatSessionNotFoundException ex, WebRequest request) {
         log.error("Chat session not found: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error("Not Found")
-                .message(ex.getMessage())
-                .errorCode("CHAT_SESSION_NOT_FOUND")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.NOT_FOUND.value());
+        error.setError("Not Found");
+        error.setMessage(ex.getMessage());
+        error.setErrorCode("CHAT_SESSION_NOT_FOUND");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -42,14 +41,13 @@ public class GlobalExceptionHandler {
             OllamaServiceException ex, WebRequest request) {
         log.error("Ollama service error: {}", ex.getMessage(), ex);
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .error("Service Unavailable")
-                .message("AI service is temporarily unavailable. Please try again later.")
-                .errorCode("AI_SERVICE_ERROR")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value());
+        error.setError("Service Unavailable");
+        error.setMessage("AI service is temporarily unavailable. Please try again later.");
+        error.setErrorCode("AI_SERVICE_ERROR");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
@@ -68,15 +66,14 @@ public class GlobalExceptionHandler {
                         (existing, replacement) -> existing
                 ));
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Validation Failed")
-                .message("Input validation failed")
-                .errorCode("VALIDATION_ERROR")
-                .validationErrors(validationErrors)
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setError("Validation Failed");
+        error.setMessage("Input validation failed");
+        error.setErrorCode("VALIDATION_ERROR");
+        error.setValidationErrors(validationErrors);
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -86,14 +83,13 @@ public class GlobalExceptionHandler {
             Exception ex, WebRequest request) {
         log.error("Unexpected error in chatbot service: {}", ex.getMessage(), ex);
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("An unexpected error occurred processing your chat request")
-                .errorCode("CHATBOT_INTERNAL_ERROR")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.setError("Internal Server Error");
+        error.setMessage("An unexpected error occurred processing your chat request");
+        error.setErrorCode("CHATBOT_INTERNAL_ERROR");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

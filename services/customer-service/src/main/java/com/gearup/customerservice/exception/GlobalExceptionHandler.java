@@ -25,14 +25,13 @@ public class GlobalExceptionHandler {
             CustomerNotFoundException ex, WebRequest request) {
         log.error("Customer not found: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error("Not Found")
-                .message(ex.getMessage())
-                .errorCode("CUSTOMER_NOT_FOUND")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.NOT_FOUND.value());
+        error.setError("Not Found");
+        error.setMessage(ex.getMessage());
+        error.setErrorCode("CUSTOMER_NOT_FOUND");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -42,14 +41,13 @@ public class GlobalExceptionHandler {
             CustomerAlreadyExistsException ex, WebRequest request) {
         log.error("Customer already exists: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.CONFLICT.value())
-                .error("Conflict")
-                .message(ex.getMessage())
-                .errorCode("CUSTOMER_ALREADY_EXISTS")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.CONFLICT.value());
+        error.setError("Conflict");
+        error.setMessage(ex.getMessage());
+        error.setErrorCode("CUSTOMER_ALREADY_EXISTS");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
@@ -59,14 +57,13 @@ public class GlobalExceptionHandler {
             KycVerificationException ex, WebRequest request) {
         log.error("KYC verification error: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(ex.getMessage())
-                .errorCode("KYC_VERIFICATION_ERROR")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setError("Bad Request");
+        error.setMessage(ex.getMessage());
+        error.setErrorCode("KYC_VERIFICATION_ERROR");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -85,15 +82,14 @@ public class GlobalExceptionHandler {
                         (existing, replacement) -> existing
                 ));
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Validation Failed")
-                .message("Input validation failed")
-                .errorCode("VALIDATION_ERROR")
-                .validationErrors(validationErrors)
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setError("Validation Failed");
+        error.setMessage("Input validation failed");
+        error.setErrorCode("VALIDATION_ERROR");
+        error.setValidationErrors(validationErrors);
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -103,14 +99,13 @@ public class GlobalExceptionHandler {
             Exception ex, WebRequest request) {
         log.error("Unexpected error in customer service: {}", ex.getMessage(), ex);
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("An unexpected error occurred processing customer data")
-                .errorCode("CUSTOMER_INTERNAL_ERROR")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.setError("Internal Server Error");
+        error.setMessage("An unexpected error occurred processing customer data");
+        error.setErrorCode("CUSTOMER_INTERNAL_ERROR");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

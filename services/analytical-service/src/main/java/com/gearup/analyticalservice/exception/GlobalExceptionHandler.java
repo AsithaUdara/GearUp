@@ -23,14 +23,13 @@ public class GlobalExceptionHandler {
             AnalyticsException ex, WebRequest request) {
         log.error("Analytics error: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(ex.getStatus().value())
-                .error(ex.getStatus().getReasonPhrase())
-                .message(ex.getMessage())
-                .errorCode(ex.getErrorCode())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(ex.getStatus().value());
+        error.setError(ex.getStatus().getReasonPhrase());
+        error.setMessage(ex.getMessage());
+        error.setErrorCode(ex.getErrorCode());
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(ex.getStatus()).body(error);
     }
@@ -40,14 +39,13 @@ public class GlobalExceptionHandler {
             DataAggregationException ex, WebRequest request) {
         log.error("Data aggregation error: {}", ex.getMessage(), ex);
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Data Aggregation Failed")
-                .message(ex.getMessage())
-                .errorCode("DATA_AGGREGATION_ERROR")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.setError("Data Aggregation Failed");
+        error.setMessage(ex.getMessage());
+        error.setErrorCode("DATA_AGGREGATION_ERROR");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
@@ -57,14 +55,13 @@ public class GlobalExceptionHandler {
             Exception ex, WebRequest request) {
         log.error("Unexpected error in analytical service: {}", ex.getMessage(), ex);
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("An unexpected error occurred processing analytics")
-                .errorCode("ANALYTICS_INTERNAL_ERROR")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.setError("Internal Server Error");
+        error.setMessage("An unexpected error occurred processing analytics");
+        error.setErrorCode("ANALYTICS_INTERNAL_ERROR");
+        error.setPath(request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
