@@ -8,6 +8,7 @@ Write-Host ""
 
 # Database configurations for all services
 $databases = @(
+    @{Name="Appointment Service"; DB="as_appointment_service"},
     @{Name="Automobile Service"; DB="as_automobile_service"},
     @{Name="Notification Service"; DB="as_notification_service"},
     @{Name="User Auth Service"; DB="as_user_auth_service"},
@@ -15,6 +16,7 @@ $databases = @(
     @{Name="Template Service"; DB="as_template_service"},
     @{Name="Vehicle Service"; DB="as_vehicle_service"},
     @{Name="Customer Service"; DB="as_customer_service"},
+    @{Name="Modification Service"; DB="as_modification_service"},
     @{Name="Payment Service"; DB="as_payment_service"},
     @{Name="Parts Service"; DB="as_parts_service"},
     @{Name="Analytical Service"; DB="as_analytical_service"},
