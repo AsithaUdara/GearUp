@@ -50,162 +50,110 @@ EOSQL
 
 # Setup template service database
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_template_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_template_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_template_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_template_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_template_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_template_service;
 EOSQL
 
-# Setup pgvector extension and permissions for automobile service
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_automobile_service" <<-EOSQL
-    -- Create pgvector extension
-    CREATE EXTENSION IF NOT EXISTS vector;
-
-    -- Grant schema permissions
-    GRANT ALL ON SCHEMA public TO svc_automobile_service;
-    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_automobile_service;
-    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_automobile_service;
-
-    -- Grant default privileges for future objects
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_automobile_service;
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_automobile_service;
-EOSQL
-
-# Setup notification service database
+# Notification
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_notification_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_notification_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_notification_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_notification_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_notification_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_notification_service;
 EOSQL
 
-# Setup user auth service database
+# User auth
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_user_auth_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_user_auth_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_user_auth_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_user_auth_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_user_auth_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_user_auth_service;
 EOSQL
 
-# Setup chatbot service database with pgvector
+# Chatbot with vector
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_chatbot_service" <<-EOSQL
-    -- Create pgvector extension for vector embeddings
     CREATE EXTENSION IF NOT EXISTS vector;
 
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_chatbot_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_chatbot_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_chatbot_service;
-
-    -- Grant default privileges for future objects
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_chatbot_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_chatbot_service;
 EOSQL
 
-# Setup customer service database
+# Customer
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_customer_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_customer_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_customer_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_customer_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_customer_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_customer_service;
 EOSQL
 
-# Setup vehicle service database
+# Vehicle
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_vehicle_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_vehicle_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_vehicle_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_vehicle_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_vehicle_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_vehicle_service;
 EOSQL
 
-# Setup analytical service database
+# Analytical
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_analytical_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_analytical_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_analytical_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_analytical_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_analytical_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_analytical_service;
 EOSQL
 
-# Setup tracking service database
+# Tracking
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_tracking_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_tracking_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_tracking_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_tracking_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_tracking_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_tracking_service;
 EOSQL
 
-# Setup payment service database
+# Payment
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_payment_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_payment_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_payment_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_payment_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_payment_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_payment_service;
 EOSQL
 
-# Setup parts service database
+# Parts
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_parts_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_parts_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_parts_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_parts_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_parts_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_parts_service;
 EOSQL
 
-# Setup appointment service database
+# Appointment
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_appointment_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_appointment_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_appointment_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_appointment_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_appointment_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_appointment_service;
 EOSQL
 
-# Setup modification service database
+# Modification
 psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_modification_service" <<-EOSQL
-    -- Grant schema permissions
     GRANT ALL ON SCHEMA public TO svc_modification_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_modification_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_modification_service;
-
-    -- Grant default privileges
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_modification_service;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_modification_service;
 EOSQL

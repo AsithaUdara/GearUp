@@ -29,4 +29,11 @@ public class NotificationResponse {
     private LocalDateTime sentAt; // When notification was sent
     private LocalDateTime createdAt;
     private LocalDateTime readAt;
+    
+    /**
+     * Helper method to get default delivery channels as JSON string
+     */
+    public static String getDefaultDeliveryChannels() {
+        return "[\"WEB\", \"IN_APP\"]";
+    }
 }
