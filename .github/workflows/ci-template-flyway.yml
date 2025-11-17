@@ -10,16 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     if: false # Skip this job - template-service is a placeholder only
     env:
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
       FLYWAY_URL: jdbc:postgresql://localhost:5432/as_template_service
       FLYWAY_USER: svc_template_service
-      FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
     services:
       postgres:
         image: postgres:15
         env:
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
         ports:
           - 5432:5432
         options: >-
@@ -59,14 +59,14 @@ jobs:
             pg_isready -h localhost -p 5432 -U postgres && break || sleep 2
           done
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
 
       - name: Create DB and user for template-service
         run: |
           psql -h localhost -U postgres -c "CREATE USER svc_template_service WITH PASSWORD '${{ env.POSTGRES_PASSWORD }}';" || true
           psql -h localhost -U postgres -c "CREATE DATABASE as_template_service OWNER svc_template_service;" || true
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
 
       - name: Run Flyway migrate for template-service
         run: |
