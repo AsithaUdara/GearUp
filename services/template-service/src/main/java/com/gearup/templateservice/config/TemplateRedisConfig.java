@@ -28,20 +28,24 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 public class TemplateRedisConfig {
 
     /**
-     * Configure Object Mapper for Redis serialization
+     * Create a dedicated ObjectMapper for Redis serialization only.
+     * This is NOT exposed as a Spring-managed ObjectMapper bean because
+     * that would replace the application's primary ObjectMapper and
+     * enable polymorphic typing for all HTTP JSON deserialization,
+     * causing Jackson to require an '@class' discriminator on incoming
+     * request bodies.
      */
-    @Bean
-    public ObjectMapper redisObjectMapper() {
+    private ObjectMapper createRedisObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        
-        // Enable polymorphic type handling for security
+
+        // Enable polymorphic type handling for Redis values where heterogeneous types may be stored
         BasicPolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType(Object.class)
                 .build();
-        
+
         mapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
-        
+
         return mapper;
     }
 
@@ -49,7 +53,8 @@ public class TemplateRedisConfig {
      * Redis Cache Configuration with TTL
      */
     @Bean
-    public RedisCacheConfiguration cacheConfiguration(ObjectMapper redisObjectMapper) {
+    public RedisCacheConfiguration cacheConfiguration() {
+        ObjectMapper redisObjectMapper = createRedisObjectMapper();
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper);
         
         return RedisCacheConfiguration.defaultCacheConfig()
