@@ -23,8 +23,23 @@ public class AdminServiceTemplateController {
     private final ServiceTemplateService service;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ServiceTemplateDto>>> list(@RequestParam(value = "activeOnly", defaultValue = "false") boolean activeOnly) {
-        return ResponseEntity.ok(ApiResponse.success(service.findAll(activeOnly)));
+    public ResponseEntity<ApiResponse<com.gearup.templateservice.dto.PageResult<ServiceTemplateDto>>> list(
+            @RequestParam(value = "activeOnly", defaultValue = "false") boolean activeOnly,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        var pageable = org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.max(1, size), org.springframework.data.domain.Sort.by("createdAt").descending());
+        var pageResult = service.findAll(activeOnly, pageable);
+
+        var dtoPage = com.gearup.templateservice.dto.PageResult.<ServiceTemplateDto>builder()
+                .items(pageResult.getContent())
+                .totalElements(pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .page(pageResult.getNumber())
+                .size(pageResult.getSize())
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(dtoPage));
     }
 
     @GetMapping("/{id}")
