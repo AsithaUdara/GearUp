@@ -14,18 +14,42 @@ import org.springframework.stereotype.Component;
 /**
  * Listens for modification-related events and sends notifications
  */
-@Component
+//@Component  // Temporarily disabled - events handled by consolidated dispatcher
 @RequiredArgsConstructor
 @Slf4j
 public class ModificationEventListener {
-    
+
     private final NotificationService notificationService;
-    
+
     @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleModificationRequestCreated(ModificationRequestCreatedEvent event) {
+    public void handleMessage(org.springframework.messaging.Message<?> message) {
+        Object payload = message.getPayload();
+
+        try {
+            if (payload instanceof ModificationRequestCreatedEvent) {
+                handleModificationRequestCreated((ModificationRequestCreatedEvent) payload);
+            } else if (payload instanceof ModificationApprovedEvent) {
+                handleModificationApproved((ModificationApprovedEvent) payload);
+            } else if (payload instanceof ModificationRejectedEvent) {
+                handleModificationRejected((ModificationRejectedEvent) payload);
+            } else if (payload instanceof ModificationCompletedEvent) {
+                handleModificationCompleted((ModificationCompletedEvent) payload);
+            } else if (payload instanceof ModificationCancelledEvent) {
+                handleModificationCancelled((ModificationCancelledEvent) payload);
+            } else if (payload instanceof ModificationRequestStatusChangedEvent) {
+                handleModificationStatusChanged((ModificationRequestStatusChangedEvent) payload);
+            }
+            // Silently ignore other event types
+        } catch (Exception e) {
+            log.error("Error processing modification event: {}", payload.getClass().getName(), e);
+            throw e;
+        }
+    }
+
+    private void handleModificationRequestCreated(ModificationRequestCreatedEvent event) {
         try {
             log.info("🔔 Received ModificationRequestCreatedEvent: requestId={}", event.getModificationId());
-            
+
             NotificationRequest notification = new NotificationRequest();
             notification.setUserId(event.getCustomerId());
             notification.setTitle("Modification Request Received");
@@ -36,21 +60,20 @@ public class ModificationEventListener {
             notification.setRelatedEntityId(event.getModificationId().toString());
             notification.setRelatedEntityType("MODIFICATION_REQUEST");
             notification.setDeliveryChannels("[\"WEB\", \"EMAIL\"]");
-            
+
             notificationService.createNotification(notification);
             log.info("✅ Sent modification request created notification to customer: {}", event.getCustomerName());
-            
+
         } catch (Exception e) {
-            log.error("❌ Failed to send modification request created notification for request: {}", 
+            log.error("❌ Failed to send modification request created notification for request: {}",
                 event.getModificationId(), e);
         }
     }
-    
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleModificationApproved(ModificationApprovedEvent event) {
+
+    private void handleModificationApproved(ModificationApprovedEvent event) {
         try {
             log.info("🔔 Received ModificationApprovedEvent: requestId={}", event.getModificationId());
-            
+
             NotificationRequest notification = new NotificationRequest();
             notification.setUserId(event.getCustomerId());
             notification.setTitle("Modification Request Approved");
@@ -61,21 +84,20 @@ public class ModificationEventListener {
             notification.setRelatedEntityId(event.getModificationId().toString());
             notification.setRelatedEntityType("MODIFICATION_REQUEST");
             notification.setDeliveryChannels("[\"WEB\", \"EMAIL\", \"SMS\"]");
-            
+
             notificationService.createNotification(notification);
             log.info("✅ Sent modification approved notification to customer: {}", event.getCustomerName());
-            
+
         } catch (Exception e) {
-            log.error("❌ Failed to send modification approved notification for request: {}", 
+            log.error("❌ Failed to send modification approved notification for request: {}",
                 event.getModificationId(), e);
         }
     }
-    
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleModificationRejected(ModificationRejectedEvent event) {
+
+    private void handleModificationRejected(ModificationRejectedEvent event) {
         try {
             log.info("🔔 Received ModificationRejectedEvent: requestId={}", event.getModificationId());
-            
+
             NotificationRequest notification = new NotificationRequest();
             notification.setUserId(event.getCustomerId());
             notification.setTitle("Modification Request Update");
@@ -86,21 +108,20 @@ public class ModificationEventListener {
             notification.setRelatedEntityId(event.getModificationId().toString());
             notification.setRelatedEntityType("MODIFICATION_REQUEST");
             notification.setDeliveryChannels("[\"WEB\", \"EMAIL\"]");
-            
+
             notificationService.createNotification(notification);
             log.info("✅ Sent modification rejected notification to customer: {}", event.getCustomerName());
-            
+
         } catch (Exception e) {
-            log.error("❌ Failed to send modification rejected notification for request: {}", 
+            log.error("❌ Failed to send modification rejected notification for request: {}",
                 event.getModificationId(), e);
         }
     }
-    
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleModificationCompleted(ModificationCompletedEvent event) {
+
+    private void handleModificationCompleted(ModificationCompletedEvent event) {
         try {
             log.info("🔔 Received ModificationCompletedEvent: requestId={}", event.getModificationId());
-            
+
             NotificationRequest notification = new NotificationRequest();
             notification.setUserId(event.getCustomerId());
             notification.setTitle("Modification Completed");
@@ -111,21 +132,20 @@ public class ModificationEventListener {
             notification.setRelatedEntityId(event.getModificationId().toString());
             notification.setRelatedEntityType("MODIFICATION_REQUEST");
             notification.setDeliveryChannels("[\"WEB\", \"EMAIL\", \"SMS\"]");
-            
+
             notificationService.createNotification(notification);
             log.info("✅ Sent modification completed notification to customer: {}", event.getCustomerName());
-            
+
         } catch (Exception e) {
-            log.error("❌ Failed to send modification completed notification for request: {}", 
+            log.error("❌ Failed to send modification completed notification for request: {}",
                 event.getModificationId(), e);
         }
     }
-    
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleModificationCancelled(ModificationCancelledEvent event) {
+
+    private void handleModificationCancelled(ModificationCancelledEvent event) {
         try {
             log.info("🔔 Received ModificationCancelledEvent: requestId={}", event.getModificationId());
-            
+
             NotificationRequest notification = new NotificationRequest();
             notification.setUserId(event.getCustomerId());
             notification.setTitle("Modification Request Cancelled");
@@ -136,28 +156,27 @@ public class ModificationEventListener {
             notification.setRelatedEntityId(event.getModificationId().toString());
             notification.setRelatedEntityType("MODIFICATION_REQUEST");
             notification.setDeliveryChannels("[\"WEB\", \"EMAIL\"]");
-            
+
             notificationService.createNotification(notification);
             log.info("✅ Sent modification cancelled notification to customer: {}", event.getCustomerName());
-            
+
         } catch (Exception e) {
-            log.error("❌ Failed to send modification cancelled notification for request: {}", 
+            log.error("❌ Failed to send modification cancelled notification for request: {}",
                 event.getModificationId(), e);
         }
     }
-    
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handleModificationStatusChanged(ModificationRequestStatusChangedEvent event) {
+
+    private void handleModificationStatusChanged(ModificationRequestStatusChangedEvent event) {
         try {
-            log.info("🔔 Received ModificationRequestStatusChangedEvent: requestId={}, status: {} -> {}", 
+            log.info("🔔 Received ModificationRequestStatusChangedEvent: requestId={}, status: {} -> {}",
                 event.getModificationId(), event.getOldStatus(), event.getNewStatus());
-            
+
             // Only send notification for status changes that aren't covered by other specific events
-            if (!"APPROVED".equals(event.getNewStatus()) && 
-                !"REJECTED".equals(event.getNewStatus()) && 
+            if (!"APPROVED".equals(event.getNewStatus()) &&
+                !"REJECTED".equals(event.getNewStatus()) &&
                 !"COMPLETED".equals(event.getNewStatus()) &&
                 !"CANCELLED".equals(event.getNewStatus())) {
-                
+
                 NotificationRequest notification = new NotificationRequest();
                 notification.setUserId(event.getCustomerId());
                 notification.setTitle("Modification Request Status Update");
@@ -168,13 +187,13 @@ public class ModificationEventListener {
                 notification.setRelatedEntityId(event.getModificationId().toString());
                 notification.setRelatedEntityType("MODIFICATION_REQUEST");
                 notification.setDeliveryChannels("[\"WEB\"]");
-                
+
                 notificationService.createNotification(notification);
                 log.info("✅ Sent modification status changed notification to customer: {}", event.getCustomerName());
             }
-            
+
         } catch (Exception e) {
-            log.error("❌ Failed to send modification status changed notification for request: {}", 
+            log.error("❌ Failed to send modification status changed notification for request: {}",
                 event.getModificationId(), e);
         }
     }
