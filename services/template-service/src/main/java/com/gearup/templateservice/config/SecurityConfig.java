@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .anyRequest().permitAll()
             )
             // Trust gateway forwarded headers (X-User-Id) rather than verifying Firebase again
+            // Trust gateway forwarded headers (X-User-Id) rather than verifying Firebase again
             .addFilterBefore(new GatewayForwardedAuthFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

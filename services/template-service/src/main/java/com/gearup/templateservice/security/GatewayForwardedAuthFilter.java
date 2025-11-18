@@ -19,6 +19,12 @@ import java.io.IOException;
  */
 public class GatewayForwardedAuthFilter extends OncePerRequestFilter {
 
+    // No-arg constructor; this filter trusts forwarded headers only and does not perform any
+    // development fallback. Authorities are granted only when `X-User-Roles` is present.
+    public GatewayForwardedAuthFilter() {
+        // No-op constructor: behavior is controlled by presence of forwarded headers only.
+    }
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
@@ -52,6 +58,7 @@ public class GatewayForwardedAuthFilter extends OncePerRequestFilter {
                         }
                     }
                 }
+                // No fallback: if no rolesHeader present, do not add authorities here.
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(uid, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
