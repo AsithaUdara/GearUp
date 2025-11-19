@@ -6,6 +6,8 @@ import com.gearup.dto.CreatePartsRequestDTO;
 import com.gearup.dto.PartsRequestDTO;
 import com.gearup.events.PartsRequestEvent;
 import com.gearup.repository.PartsRequestRepository;
+import com.gearup.shared.messaging.EventPublisher;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,13 +38,19 @@ public class PartsRequestService {
         PartsRequest saved = partsRequestRepository.save(partsRequest);
         
         // Publish event
-        eventPublisher.publishPartsRequestEvent(PartsRequestEvent.created(
+        PartsRequestEvent createdEvent = PartsRequestEvent.created(
             saved.getId(),
             saved.getRequestId(),
             saved.getMaterial(),
             saved.getQuantity(),
             userId
-        ));
+        );
+        eventPublisher.publish(
+            "parts.exchange",
+            "parts.request.created",
+            createdEvent,
+            UUID.randomUUID().toString()
+        );
         
         return mapToDTO(saved);
     }
@@ -68,12 +76,18 @@ public class PartsRequestService {
         PartsRequest updated = partsRequestRepository.save(request);
         
         // Publish event
-        eventPublisher.publishPartsRequestEvent(PartsRequestEvent.statusChanged(
+        PartsRequestEvent statusEvent = PartsRequestEvent.statusChanged(
             updated.getId(),
             updated.getRequestId(),
             newStatus,
             approverId
-        ));
+        );
+        eventPublisher.publish(
+            "parts.exchange",
+            "parts.request.status.changed",
+            statusEvent,
+            UUID.randomUUID().toString()
+        );
         
         return mapToDTO(updated);
     }

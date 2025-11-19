@@ -1,14 +1,31 @@
-## Multi-stage Dockerfile — modification-service
-FROM eclipse-temurin:21-jre-alpine
+# Lightweight runtime-only image
+FROM eclipse-temurin:21-jre-alpine AS runtime
+
+# Create a secure non-root user
 RUN addgroup -S app && adduser -S app -G app
+
+# Set working directory
 WORKDIR /app
 
 # Copy the prebuilt service jar (CI will build the module before the Docker build)
-COPY services/modification-service/target/*.jar /app/app.jar
+COPY services/modification-service/target/modification-service-*.jar app.jar
+
+# Set ownership and permissions
 RUN chown -R app:app /app
 USER app
-EXPOSE 8085
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s CMD wget -qO- --no-check-certificate http://localhost:8085/actuator/health || exit 1
-LABEL maintainer="ops@company.com" \
-    org.opencontainers.image.version="0.1.0"
+
+# Expose service port
+EXPOSE 8089
+
+# Health check to monitor service health
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8089/actuator/health || exit 1
+
+# Metadata labels for observability
+LABEL maintainer="ops@gearup.com" \
+    org.opencontainers.image.version="1.0.0" \
+    org.opencontainers.image.title="GearUp Modification Service" \
+    org.opencontainers.image.description="Handles modifications and updates within the GearUp platform"
+
+# Start the application
 ENTRYPOINT ["java","-jar","/app/app.jar"]

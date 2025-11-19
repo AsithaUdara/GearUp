@@ -4,11 +4,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gearup.shared.event.tracking.*;
+import com.gearup.shared.messaging.EventPublisher;
+import com.gearup.shared.messaging.RabbitMQConstants;
 import com.gearup.trackingservice.dto.request.CreateTaskRequest;
 import com.gearup.trackingservice.dto.request.UpdateTaskRequest;
 import com.gearup.trackingservice.dto.response.TaskListResponse;
@@ -26,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class TaskService {
     
     private final WorkTaskRepository workTaskRepository;
+    private final EventPublisher eventPublisher;
     
     @Transactional
     public TaskResponse createTask(CreateTaskRequest request) {
@@ -49,6 +54,29 @@ public class TaskService {
             
         WorkTask saved = workTaskRepository.save(task);
         
+        // 📢 Publish TaskCreatedEvent
+        try {
+            TaskCreatedEvent event = new TaskCreatedEvent(
+                UUID.randomUUID().toString(),
+                taskId,
+                request.getAssigneeId(),
+                request.getServiceType(),
+                request.getCustomer(),
+                request.getVehicle(),
+                request.getEstimatedDuration(),
+                LocalDateTime.now(),
+                request.getNotes()
+            );
+            eventPublisher.publish(
+                RabbitMQConstants.TRACKING_EXCHANGE,
+                RabbitMQConstants.TASK_CREATED_KEY,
+                event
+            );
+            log.info("📢 Published TaskCreatedEvent for task: {}", taskId);
+        } catch (Exception e) {
+            log.error("❌ Failed to publish TaskCreatedEvent for task: {}", taskId, e);
+        }
+        
         log.info("Task created successfully: {}", taskId);
         
         return mapToResponse(saved);
@@ -60,6 +88,9 @@ public class TaskService {
         
         WorkTask task = workTaskRepository.findByTaskId(taskId)
             .orElseThrow(() -> new TaskNotFoundException("Task not found: " + taskId));
+        
+        WorkTask.TaskStatus oldStatus = task.getStatus();
+        Integer oldProgressStep = task.getProgressStep();
             
         task.setStatus(request.getStatus());
         task.setProgressStep(request.getProgressStep());
@@ -70,6 +101,69 @@ public class TaskService {
             task.setCompletedAt(LocalDateTime.now());
             task.setProgressStep(5);
             log.info("Task marked as completed: {}", taskId);
+            
+            // 📢 Publish TaskCompletedEvent
+            try {
+                TaskCompletedEvent event = new TaskCompletedEvent(
+                    UUID.randomUUID().toString(),
+                    taskId,
+                    task.getAssigneeId(),
+                    task.getServiceType(),
+                    task.getAssigneeId()  // completedBy
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.TRACKING_EXCHANGE,
+                    RabbitMQConstants.TASK_COMPLETED_KEY,
+                    event
+                );
+                log.info("📢 Published TaskCompletedEvent for task: {}", taskId);
+            } catch (Exception e) {
+                log.error("❌ Failed to publish TaskCompletedEvent for task: {}", taskId, e);
+            }
+        } else if (oldStatus == WorkTask.TaskStatus.pending && request.getStatus() == WorkTask.TaskStatus.in_progress) {
+            // 📢 Publish TaskStartedEvent
+            try {
+                TaskStartedEvent event = new TaskStartedEvent(
+                    UUID.randomUUID().toString(),
+                    taskId,
+                    task.getAssigneeId(),
+                    LocalDateTime.now(),
+                    task.getServiceType(),
+                    task.getCustomer(),
+                    request.getProgressStep()
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.TRACKING_EXCHANGE,
+                    RabbitMQConstants.TASK_STARTED_KEY,
+                    event
+                );
+                log.info("📢 Published TaskStartedEvent for task: {}", taskId);
+            } catch (Exception e) {
+                log.error("❌ Failed to publish TaskStartedEvent for task: {}", taskId, e);
+            }
+        } else if (oldProgressStep != null && !oldProgressStep.equals(request.getProgressStep())) {
+            // 📢 Publish TaskProgressUpdatedEvent
+            try {
+                Integer percentComplete = (request.getProgressStep() * 100) / 5;  // Calculate percentage
+                TaskProgressUpdatedEvent event = new TaskProgressUpdatedEvent(
+                    UUID.randomUUID().toString(),
+                    taskId,
+                    task.getAssigneeId(),
+                    request.getProgressStep(),
+                    request.getStatus().name(),
+                    LocalDateTime.now(),
+                    request.getNotes(),
+                    percentComplete
+                );
+                eventPublisher.publish(
+                    RabbitMQConstants.TRACKING_EXCHANGE,
+                    RabbitMQConstants.TASK_PROGRESS_UPDATED_KEY,
+                    event
+                );
+                log.info("📢 Published TaskProgressUpdatedEvent for task: {}", taskId);
+            } catch (Exception e) {
+                log.error("❌ Failed to publish TaskProgressUpdatedEvent for task: {}", taskId, e);
+            }
         }
         
         WorkTask updated = workTaskRepository.save(task);

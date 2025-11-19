@@ -8,8 +8,8 @@ spring:
               enabled: true
   data:
     redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
 # Expose only minimal actuator endpoints in prod
 management:

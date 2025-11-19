@@ -13,9 +13,9 @@ spring:
 
   # Database Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5434/as_user_auth_service
-    username: ${POSTGRES_USERNAME:postgres}
-    password: ${POSTGRES_PASSWORD:postgres}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/as_user_auth_service}
+    username: ${SPRING_DATASOURCE_USERNAME:svc_user_auth_service}
+    password: ${SPRING_DATASOURCE_PASSWORD:auth_svc_pass_2024}
     driver-class-name: org.postgresql.Driver
 
   # JPA Configuration
@@ -38,16 +38,20 @@ spring:
   # Redis Configuration
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
       timeout: 60000
 
   # RabbitMQ Configuration
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: ${RABBITMQ_USERNAME:automobile_admin}
-    password: ${RABBITMQ_PASSWORD:123456}
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        missing-queues-fatal: false
 
 server:
   port: 8082

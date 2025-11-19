@@ -30,13 +30,15 @@ public class AdminUserService {
     private final RoleService roleService;
     private final AuditService auditService;
     private final UserService userService;
+    private final OTPService otpService;
 
     public AdminUserService(UserRepository userRepository, RoleService roleService,
-                           AuditService auditService, UserService userService) {
+                           AuditService auditService, UserService userService, OTPService otpService) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.auditService = auditService;
         this.userService = userService;
+        this.otpService = otpService;
     }
 
     /**
@@ -115,11 +117,10 @@ public class AdminUserService {
     }
 
     /**
-     * Create new employee/admin account
-     * Creates a "pending" account that will be activated when user signs up with Firebase
+     * Create new employee/admin account with OTP for password setup
      */
     @Transactional
-    public UserResponse createEmployee(AdminCreateEmployeeRequest request, String creatorFirebaseUid) {
+    public OTPResponse createEmployee(AdminCreateEmployeeRequest request, String creatorFirebaseUid) {
         // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("email", request.getEmail());
@@ -128,9 +129,8 @@ public class AdminUserService {
         // Get role
         Role role = roleService.getRoleByName(request.getRole());
 
-        // Create user with temporary Firebase UID (will be updated on first login)
+        // Create user without Firebase UID (will be created during password setup)
         User user = new User();
-        user.setFirebaseUid("pending_" + UUID.randomUUID().toString()); // Temporary UID
         user.setEmail(request.getEmail());
         user.setDisplayName(request.getName());
         
@@ -142,21 +142,83 @@ public class AdminUserService {
         user.setPhoneNumber(request.getPhoneNumber());
         user.setAccountStatus(User.AccountStatus.ACTIVE);
         user.setEmailVerified(false);
-        user.setRoles(Collections.singleton(role));
+    // Use a modifiable set for Hibernate to manage relationships properly
+    user.setRoles(new java.util.HashSet<>(java.util.Collections.singleton(role)));
         user.setCreatedBy(creatorFirebaseUid);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
+        
+        // Set password setup flags
+        user.setIsPasswordSet(false);
 
         User savedUser = userRepository.save(user);
-        logger.info("Employee account created by admin: {}", savedUser.getEmail());
 
-        // Log audit
+        // Ensure a Firebase user exists immediately so admin can see UID in Firebase Console
+        try {
+            com.google.firebase.auth.FirebaseAuth firebaseAuth = com.google.firebase.auth.FirebaseAuth.getInstance();
+            com.google.firebase.auth.UserRecord firebaseUser;
+            try {
+                // Try to find existing Firebase user by email
+                firebaseUser = firebaseAuth.getUserByEmail(savedUser.getEmail());
+            } catch (com.google.firebase.auth.FirebaseAuthException notFound) {
+                firebaseUser = null;
+            }
+
+            if (firebaseUser == null) {
+                // Create with a strong temporary password and keep disabled until password setup
+                String tempPassword = generateTempPassword();
+                com.google.firebase.auth.UserRecord.CreateRequest createReq = new com.google.firebase.auth.UserRecord.CreateRequest()
+                        .setEmail(savedUser.getEmail())
+                        .setDisplayName(savedUser.getDisplayName())
+                        .setPassword(tempPassword)
+                        .setEmailVerified(false)
+                        .setDisabled(true);
+                firebaseUser = firebaseAuth.createUser(createReq);
+                logger.info("Created Firebase user for {} with UID {} (disabled until password setup)", savedUser.getEmail(), firebaseUser.getUid());
+            }
+
+            // Save UID on local user if not set
+            if (savedUser.getFirebaseUid() == null || savedUser.getFirebaseUid().isBlank()) {
+                savedUser.setFirebaseUid(firebaseUser.getUid());
+                userRepository.save(savedUser);
+            }
+        } catch (Exception e) {
+            // Non-fatal: continue flow even if Firebase creation fails, but log clearly
+            logger.warn("Failed to ensure Firebase user for {}: {}", savedUser.getEmail(), e.getMessage());
+        }
+        
+        // Generate OTP for password setup
+        String otp = otpService.generateOtp();
+        otpService.setOtpForUser(savedUser, otp);
+        
+        logger.info("Employee account created by admin: {} with OTP for password setup", savedUser.getEmail());
+
+        // Log audit - temporarily commented out to avoid issues
+        /*
         User creator = userService.getUserByFirebaseUid(creatorFirebaseUid);
         auditService.logUserAction(savedUser.getId(), "EMPLOYEE_CREATED", 
                 "Employee account created by admin: " + creator.getEmail(), 
                 null, userService.userToMap(savedUser));
+        */
 
-        return UserResponse.fromUser(savedUser);
+        // Return OTP response
+        return OTPResponse.builder()
+                .otp(otp)
+                .email(savedUser.getEmail())
+                .expiresAt(LocalDateTime.now().plusHours(24))
+                .message("Employee created successfully. Share this OTP with the user to set up their password.")
+                .build();
+    }
+
+    private String generateTempPassword() {
+        // 20-char random alphanumeric temp password
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+        StringBuilder sb = new StringBuilder();
+        java.util.Random rnd = new java.util.Random();
+        for (int i = 0; i < 20; i++) {
+            sb.append(chars.charAt(rnd.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 
     /**
@@ -195,9 +257,17 @@ public class AdminUserService {
             user.setDisplayName(displayName.trim());
         }
 
-        // Update role
-        Role newRole = roleService.getRoleByName(request.getRole());
-        user.setRoles(Collections.singleton(newRole));
+        // Update role (case-insensitive) and guard null
+        Role newRole = null;
+        try {
+            newRole = roleService.getRoleByName(request.getRole());
+        } catch (ResourceNotFoundException rnfe) {
+            throw new BusinessException("Role not found: " + request.getRole());
+        }
+        if (newRole == null) {
+            throw new BusinessException("Role resolution failed for: " + request.getRole());
+        }
+        user.setRoles(new HashSet<>(Collections.singleton(newRole)));
 
         // Update status
         User.AccountStatus newStatus = request.getStatus().equalsIgnoreCase("Active") ? 
@@ -207,6 +277,14 @@ public class AdminUserService {
         user.setUpdatedBy(adminFirebaseUid);
         user.setUpdatedAt(LocalDateTime.now());
 
+        // Ensure names are not blank to satisfy NOT NULL constraints
+        if (user.getFirstName() == null || user.getFirstName().isBlank()) {
+            user.setFirstName("User");
+        }
+        if (user.getLastName() == null) {
+            user.setLastName("");
+        }
+        logger.debug("Persisting user update id={} email={} role={} status={}", user.getId(), user.getEmail(), newRole.getName(), user.getAccountStatus());
         User updatedUser = userRepository.save(user);
         logger.info("User {} updated by admin: role={}, status={}", userId, request.getRole(), request.getStatus());
 
@@ -217,6 +295,42 @@ public class AdminUserService {
                 oldValues, userService.userToMap(updatedUser));
 
         return UserResponse.fromUser(updatedUser);
+    }
+
+    /**
+     * Update user's name using a single full-name field. Splits into first/last.
+     * Rules:
+     * - If one token => firstName=token, lastName="".
+     * - If multiple tokens => firstName=first token, lastName=rest joined with spaces.
+     */
+    @Transactional
+    public UserResponse updateUserName(Long userId, AdminUpdateUserNameRequest request, String adminFirebaseUid) {
+        User user = userService.getUserById(userId);
+
+        String trimmed = request.getName() != null ? request.getName().trim() : "";
+        if (trimmed.isEmpty()) {
+            throw new BusinessException("Name cannot be blank");
+        }
+        String[] parts = trimmed.split("\\s+");
+        String first = parts[0];
+        String last = parts.length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length)) : "";
+
+        Map<String, Object> oldValues = userService.userToMap(user);
+        user.setFirstName(first);
+        user.setLastName(last);
+        user.setDisplayName(null); // ensure list response uses normalized first/last
+        user.setUpdatedBy(adminFirebaseUid);
+        user.setUpdatedAt(java.time.LocalDateTime.now());
+
+        User saved = userRepository.save(user);
+
+        // audit
+        User admin = userService.getUserByFirebaseUid(adminFirebaseUid);
+        auditService.logUserAction(saved.getId(), "USER_NAME_UPDATED",
+                "User name updated by admin: " + admin.getEmail(),
+                oldValues, userService.userToMap(saved));
+
+        return UserResponse.fromUser(saved);
     }
 
     /**

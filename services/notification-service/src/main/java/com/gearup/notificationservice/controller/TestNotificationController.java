@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gearup.shared.event.InvoiceCreatedEvent;
-import com.gearup.shared.event.InvoicePaidEvent;
-import com.gearup.shared.event.TaskAssignedEvent;
-import com.gearup.shared.messaging.RabbitMQConfig;
+import com.gearup.shared.event.payment.InvoiceCreatedEvent;
+import com.gearup.shared.event.payment.InvoicePaidEvent;
+import com.gearup.shared.event.tracking.TaskAssignedEvent;
+import com.gearup.shared.messaging.RabbitMQConstants;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +44,8 @@ public class TestNotificationController {
         );
         
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.INVOICE_CREATED_KEY,
+                RabbitMQConstants.NOTIFICATION_EXCHANGE,
+                RabbitMQConstants.INVOICE_CREATED_KEY,
                 event
         );
         
@@ -63,9 +63,8 @@ public class TestNotificationController {
         // Construct shared TaskAssignedEvent directly (canonical event lives in shared module)
         TaskAssignedEvent event = new TaskAssignedEvent(
                 UUID.randomUUID().toString(),
-                userId,
-                LocalDateTime.now(),
                 "TASK-" + System.currentTimeMillis(),
+                userId,
                 "Complete Q4 Report",
                 "Manager",
                 "2024-12-31",
@@ -73,8 +72,8 @@ public class TestNotificationController {
         );
         
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.TASK_ASSIGNED_KEY,
+                RabbitMQConstants.NOTIFICATION_EXCHANGE,
+                RabbitMQConstants.TASK_ASSIGNED_KEY,
                 event
         );
         
@@ -100,8 +99,8 @@ public class TestNotificationController {
         );
         
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.INVOICE_PAID_KEY,
+                RabbitMQConstants.NOTIFICATION_EXCHANGE,
+                RabbitMQConstants.INVOICE_PAID_KEY,
                 event
         );
         

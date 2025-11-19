@@ -50,7 +50,7 @@ Top-level modules and important folders:
 - `config-server/` — Spring Cloud Config server; serves the microservice YAML configuration from `config-repo/`.
 - `config-repo/` — YAML config files for each service (used by Config Server in local setup).
 - `deployment/` — Docker Compose and Kubernetes manifests for local and cloud deployment. `deployment/docker/docker-compose.yml` is the primary compose file.
-- `services/` — Each microservice lives in `services/<service-name>/` (e.g., `automobile-service`, `notification-service`, `user-auth-service`). Each has its own `pom.xml` and `Dockerfile`.
+- `services/` — Each microservice lives in `services/<service-name>/` (e.g., `notification-service`, `user-auth-service`, `vehicle-service`). Each has its own `pom.xml` and `Dockerfile`.
 - `shared-libs/` — Shared Java libraries used across services (e.g., `shared-security-lib`, `shared-event-models`).
 - `scripts/` — helpful scripts (deploy, test-db-connections, health-check, verify-deployment)
 

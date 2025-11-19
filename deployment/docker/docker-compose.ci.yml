@@ -6,9 +6,6 @@ services:
   api-gateway:
     volumes: []
 
-  automobile-service:
-    volumes: []
-
   notification-service:
     volumes: []
 
