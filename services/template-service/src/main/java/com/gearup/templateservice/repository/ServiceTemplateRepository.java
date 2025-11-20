@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface ServiceTemplateRepository extends JpaRepository<ServiceTemplate, Long> {
     List<ServiceTemplate> findByActiveTrue();
+    org.springframework.data.domain.Page<ServiceTemplate> findByActiveTrue(org.springframework.data.domain.Pageable pageable);
     boolean existsByNameIgnoreCase(String name);
 }
