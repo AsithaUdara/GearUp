@@ -16,19 +16,19 @@ jobs:
           POSTGRES_DB: as_notification
           POSTGRES_USER: svc_notification
           # Use the repository secret directly for the service container password
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U svc_notification -d as_notification" 
+          --health-cmd "pg_isready -U svc_notification -d as_notification"
           --health-interval 10s --health-timeout 5s --health-retries 5
 
     env:
       # Expose commonly-used values to steps via environment variables
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
       FLYWAY_URL: jdbc:postgresql://localhost:5432/as_notification
       FLYWAY_USER: svc_notification
-      FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
             pg_isready -h localhost -p 5432 -U $FLYWAY_USER && break || sleep 2;
           done
         env:
-          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
 
       - name: Run Flyway migrations (notification-service)
         run: |

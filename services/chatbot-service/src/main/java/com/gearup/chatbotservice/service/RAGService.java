@@ -80,7 +80,7 @@ public class RAGService {
             
         } catch (Exception e) {
             log.error("Error processing RAG query", e);
-            return "I apologize, but I encountered an error processing your request. Please try again.";
+            return "Sorry, I encountered an error. Please try again or contact support.";
         }
     }
     
