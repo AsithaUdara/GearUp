@@ -128,7 +128,7 @@ curl http://localhost:8080/actuator/health
 
 # Test routes
 curl http://localhost:8080/api/notification-service/actuator/health
-curl http://localhost:8080/api/automobile-service/actuator/health
+curl http://localhost:9090/api/template-service/actuator/health
 
 # Authentication test (should fail without token)
 curl http://localhost:8080/api/notification-service/secure/endpoint

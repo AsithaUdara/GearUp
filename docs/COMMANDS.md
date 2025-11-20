@@ -12,7 +12,7 @@
 .\mvnw clean install
 
 # Build specific service only
-.\mvnw clean install -pl services/automobile-service -DskipTests
+.\mvnw clean install -pl services/template-service -DskipTests
 ```
 
 **Status**: ✅ TESTED - All 12 modules build successfully in ~21 seconds
@@ -64,7 +64,7 @@ docker-compose down -v --rmi all
 docker-compose logs -f
 
 # Specific service (live tail)
-docker-compose logs -f automobile-service
+docker-compose logs -f template-service
 
 # Last 100 lines
 docker-compose logs --tail=100 notification-service
@@ -74,7 +74,7 @@ docker-compose logs --since=10m
 
 # Directly from Docker
 docker logs gearup-postgres
-docker logs gearup-automobile-service --tail 50
+docker logs gearup-template-service --tail 50
 ```
 
 **Status**: ✅ TESTED - All logging commands work
@@ -115,16 +115,16 @@ docker exec -it gearup-postgres psql -U postgres -c "\l"
 docker exec -it gearup-postgres psql -U postgres -d as_automobile_service
 
 # Check tables in database
-docker exec -it gearup-postgres psql -U postgres -d as_automobile_service -c "\dt"
+docker exec -it gearup-postgres psql -U postgres -d as_template_service -c "\dt"
 
 # Check Flyway migration history
-docker exec -it gearup-postgres psql -U postgres -d as_automobile_service -c "SELECT * FROM flyway_schema_history;"
+docker exec -it gearup-postgres psql -U postgres -d as_template_service -c "SELECT * FROM flyway_schema_history;"
 
 # Exit psql
 \q
 ```
 
-**Status**: ✅ TESTED - All 4 databases (automobile, notification, user-auth, template) created successfully
+**Status**: ✅ TESTED - All databases (notification, user-auth, template, etc.) created successfully
 
 ---
 
@@ -135,7 +135,7 @@ docker exec -it gearup-postgres psql -U postgres -d as_automobile_service -c "SE
 .\mvnw test
 
 # Run tests for specific module
-.\mvnw test -pl services/automobile-service
+.\mvnw test -pl services/template-service
 
 # Run tests with code coverage
 .\mvnw clean test jacoco:report
@@ -155,7 +155,7 @@ docker exec -it gearup-postgres psql -U postgres -d as_automobile_service -c "SE
 # No manual command needed for normal operation
 
 # To manually run Flyway migration (advanced)
-cd services\automobile-service
+cd services\template-service
 ..\..\mvnw flyway:migrate
 
 # To check Flyway status
@@ -174,14 +174,14 @@ cd services\automobile-service
 ```powershell
 # Restart single service
 cd deployment\docker
-docker-compose restart automobile-service
+docker-compose restart template-service
 
 # Rebuild and restart single service
-docker-compose up -d --build automobile-service
+docker-compose up -d --build template-service
 
 # Stop then start service
-docker-compose stop automobile-service
-docker-compose start automobile-service
+docker-compose stop template-service
+docker-compose start template-service
 ```
 
 **Status**: ✅ TESTED
@@ -268,10 +268,10 @@ netstat -ano | findstr :8080
 docker inspect --format='{{.State.Health.Status}}' gearup-postgres
 
 # Enter running container
-docker exec -it gearup-automobile-service /bin/sh
+docker exec -it gearup-template-service /bin/sh
 
 # Check environment variables in container
-docker exec gearup-automobile-service env
+docker exec gearup-template-service env
 
 # View real-time resource usage
 docker stats

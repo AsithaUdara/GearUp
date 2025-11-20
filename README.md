@@ -519,16 +519,16 @@ curl http://localhost:8080/api/your-service/your-endpoint
 
 ### Business Services
 
-#### services/automobile-service/
+#### services/template-service/
 
-**Purpose**: Vehicle management and tracking
+**Purpose**: Template microservice for cloning
 
-- **Port**: 8082
-- **Database**: `as_automobile_service`
-- **Tables**: `vehicles`
+- **Port**: 8085
+- **Database**: `as_template_service`
+- **Tables**: `templates`
 - **Features**:
-  - Vehicle CRUD operations
-  - Vehicle tracking
+  - Template CRUD operations
+  - Event publishing
   - PostgreSQL persistence
 
 #### services/notification-service/
@@ -566,9 +566,9 @@ Each service has its own isolated PostgreSQL database:
 
 ```
 PostgreSQL Server (Port 5432)
-├── as_automobile_service (user: auto_user)
-├── as_notification_service (user: notification_user)
-└── as_user_auth_service (user: auth_user)
+├── as_template_service (user: svc_template_service)
+├── as_notification_service (user: svc_notification_service)
+└── as_user_auth_service (user: svc_user_auth_service)
 ```
 
 ### Adding a Database for Your Service
@@ -653,9 +653,9 @@ Copy-Item .env.example .env
 2. **Configure database credentials** in `.env`:
 
 ```
-AUTOMOBILE_DB_URL=jdbc:postgresql://gearup-postgres:5432/as_automobile_service
-AUTOMOBILE_DB_USER=auto_user
-AUTOMOBILE_DB_PASSWORD=auto_secure_pass_2024
+TEMPLATE_DB_URL=jdbc:postgresql://gearup-postgres:5432/as_template_service
+TEMPLATE_DB_USER=svc_template_service
+TEMPLATE_DB_PASSWORD=template_secure_pass_2024
 # ... (similar for notification and user-auth services)
 ```
 
@@ -681,10 +681,10 @@ This project uses **Flyway** for version-controlled, automated database migratio
 
 ```
 services/
-├── automobile-service/
+├── template-service/
 │   └── src/main/resources/db/migration/
 │       ├── V1__initial_schema.sql
-│       └── V2__add_vehicle_tracking.sql
+│       └── V2__add_template_tracking.sql
 ├── notification-service/
 │   └── src/main/resources/db/migration/
 │       └── V1__initial_schema.sql
@@ -699,20 +699,19 @@ services/
 # Run migrations for all services
 make flyway-all              # Unix/macOS
 # Or manually via Maven:
-.\mvnw.cmd flyway:migrate -pl services/automobile-service
+.\mvnw.cmd flyway:migrate -pl services/template-service
 .\mvnw.cmd flyway:migrate -pl services/notification-service
 .\mvnw.cmd flyway:migrate -pl services/user-auth-service
-.\mvnw.cmd flyway:migrate -pl services/template-service
 
 # Run migrations for specific service
-make flyway-automobile       # Unix/macOS
-.\mvnw.cmd -pl services/automobile-service flyway:migrate
+make flyway-template         # Unix/macOS
+.\mvnw.cmd -pl services/template-service flyway:migrate
 
 # Check migration status
-.\mvnw.cmd -pl services/automobile-service flyway:info
+.\mvnw.cmd -pl services/template-service flyway:info
 
 # Validate migrations
-.\mvnw.cmd -pl services/automobile-service flyway:validate
+.\mvnw.cmd -pl services/template-service flyway:validate
 ```
 
 #### Creating New Migrations
@@ -758,7 +757,7 @@ spring.flyway.out-of-order=false
 
 1. **PostgreSQL container starts** with `deployment/postgres/init-db.sql`
 
-   - Creates databases: `as_automobile_service`, `as_notification_service`, `as_user_auth_service`, `as_template_service`
+   - Creates databases: `as_template_service`, `as_notification_service`, `as_user_auth_service`, `as_appointment_service`, `as_modification_service`, and more
    - Creates service users with credentials
    - Grants permissions
 
@@ -821,7 +820,7 @@ curl -H "Authorization: Bearer YOUR_FIREBASE_TOKEN" http://localhost:8080/api/se
 
 # Test via API Gateway routing
 curl http://localhost:8080/api/notification-service/health
-curl http://localhost:8080/api/automobile-service/vehicles
+curl http://localhost:9090/api/template-service/templates
 ```
 
 ## 🛠️ Development Workflow
@@ -930,9 +929,9 @@ FIREBASE_CREDENTIALS_HOST_PATH=C:\\path\\to\\firebase-service-account.json
 FIREBASE_CREDENTIALS_CONTAINER_PATH=/run/secrets/firebase-service-account.json
 
 # PostgreSQL Databases
-AUTOMOBILE_DB_URL=jdbc:postgresql://db:5432/as_automobile_service
-AUTOMOBILE_DB_USER=auto_user
-AUTOMOBILE_DB_PASSWORD=auto_secure_pass_123
+TEMPLATE_DB_URL=jdbc:postgresql://db:5432/as_template_service
+TEMPLATE_DB_USER=svc_template_service
+TEMPLATE_DB_PASSWORD=template_secure_pass_123
 
 NOTIFICATION_DB_URL=jdbc:postgresql://db:5432/as_notification_service
 NOTIFICATION_DB_USER=notification_user
@@ -1019,7 +1018,7 @@ spring:
 SPRING_DATASOURCE_URL
 SPRING_DATASOURCE_USERNAME
 SPRING_DATASOURCE_PASSWORD
-APP_FIREBASE_CONFIGURATION_FILE  # For automobile & user-auth services
+APP_FIREBASE_CONFIGURATION_FILE  # For user-auth service
 ```
 
 **⚠️ Important**: Never commit `.env` or `firebase-service-account.json` to version control!
@@ -1107,7 +1106,7 @@ Monitor all registered services:
 .\scripts\test-db-connections.ps1
 
 # Check PostgreSQL directly
-docker exec -it gearup-postgres psql -U auto_user -d as_automobile_service
+docker exec -it gearup-postgres psql -U svc_template_service -d as_template_service
 ```
 
 ## 🐛 Troubleshooting
@@ -1165,7 +1164,7 @@ GearUp-backend/
 ├── config-server/                    # Config Server
 │   └── src/main/java/                # Config server setup
 ├── services/                         # Business services
-│   ├── automobile-service/           # Vehicle management
+│   ├── template-service/             # Template microservice
 │   ├── notification-service/         # Notifications
 │   ├── template-service/             # Service template
 │   └── user-auth-service/            # Authentication
@@ -1205,7 +1204,7 @@ GearUp-backend/
 - **Config Server**: http://localhost:8888
 - **API Gateway**: http://localhost:8080
 - **Notification Service**: http://localhost:8081/actuator/health
-- **Automobile Service**: http://localhost:8082/actuator/health
+- **Template Service**: http://localhost:8085/actuator/health
 
 ## 📖 Additional Documentation
 

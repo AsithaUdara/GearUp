@@ -13,7 +13,7 @@
 
 | Service              | Database                  | User                       | Port |
 | -------------------- | ------------------------- | -------------------------- | ---- |
-| Automobile Service   | `as_automobile_service`   | `svc_automobile_service`   | 8080 |
+| Template Service     | `as_template_service`     | `svc_template_service`     | 8085 |
 | Notification Service | `as_notification_service` | `svc_notification_service` | 8081 |
 | User Auth Service    | `as_user_auth_service`    | `svc_user_auth_service`    | 8082 |
 
@@ -45,7 +45,7 @@ Options:
 docker exec -it gearup-postgres psql -U postgres
 
 # Specific database
-docker exec -it gearup-postgres psql -U postgres -d as_automobile_service
+docker exec -it gearup-postgres psql -U postgres -d as_template_service
 
 # List databases
 docker exec -it gearup-postgres psql -U postgres -c "\l"

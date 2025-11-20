@@ -14,7 +14,7 @@ Following the **Database-per-Service** pattern:
 
 | Service      | Database                  | User                       | Password (Env Var)         |
 | ------------ | ------------------------- | -------------------------- | -------------------------- |
-| Automobile   | `as_automobile_service`   | `svc_automobile_service`   | `AUTOMOBILE_DB_PASSWORD`   |
+| Template     | `as_template_service`     | `svc_template_service`     | `TEMPLATE_DB_PASSWORD`     |
 | Notification | `as_notification_service` | `svc_notification_service` | `NOTIFICATION_DB_PASSWORD` |
 | User Auth    | `as_user_auth_service`    | `svc_user_auth_service`    | `USER_AUTH_DB_PASSWORD`    |
 
@@ -57,9 +57,9 @@ The `init-db.sql` script:
 Services connect using environment variables from `.env`:
 
 ```properties
-AUTOMOBILE_DB_URL=jdbc:postgresql://db:5432/as_automobile_service
-AUTOMOBILE_DB_USER=svc_automobile_service
-AUTOMOBILE_DB_PASSWORD=auto_svc_pass_2024
+TEMPLATE_DB_URL=jdbc:postgresql://db:5432/as_template_service
+TEMPLATE_DB_USER=svc_template_service
+TEMPLATE_DB_PASSWORD=template_svc_pass_2024
 ```
 
 See root `POSTGRES_SETUP.md` for complete setup instructions.

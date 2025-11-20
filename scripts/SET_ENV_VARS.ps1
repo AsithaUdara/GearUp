@@ -24,7 +24,7 @@ Write-Host ""
 $env:POSTGRES_PASSWORD = "Niro"  # 👈 CHANGE THIS to your PostgreSQL password
 
 # RabbitMQ Credentials
-$env:RABBITMQ_USERNAME = "automobile_admin"
+$env:RABBITMQ_USERNAME = "admin"
 $env:RABBITMQ_PASSWORD = "123456"  # 👈 CHANGE THIS to your RabbitMQ password
 
 # Optional: Spring Boot specific overrides

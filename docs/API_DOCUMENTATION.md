@@ -59,17 +59,17 @@ Authorization: Bearer <firebase-jwt-token>
 
 **Public Access**: ✅ All endpoints are public - no authentication required
 
-### 4. Automobile Service (`http://localhost:8080`)
+### 4. Template Service (`http://localhost:8085`)
 
-**Purpose**: Vehicle listing and management
+**Purpose**: Template microservice for cloning
 
 **Endpoints**:
 
-- `GET /api/automobiles` - List all vehicles (PROTECTED)
-- `GET /api/automobiles/{id}` - Get vehicle details (PROTECTED)
-- `POST /api/automobiles` - Create vehicle listing (PROTECTED)
-- `PUT /api/automobiles/{id}` - Update vehicle (PROTECTED)
-- `DELETE /api/automobiles/{id}` - Delete vehicle (PROTECTED)
+- `GET /api/templates` - List all templates (PROTECTED)
+- `GET /api/templates/{id}` - Get template details (PROTECTED)
+- `POST /api/templates` - Create template (PROTECTED)
+- `PUT /api/templates/{id}` - Update template (PROTECTED)
+- `DELETE /api/templates/{id}` - Delete template (PROTECTED)
 
 **Public Access**: ❌ Requires Firebase authentication
 
@@ -121,10 +121,10 @@ curl -X POST http://localhost:9090/api/chat/message \
 }
 ```
 
-### Automobiles - List Vehicles (PROTECTED)
+### Templates - List Templates (PROTECTED)
 
 ```bash
-curl -X GET http://localhost:9090/api/automobiles \
+curl -X GET http://localhost:9090/api/templates \
   -H "Authorization: Bearer <your-firebase-token>"
 ```
 
@@ -132,13 +132,12 @@ curl -X GET http://localhost:9090/api/automobiles \
 
 ```json
 {
-  "vehicles": [
+  "templates": [
     {
       "id": "1",
-      "make": "Toyota",
-      "model": "Camry",
-      "year": 2024,
-      "price": 28000
+      "name": "Sample Template",
+      "description": "A sample template",
+      "createdAt": "2025-11-18T10:00:00Z"
     }
   ]
 }

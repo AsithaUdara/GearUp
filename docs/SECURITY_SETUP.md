@@ -43,7 +43,7 @@ $env:POSTGRES_USERNAME = "postgres"
 $env:POSTGRES_PASSWORD = "your_password"
 
 # RabbitMQ
-$env:RABBITMQ_USERNAME = "automobile_admin"
+$env:RABBITMQ_USERNAME = "admin"
 $env:RABBITMQ_PASSWORD = "your_password"
 
 # Start services
@@ -63,7 +63,7 @@ $env:RABBITMQ_PASSWORD = "your_password"
    ```properties
    POSTGRES_USERNAME=postgres
    POSTGRES_PASSWORD=your_actual_password
-   RABBITMQ_USERNAME=automobile_admin
+   RABBITMQ_USERNAME=admin
    RABBITMQ_PASSWORD=your_actual_password
    ```
 
@@ -82,7 +82,7 @@ $env:RABBITMQ_PASSWORD = "your_password"
 | `POSTGRES_PASSWORD` | PostgreSQL database password | `postgres`         | `MySecurePass123` |
 | `POSTGRES_USERNAME` | PostgreSQL username          | `postgres`         | `postgres`        |
 | `RABBITMQ_PASSWORD` | RabbitMQ password            | `123456`           | `RabbitSecure456` |
-| `RABBITMQ_USERNAME` | RabbitMQ username            | `automobile_admin` | `admin`           |
+| `RABBITMQ_USERNAME` | RabbitMQ username            | `admin`            | `admin`           |
 
 ### **Optional Variables**
 

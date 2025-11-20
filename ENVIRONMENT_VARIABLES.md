@@ -13,7 +13,7 @@ This document outlines the standardized environment variables used across the Ge
 - **Standardized**: `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
 - **Removed**: `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` (from service configs)
 - **Kept in .env**: `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` (for Docker container setup only)
-- Each service now has its own dedicated database credentials (e.g., `AUTOMOBILE_DB_URL`, `AUTOMOBILE_DB_USER`, `AUTOMOBILE_DB_PASSWORD`)
+- Each service now has its own dedicated database credentials (e.g., `TEMPLATE_DB_URL`, `TEMPLATE_DB_USER`, `TEMPLATE_DB_PASSWORD`)
 
 #### Redis Variables
 
@@ -50,7 +50,6 @@ Each microservice now has its own set of database variables following this patte
 
 **Services with database configuration:**
 
-- automobile-service
 - notification-service
 - user-auth-service
 - chatbot-service
@@ -62,6 +61,7 @@ Each microservice now has its own set of database variables following this patte
 - parts-service
 - appointment-service
 - modification-service
+- template-service
 
 ### 3. **Docker vs Local Development**
 
@@ -98,7 +98,7 @@ Each microservice now has its own set of database variables following this patte
 
 #### Service Configuration Files (config-repo)
 
-- `automobile-service.yml`
+- `template-service.yml`
 - `chatbot-service.yml`
 - All other service YML files standardized
 
@@ -166,12 +166,12 @@ CONFIG_REPO_URI=file:/app/config-repo  # Docker path
 
 ### Service-Specific Databases
 
-Each service follows this pattern (example for automobile-service):
+Each service follows this pattern (example for template-service):
 
 ```bash
-AUTOMOBILE_DB_URL=jdbc:postgresql://db:5432/as_automobile_service
-AUTOMOBILE_DB_USER=svc_automobile_service
-AUTOMOBILE_DB_PASSWORD=change_me_auto_password
+TEMPLATE_DB_URL=jdbc:postgresql://db:5432/as_template_service
+TEMPLATE_DB_USER=svc_template_service
+TEMPLATE_DB_PASSWORD=change_me_template_password
 ```
 
 ### Firebase

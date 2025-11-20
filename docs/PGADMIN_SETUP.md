@@ -72,10 +72,9 @@ Once connected, you'll see these databases:
 
 | Database Name             | Service              | User                       | Password                 |
 | ------------------------- | -------------------- | -------------------------- | ------------------------ |
-| `as_automobile_service`   | Automobile Service   | `svc_automobile_service`   | `auto_svc_pass_2024`     |
+| `as_template_service`     | Template Service     | `svc_template_service`     | `template_svc_pass_2024` |
 | `as_notification_service` | Notification Service | `svc_notification_service` | `notif_svc_pass_2024`    |
 | `as_user_auth_service`    | User Auth Service    | `svc_user_auth_service`    | `auth_svc_pass_2024`     |
-| `as_template_service`     | Template Service     | `svc_template_service`     | `template_svc_pass_2024` |
 
 ## Viewing Tables and Data
 
@@ -113,17 +112,17 @@ WHERE table_schema = 'public'
 ORDER BY table_name;
 ```
 
-### Automobile Service Queries
+### Template Service Queries
 
 ```sql
--- Connect to as_automobile_service
+-- Connect to as_template_service
 
--- View all vehicles
-SELECT * FROM vehicles ORDER BY created_at DESC LIMIT 10;
+-- View all templates
+SELECT * FROM templates ORDER BY created_at DESC LIMIT 10;
 
--- Count vehicles by status
+-- Count templates by status
 SELECT status, COUNT(*)
-FROM vehicles
+FROM templates
 GROUP BY status;
 ```
 
@@ -214,7 +213,7 @@ WHERE us.is_active = true;
 2. If `flyway_schema_history` doesn't exist, migrations haven't run yet
 3. Start the Spring Boot service or run migrations manually:
    ```powershell
-   .\mvnw.cmd -pl services/automobile-service flyway:migrate
+   .\mvnw.cmd -pl services/template-service flyway:migrate
    ```
 
 ## Security Notes
