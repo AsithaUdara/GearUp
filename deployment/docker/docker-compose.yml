@@ -76,6 +76,7 @@ services:
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
     volumes:
       - C:\SecureKeys\gear-up\firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+     
     depends_on:
       service-discovery:
         condition: service_healthy
