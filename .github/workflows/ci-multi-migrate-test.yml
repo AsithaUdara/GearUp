@@ -10,14 +10,14 @@ jobs:
   migrate-and-test-all:
     runs-on: ubuntu-latest
     env:
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
           # Pass the CI job password into the service container
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
         ports:
           - 5432:5432
         options: >-
@@ -71,7 +71,7 @@ jobs:
             sleep 2
           done
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
 
       - name: Discover services with Flyway migrations
         id: discover
@@ -114,7 +114,7 @@ jobs:
             echo "✓ Database $dbname created successfully"
           done < services.txt
         env:
-          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD || 'postgres123' }}
 
       - name: Run Flyway migrations for each service
         run: |
@@ -151,16 +151,16 @@ jobs:
             echo "✓ Permissions granted for $svc"
           done < services.txt
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
 
       - name: Run integration tests across modules
         env:
           APP_FIREBASE_CONFIGURATION_FILE: ""
           FIREBASE_CONFIG_PATH: ""
           # Pass the same postgres password used for database setup
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
           # Also pass as SPRING_DATASOURCE_PASSWORD for backward compatibility with test configs
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres123' }}
           # Disable Flyway during tests since migrations already ran
           FLYWAY_ENABLED: false
         run: |

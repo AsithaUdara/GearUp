@@ -61,6 +61,12 @@ ollama:
   embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
   timeout: 120000
   max-retries: 3
+  parameters:
+    temperature: 0.3            # Lower = more focused responses (0.0-1.0)
+    top-p: 0.7                  # Nucleus sampling threshold
+    top-k: 20                   # Vocabulary selection limit
+    max-tokens: 200             # Maximum response length in tokens
+    repeat-penalty: 1.2         # Penalty for repetition
 
 # Chatbot Configuration
 chatbot:
@@ -73,6 +79,10 @@ chatbot:
     timeout-hours: 24
   knowledge-base:
     auto-load: true
+  response:
+    max-length: 500             # Maximum response length in characters
+    max-sentences: 5            # Maximum number of sentences
+    remove-filler-words: true   # Remove unnecessary filler phrases
 
 # WebSocket Configuration
 websocket:

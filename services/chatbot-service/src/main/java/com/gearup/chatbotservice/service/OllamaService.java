@@ -20,27 +20,37 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class OllamaService {
-    
+
     @Qualifier("ollamaWebClient")
     private final WebClient ollamaWebClient;
-    
+
     private final OllamaProperties ollamaProperties;
+
+    private final ResponseProcessorService responseProcessor;
     
     private static final String SYSTEM_PROMPT = """
-        You are a helpful assistant for GearUp Auto Service, a vehicle maintenance and repair service platform.
-        
-        Your capabilities include:
-        - Answering questions about services, pricing, and scheduling
-        - Helping users book appointments
-        - Checking booking status
-        - Providing information about vehicle maintenance
-        
-        Guidelines:
-        - Be concise and friendly
-        - Answer based on the provided context
-        - If you don't know something, politely say so
-        - For booking requests, gather: service type, date, time, vehicle details
-        - Always be professional and helpful
+        You are GearUp's AI assistant for vehicle maintenance bookings.
+
+        CRITICAL RULES - Follow these strictly:
+        1. Keep ALL responses under 3 sentences
+        2. Be direct - answer first, explain only if essential
+        3. Use simple, everyday language - no technical jargon
+        4. Never repeat information the user already provided
+        5. For booking: ask ONLY for missing details (service, date, time, vehicle)
+
+        Response Pattern:
+        - Start with the direct answer
+        - Add 1-2 key details if needed
+        - End with a question ONLY if you need specific information
+
+        Examples of GOOD responses:
+        "Oil changes cost LKR 5,000-8,000. Book online or call us."
+        "We're open Mon-Sat, 8am-6pm. Sunday closed."
+        "I need your preferred date and vehicle model to book the service."
+
+        Examples of BAD responses:
+        "Thank you for asking about our services. I'd be happy to help..."
+        "Let me provide you with comprehensive information about..."
         """;
     
     /**
@@ -67,16 +77,12 @@ public class OllamaService {
                         Map.of("role", "user", "content", userPrompt)
                     ),
                     "stream", false,
-                    "options", Map.of(
-                        "temperature", 0.7,
-                        "top_p", 0.9,
-                        "top_k", 40
-                    )
+                    "options", buildLLMOptions()
                 ))
                 .retrieve()
                 .bodyToMono(OllamaResponse.class)
                 .retryWhen(Retry.backoff(ollamaProperties.getMaxRetries(), Duration.ofSeconds(2))
-                    .doBeforeRetry(signal -> 
+                    .doBeforeRetry(signal ->
                         log.warn("Retrying Ollama request, attempt: {}", signal.totalRetries() + 1)))
                 .block();
             
@@ -85,9 +91,15 @@ public class OllamaService {
             }
             
             String generatedResponse = response.getMessage().getContent();
-            log.debug("Successfully generated response with length: {}", generatedResponse.length());
-            
-            return generatedResponse;
+            log.debug("Raw response length: {} chars", generatedResponse.length());
+
+            // Post-process response to ensure conciseness
+            String processedResponse = responseProcessor.processResponse(generatedResponse);
+            log.debug("Processed response: {} chars, {} words",
+                processedResponse.length(),
+                responseProcessor.countWords(processedResponse));
+
+            return processedResponse;
             
         } catch (Exception e) {
             log.error("Failed to generate response from Ollama", e);
@@ -130,18 +142,18 @@ public class OllamaService {
                     "model", ollamaProperties.getChatModel(),
                     "messages", messages,
                     "stream", false,
-                    "options", Map.of(
-                        "temperature", 0.7,
-                        "top_p", 0.9
-                    )
+                    "options", buildLLMOptions()
                 ))
                 .retrieve()
                 .bodyToMono(OllamaResponse.class)
                 .block();
-            
-            return response != null && response.getMessage() != null 
-                ? response.getMessage().getContent()
-                : getFallbackResponse();
+
+            if (response != null && response.getMessage() != null) {
+                String rawResponse = response.getMessage().getContent();
+                return responseProcessor.processResponse(rawResponse);
+            }
+
+            return getFallbackResponse();
                 
         } catch (Exception e) {
             log.error("Failed to generate response with history", e);
@@ -156,24 +168,35 @@ public class OllamaService {
         if (context == null || context.isBlank()) {
             return userQuery;
         }
-        
+
         return String.format("""
-            Context from knowledge base:
-            %s
-            
-            User Question: %s
-            
-            Please answer the question based on the context above. If the context doesn't contain the answer, 
-            you can provide general information but mention that specific details aren't available.
+            Context: %s
+
+            Question: %s
+
+            Answer concisely using the context. If information is missing, say so briefly.
             """, context, userQuery);
+    }
+
+    /**
+     * Build LLM options map from configuration
+     */
+    private Map<String, Object> buildLLMOptions() {
+        var params = ollamaProperties.getParameters();
+        return Map.of(
+            "temperature", params.getTemperature(),
+            "top_p", params.getTopP(),
+            "top_k", params.getTopK(),
+            "num_predict", params.getMaxTokens(),
+            "repeat_penalty", params.getRepeatPenalty()
+        );
     }
     
     /**
      * Get fallback response when LLM fails
      */
     private String getFallbackResponse() {
-        return "I apologize, but I'm having trouble processing your request right now. " +
-               "Please try again in a moment, or contact our support team for immediate assistance.";
+        return "Sorry, I'm having technical difficulties. Please try again or call our support team.";
     }
     
     /**
