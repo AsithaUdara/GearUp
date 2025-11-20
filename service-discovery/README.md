@@ -240,11 +240,11 @@ Registered Services:
     ├─ api-gateway
     ├─ config-server
     ├─ notification-service
-    ├─ automobile-service
+
     └─ your-service
 
 Service Communication:
-notification-service → Eureka → automobile-service
+notification-service → Eureka → user-auth-service
 (Uses service name, Eureka resolves to IP:Port)
 ```
 

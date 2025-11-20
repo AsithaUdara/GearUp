@@ -21,9 +21,9 @@ services:
   parts-db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=parts_db
-      - POSTGRES_USER=parts_user
-      - POSTGRES_PASSWORD=parts_password
+      - SPRING_DATASOURCE_DB=parts_db
+      - SPRING_DATASOURCE_USERNAME=parts_user
+      - SPRING_DATASOURCE_PASSWORD=parts_password
     ports:
       - "5434:5432"
     volumes:

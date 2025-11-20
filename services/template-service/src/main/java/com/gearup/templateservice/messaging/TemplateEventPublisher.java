@@ -3,7 +3,7 @@ package com.gearup.templateservice.messaging;
 import com.gearup.shared.event.ServiceTemplateCreatedEvent;
 import com.gearup.shared.event.ServiceTemplateDeletedEvent;
 import com.gearup.shared.event.ServiceTemplateUpdatedEvent;
-import com.gearup.shared.messaging.RabbitMQConfig;
+import com.gearup.shared.messaging.RabbitMQConstants;
 import com.gearup.templateservice.dto.ServiceTemplateDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class TemplateEventPublisher {
                 template.getPrice(),
                 template.getDurationMinutes(), template.getActive(), performedBy, LocalDateTime.now()
         );
-        rabbitTemplate.convertAndSend(RabbitMQConfig.TEMPLATE_EXCHANGE, RabbitMQConfig.TEMPLATE_CREATED_KEY, event);
+        rabbitTemplate.convertAndSend(RabbitMQConstants.TEMPLATE_EXCHANGE, RabbitMQConstants.TEMPLATE_CREATED_KEY, event);
         log.info("Published template.created event for id={}, name={}", template.getId(), template.getName());
     }
 
@@ -39,7 +39,7 @@ public class TemplateEventPublisher {
                 template.getPrice(),
                 template.getDurationMinutes(), template.getActive(), performedBy, LocalDateTime.now()
         );
-        rabbitTemplate.convertAndSend(RabbitMQConfig.TEMPLATE_EXCHANGE, RabbitMQConfig.TEMPLATE_UPDATED_KEY, event);
+        rabbitTemplate.convertAndSend(RabbitMQConstants.TEMPLATE_EXCHANGE, RabbitMQConstants.TEMPLATE_UPDATED_KEY, event);
         log.info("Published template.updated event for id={}, name={}", template.getId(), template.getName());
     }
 
@@ -47,7 +47,7 @@ public class TemplateEventPublisher {
         ServiceTemplateDeletedEvent event = new ServiceTemplateDeletedEvent(
                 templateId, name, performedBy, LocalDateTime.now()
         );
-        rabbitTemplate.convertAndSend(RabbitMQConfig.TEMPLATE_EXCHANGE, RabbitMQConfig.TEMPLATE_DELETED_KEY, event);
+        rabbitTemplate.convertAndSend(RabbitMQConstants.TEMPLATE_EXCHANGE, RabbitMQConstants.TEMPLATE_DELETED_KEY, event);
         log.info("Published template.deleted event for id={}, name={}", templateId, name);
     }
 }

@@ -35,7 +35,7 @@ public class TaskController {
      */
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) {
-        log.info("Creating new task for employee: {}", request.getAssigneeId());
+        log.info("Creating new task for employee: {}", request);
         TaskResponse response = taskService.createTask(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

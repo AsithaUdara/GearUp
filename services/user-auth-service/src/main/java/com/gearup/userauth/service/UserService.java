@@ -26,14 +26,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final AuditService auditService;
-    private final EventPublisher eventPublisher;
+    private final UserEventPublisher userEventPublisher;
 
     public UserService(UserRepository userRepository, RoleService roleService, 
-                      AuditService auditService, EventPublisher eventPublisher) {
+                      AuditService auditService, UserEventPublisher userEventPublisher) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.auditService = auditService;
-        this.eventPublisher = eventPublisher;
+        this.userEventPublisher = userEventPublisher;
     }
 
     @Transactional
@@ -54,6 +54,9 @@ public class UserService {
         user.setFirebaseUid(request.getFirebaseUid());
         user.setEmail(request.getEmail());
         user.setDisplayName(request.getDisplayName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setProfileImageUrl(request.getPhotoUrl());
+        
         // Satisfy NOT NULL constraints on first_name and last_name
         String display = request.getDisplayName() == null ? "" : request.getDisplayName().trim();
         if (display.isEmpty()) {
@@ -66,8 +69,6 @@ public class UserService {
             user.setFirstName(parts[0]);
             user.setLastName(parts.length > 1 ? parts[1] : "");
         }
-        user.setPhoneNumber(request.getPhoneNumber());
-        user.setPhotoUrl(request.getPhotoUrl());
         user.setAccountStatus(User.AccountStatus.ACTIVE);
         user.setRoles(Collections.singleton(defaultRole));
         user.setCreatedAt(LocalDateTime.now());
@@ -80,7 +81,7 @@ public class UserService {
         auditService.logUserAction(savedUser.getId(), "REGISTER", "User registered", null, userToMap(savedUser));
 
         // Publish event
-        eventPublisher.publishUserRegisteredEvent(savedUser);
+        userEventPublisher.publishUserRegisteredEvent(savedUser);
 
         return UserResponse.fromUser(savedUser);
     }
@@ -129,7 +130,7 @@ public class UserService {
                 oldValues, userToMap(updatedUser));
 
         // Publish event
-        eventPublisher.publishUserUpdatedEvent(updatedUser);
+        userEventPublisher.publishUserUpdatedEvent(updatedUser);
 
         return UserResponse.fromUser(updatedUser);
     }

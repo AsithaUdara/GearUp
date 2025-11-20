@@ -76,6 +76,12 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
+        <!-- RabbitMQ for event publishing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!-- Redis for session/cache -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -124,17 +130,11 @@
             <version>1.0.0</version>
         </dependency>
 
-        <!-- Messaging -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-
         <!-- Lombok (compile-time only) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
+            <!-- <version>1.18.34</version> -->
             <scope>provided</scope>
         </dependency>
 

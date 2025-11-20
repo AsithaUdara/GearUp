@@ -136,9 +136,9 @@ if (-not $gatewayHealthy) {
 
 # Start all microservices
 Write-Host "`nStarting all microservices..." -ForegroundColor Green
-docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service payment-service parts-service appointment-service modification-service pgadmin
-Write-Host "Waiting 60 seconds for microservices..." -ForegroundColor Yellow
-Start-Sleep -Seconds 60
+docker compose up -d user-auth-service notification-service chatbot-service vehicle-service customer-service tracking-service analytical-service payment-service parts-service appointment-service modification-service template-service pgadmin
+Write-Host "Waiting 120 seconds for microservices..." -ForegroundColor Yellow
+Start-Sleep -Seconds 120
 
 # Function to check service health
 function Test-ServiceHealth {
@@ -183,6 +183,7 @@ $allHealthy = $allHealthy -and (Test-ServiceHealth "Analytical Service" 8087)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Parts Service" 8093)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Appointment Service" 8084)
 $allHealthy = $allHealthy -and (Test-ServiceHealth "Modification Service" 8089)
+$allHealthy = $allHealthy -and (Test-ServiceHealth "Template Service" 8085)
 
 # Final summary
 Write-Host "`n==================================" -ForegroundColor Cyan
@@ -207,6 +208,7 @@ if ($allHealthy) {
     Write-Host "    - Notification:  http://localhost:8081/actuator/health" -ForegroundColor Gray
     Write-Host "    - Payment:       http://localhost:8083/actuator/health" -ForegroundColor Gray
     Write-Host "    - Appointment:   http://localhost:8084/actuator/health" -ForegroundColor Gray
+    Write-Host "    - Template:      http://localhost:8085/actuator/health" -ForegroundColor Gray
     Write-Host "    - Chatbot:       http://localhost:8086/actuator/health" -ForegroundColor Gray
     Write-Host "    - Customer:      http://localhost:8088/actuator/health" -ForegroundColor Gray
     Write-Host "    - Modification:  http://localhost:8089/actuator/health" -ForegroundColor Gray

@@ -1,0 +1,28 @@
+name: Check Compose Services
+
+on:
+    push:
+        branches:
+            - main
+            - development
+            - microservice-initialization
+            - chatbot
+    pull_request:
+        branches:
+            - main
+            - development
+            - microservice-initialization
+            - chatbot
+
+jobs:
+    verify-services:
+        name: Verify microservices are declared in docker-compose
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Run compose vs services check (PowerShell)
+              shell: pwsh
+              run: |
+                  ./scripts/check_compose_services.ps1

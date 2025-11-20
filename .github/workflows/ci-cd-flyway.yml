@@ -58,9 +58,9 @@ jobs:
       postgres:
         image: postgres:15-alpine
         env:
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres123
+          SPRING_DATASOURCE_DB: db
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres123
         ports:
           - 5432:5432
         options: >-
@@ -72,11 +72,6 @@ jobs:
     strategy:
       matrix:
         service:
-          - name: automobile-service
-            module: services/automobile-service
-            db: as_automobile_service
-            user: svc_automobile_service
-            password: auto_svc_pass_2024
           - name: notification-service
             module: services/notification-service
             db: as_notification_service
@@ -210,11 +205,6 @@ jobs:
     strategy:
       matrix:
         service:
-          - name: automobile-service
-            module: services/automobile-service
-            db: as_automobile_service
-            user: svc_automobile_service
-            password: auto_svc_pass_2024
           - name: notification-service
             module: services/notification-service
             db: as_notification_service
@@ -272,8 +262,8 @@ jobs:
           SPRING_RABBITMQ_PORT: 5672
           SPRING_RABBITMQ_USERNAME: guest
           SPRING_RABBITMQ_PASSWORD: guest
-          SPRING_REDIS_HOST: localhost
-          SPRING_REDIS_PORT: 6379
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
           APP_FIREBASE_CONFIGURATION_FILE: ""
           FIREBASE_CONFIG_PATH: ""
         run: |

@@ -7,8 +7,8 @@ services:
     endpoint: ${BILLING_URL:http://localhost:8081}
 
     redis:
-      host: ${SPRING_REDIS_HOST:redis}
-      port: ${SPRING_REDIS_PORT:6379}
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
 eureka:
   client:

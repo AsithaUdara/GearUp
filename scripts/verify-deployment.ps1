@@ -16,10 +16,6 @@ Write-Host ""
 Write-Host "3. Verifying Database Tables..." -ForegroundColor Yellow
 Write-Host "----------------------------------------" -ForegroundColor Gray
 
-Write-Host "Automobile Service Tables:" -ForegroundColor Cyan
-docker exec -it gearup-postgres psql -U postgres -d as_automobile_service -c "\dt" 2>$null
-
-Write-Host ""
 Write-Host "Notification Service Tables:" -ForegroundColor Cyan
 docker exec -it gearup-postgres psql -U postgres -d as_notification_service -c "\dt" 2>$null
 

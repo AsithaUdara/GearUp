@@ -37,7 +37,7 @@ Environment variables and `.env`
   - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
   - `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
   - `SPRING_RABBITMQ_HOST`, `SPRING_RABBITMQ_PORT`, `SPRING_RABBITMQ_USERNAME`, `SPRING_RABBITMQ_PASSWORD`
-  - `SPRING_REDIS_HOST`, `SPRING_REDIS_PORT`
+  - `SPRING_DATA_REDIS_HOST`, `SPRING_DATA_REDIS_PORT`
   - Service-specific DB URLs and credentials (`AUTOMOBILE_DB_URL`, `NOTIFICATION_DB_URL`, etc.)
 - Example local development variables (in root `.env`):
   - `FIREBASE_CREDENTIALS_HOST_PATH` — path on your host to Firebase JSON file (e.g., `C:\SecureKeys\gear-up\firebase-service-account.json`)

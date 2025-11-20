@@ -26,5 +26,5 @@ management:
       probes:
         enabled: true
 # Helpful note for clients: teams should configure their services with the following property
-# eureka.client.serviceUrl.defaultZone: http://<eureka-service>.<namespace>.svc.cluster.local:8761/eureka/
+# eureka.client.serviceUrl.defaultZone: http://${EUREKA_ADMIN_USER:admin}:${EUREKA_ADMIN_PASSWORD:password}@<eureka-service>.<namespace>.svc.cluster.local:8761/eureka/
 

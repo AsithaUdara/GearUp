@@ -1,0 +1,194 @@
+package com.gearup.shared.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.ExchangeBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.gearup.shared.messaging.RabbitMQConstants;
+
+/**
+ * Shared RabbitMQ Configuration
+ * This configuration is used by all microservices
+ * Defines exchanges, queues, and bindings
+ */
+@Configuration
+public class SharedRabbitMQConfig {
+
+    /**
+     * RabbitAdmin - CRITICAL for auto-declaration of exchanges, queues, and bindings
+     */
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        return new RabbitAdmin(connectionFactory);
+    }
+
+    /**
+     * JSON Message Converter for serializing/deserializing events
+     */
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
+
+        // Configure type mapper to respect incoming __TypeId__ headers and
+        // restrict trusted packages to avoid accidental/mis-typed deserialization.
+        DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+        typeMapper.setTypePrecedence(DefaultJackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
+        // TEMPORARY: Trust all packages to test if this is the only blocker
+        // TODO: Narrow this down to specific packages once we confirm it works
+        typeMapper.setTrustedPackages("*");
+
+        converter.setJavaTypeMapper(typeMapper);
+        return converter;
+    }
+
+    /**
+     * Configure RabbitTemplate with JSON converter
+     */
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter jsonMessageConverter) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter);
+        return template;
+    }
+
+    // ==================== EXCHANGES ====================
+
+    @Bean
+    public TopicExchange appointmentExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.APPOINTMENT_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange modificationExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.MODIFICATION_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange trackingExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.TRACKING_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange paymentExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.PAYMENT_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange userExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.USER_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange customerExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.CUSTOMER_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange partsExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.PARTS_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange vehicleExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.VEHICLE_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange notificationExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.NOTIFICATION_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange analyticsExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.ANALYTICS_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange templateExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.TEMPLATE_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    // ==================== TEMPLATE QUEUE + BINDINGS ====================
+
+    @Bean
+    public Queue templateQueue() {
+        return QueueBuilder.durable(RabbitMQConstants.TEMPLATE_QUEUE)
+                .build();
+    }
+
+    @Bean
+    public Binding templateCreatedBinding() {
+        return BindingBuilder.bind(templateQueue())
+                .to(templateExchange())
+                .with(RabbitMQConstants.TEMPLATE_CREATED_KEY);
+    }
+
+    @Bean
+    public Binding templateUpdatedBinding() {
+        return BindingBuilder.bind(templateQueue())
+                .to(templateExchange())
+                .with(RabbitMQConstants.TEMPLATE_UPDATED_KEY);
+    }
+
+    @Bean
+    public Binding templateDeletedBinding() {
+        return BindingBuilder.bind(templateQueue())
+                .to(templateExchange())
+                .with(RabbitMQConstants.TEMPLATE_DELETED_KEY);
+    }
+
+    // ==================== DEAD LETTER EXCHANGE ====================
+
+    @Bean
+    public TopicExchange deadLetterExchange() {
+        return ExchangeBuilder.topicExchange(RabbitMQConstants.DEAD_LETTER_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public Queue deadLetterQueue() {
+        return QueueBuilder.durable(RabbitMQConstants.DEAD_LETTER_QUEUE)
+                .build();
+    }
+
+    @Bean
+    public Binding deadLetterBinding() {
+        return BindingBuilder.bind(deadLetterQueue())
+                .to(deadLetterExchange())
+                .with(RabbitMQConstants.DEAD_LETTER_ROUTING_KEY);
+    }
+}
