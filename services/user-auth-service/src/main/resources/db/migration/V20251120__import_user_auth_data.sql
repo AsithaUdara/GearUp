@@ -70,13 +70,13 @@ INSERT INTO public.users (
 )
 VALUES
   (1, 'u2sgkfVpdTd9hkrUp5sb3ttiHOt2', 'admin@gearup.com', NULL, 'Admin', 'User', 'Admin User', NULL, true, false, 'ACTIVE', '2025-11-16 11:15:09.605799', '2025-11-16 11:15:09.605799', NULL, NULL, NULL, NULL, NULL, false),
-  (2, 'cml8ZOSPqfUjvaUm7P0tvLeH5x83', 'emp1@gmail.com', NULL, 'Employee01', NULL, 'Employee01', NULL, true, false, 'ACTIVE', '2025-11-16 11:20:10.717959', '2025-11-16 11:21:40.102076', '2025-11-16 11:21:39.138214', 'u2sgkfVpdTd9hkrUp5sb3ttiHOt2', 'u2sgkfVpdTd9hkrUp5sb3ttiHOt2', NULL, NULL, true),
-  (3, 'JGmWcPoDzvTK6tYLXpNhwadcYNl2', 'yow@gmail.com', NULL, 'Yow', NULL, 'Yow', NULL, false, false, 'ACTIVE', '2025-11-16 18:20:43.455672', '2025-11-16 18:20:43.4557', NULL, NULL, NULL, NULL, NULL, false)
+  (2, 'cml8ZOSPqfUjvaUm7P0tvLeH5x83', 'emp1@gmail.com', NULL, 'Employee01', '', 'Employee01', NULL, true, false, 'ACTIVE', '2025-11-16 11:20:10.717959', '2025-11-16 11:21:40.102076', '2025-11-16 11:21:39.138214', 'u2sgkfVpdTd9hkrUp5sb3ttiHOt2', 'u2sgkfVpdTd9hkrUp5sb3ttiHOt2', NULL, NULL, true),
+  (3, 'JGmWcPoDzvTK6tYLXpNhwadcYNl2', 'yow@gmail.com', NULL, 'Yow', '', 'Yow', NULL, false, false, 'ACTIVE', '2025-11-16 18:20:43.455672', '2025-11-16 18:20:43.4557', NULL, NULL, NULL, NULL, NULL, false)
 ON CONFLICT (email) DO UPDATE
-  SET firebase_uid = EXCLUDED.firebase_uid,
+    SET firebase_uid = EXCLUDED.firebase_uid,
       phone_number = EXCLUDED.phone_number,
       first_name = EXCLUDED.first_name,
-      last_name = EXCLUDED.last_name,
+      last_name = COALESCE(EXCLUDED.last_name, users.last_name),
       display_name = EXCLUDED.display_name,
       profile_image_url = EXCLUDED.profile_image_url,
       email_verified = EXCLUDED.email_verified,
