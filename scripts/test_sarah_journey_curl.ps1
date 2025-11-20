@@ -5,7 +5,7 @@ Usage: Open PowerShell (Windows) and run:
   powershell -ExecutionPolicy Bypass -File .\scripts\test_sarah_journey_curl.ps1
 
 The script reads the repository root `.env` for `FIREBASE_API_KEY` and uses
-`http://localhost:9090` as the API gateway base URL. It performs these steps:
+`http://localhost:8080` as the API gateway base URL. It performs these steps:
   1. Create a Firebase user (REST API) to obtain a Firebase ID token and uid
   2. Call `/api/v1/users/register` to register the user in the app
   3. Call `/api/v1/auth/login` with the Firebase ID token to get app access token
@@ -141,7 +141,7 @@ try {
     $firebaseApiKey = $env['FIREBASE_API_KEY']
 
     # API gateway base (production-like for the exercise)
-    $apiBase = 'http://localhost:9090'
+    $apiBase = 'http://localhost:8080'
 
     # Make unique user email to avoid collisions
     $suffix = [guid]::NewGuid().ToString().Split('-')[0]

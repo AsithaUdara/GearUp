@@ -1,0 +1,248 @@
+---
+# PostgreSQL Init Script ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: gearup
+data:
+  init-db.sh: |
+    #!/bin/bash
+    set -e
+
+    # This script runs during PostgreSQL container initialization
+
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
+        -- Create databases for each service
+        CREATE DATABASE as_notification_service;
+        CREATE DATABASE as_user_auth_service;
+        CREATE DATABASE as_template_service;
+        CREATE DATABASE as_chatbot_service;
+        CREATE DATABASE as_customer_service;
+        CREATE DATABASE as_vehicle_service;
+        CREATE DATABASE as_analytical_service;
+        CREATE DATABASE as_tracking_service;
+        CREATE DATABASE as_payment_service;
+        CREATE DATABASE as_parts_service;
+        CREATE DATABASE as_appointment_service;
+        CREATE DATABASE as_modification_service;
+
+        -- Create dedicated service users with passwords from environment
+        CREATE USER svc_notification_service WITH PASSWORD '$NOTIFICATION_DB_PASSWORD';
+        CREATE USER svc_user_auth_service WITH PASSWORD '$USER_AUTH_DB_PASSWORD';
+        CREATE USER svc_template_service WITH PASSWORD '$TEMPLATE_DB_PASSWORD';
+        CREATE USER svc_chatbot_service WITH PASSWORD '$CHATBOT_DB_PASSWORD';
+        CREATE USER svc_customer_service WITH PASSWORD '$CUSTOMER_DB_PASSWORD';
+        CREATE USER svc_vehicle_service WITH PASSWORD '$VEHICLE_DB_PASSWORD';
+        CREATE USER svc_analytical_service WITH PASSWORD '$ANALYTICAL_DB_PASSWORD';
+        CREATE USER svc_tracking_service WITH PASSWORD '$TRACKING_DB_PASSWORD';
+        CREATE USER svc_payment_service WITH PASSWORD '$PAYMENT_DB_PASSWORD';
+        CREATE USER svc_parts_service WITH PASSWORD '$PARTS_DB_PASSWORD';
+        CREATE USER svc_appointment_service WITH PASSWORD '$APPOINTMENT_DB_PASSWORD';
+        CREATE USER svc_modification_service WITH PASSWORD '$MODIFICATION_DB_PASSWORD';
+
+        -- Grant all privileges on respective databases to service users
+        GRANT ALL PRIVILEGES ON DATABASE as_notification_service TO svc_notification_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_user_auth_service TO svc_user_auth_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_template_service TO svc_template_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_chatbot_service TO svc_chatbot_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_customer_service TO svc_customer_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_vehicle_service TO svc_vehicle_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_analytical_service TO svc_analytical_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_tracking_service TO svc_tracking_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_payment_service TO svc_payment_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_parts_service TO svc_parts_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_appointment_service TO svc_appointment_service;
+        GRANT ALL PRIVILEGES ON DATABASE as_modification_service TO svc_modification_service;
+    EOSQL
+
+    # Setup each service database with proper schema permissions
+    for db in as_template_service as_notification_service as_user_auth_service as_customer_service as_vehicle_service as_analytical_service as_tracking_service as_payment_service as_parts_service as_appointment_service as_modification_service; do
+        user="svc_\${db#as_}"
+        psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "\$db" <<-EOSQL
+            GRANT ALL ON SCHEMA public TO \$user;
+            GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \$user;
+            GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \$user;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \$user;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO \$user;
+    EOSQL
+    done
+
+    # Chatbot with vector extension
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_chatbot_service" <<-EOSQL
+        CREATE EXTENSION IF NOT EXISTS vector;
+
+        GRANT ALL ON SCHEMA public TO svc_chatbot_service;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_chatbot_service;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_chatbot_service;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO svc_chatbot_service;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO svc_chatbot_service;
+    EOSQL
+
+    echo "Database initialization completed successfully!"
+
+---
+# PostgreSQL PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: gearup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: hostpath  # Docker Desktop uses hostpath
+
+---
+# PostgreSQL StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: gearup
+spec:
+  serviceName: postgres-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg15
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-password
+            - name: POSTGRES_DB
+              value: "postgres"
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: "trust"
+            # Service database passwords
+            - name: NOTIFICATION_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: notification-db-password
+            - name: USER_AUTH_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: user-auth-db-password
+            - name: TEMPLATE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: template-db-password
+            - name: PAYMENT_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: payment-db-password
+            - name: PARTS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: parts-db-password
+            - name: CHATBOT_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: chatbot-db-password
+            - name: VEHICLE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: vehicle-db-password
+            - name: CUSTOMER_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: customer-db-password
+            - name: TRACKING_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: tracking-db-password
+            - name: ANALYTICAL_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: analytical-db-password
+            - name: APPOINTMENT_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: appointment-db-password
+            - name: MODIFICATION_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: modification-db-password
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+        - name: init-script
+          configMap:
+            name: postgres-init-script
+            defaultMode: 0755
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: gearup
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    app: postgres

@@ -1,4 +1,0 @@
-apiVersion: v2
-name: user-auth-service
-description: Helm chart for user-auth-service
-version: 0.1.0

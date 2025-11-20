@@ -1,0 +1,131 @@
+# Custom Helm Values for Docker Desktop Deployment
+# This file contains environment-specific values for all services
+
+# Common configuration shared across services
+global:
+  namespace: gearup
+  imagePullPolicy: IfNotPresent
+
+  # Database configuration
+  postgres:
+    host: postgres-service
+    port: 5432
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: rabbitmq-service
+    port: 5672
+    username: guest
+    password: guest
+
+  # Redis configuration
+  redis:
+    host: redis-service
+    port: 6379
+
+  # Eureka configuration
+  eureka:
+    url: http://service-discovery:8761/eureka/
+    username: admin
+    password: password
+
+  # Config Server configuration
+  configServer:
+    url: http://config-server:8888
+    username: configadmin
+    password: change-me
+
+  # Ollama configuration
+  ollama:
+    url: http://ollama-service:11434
+
+# API Gateway specific values
+api-gateway:
+  image:
+    repository: gearup/api-gateway
+    tag: latest
+  replicaCount: 2
+  service:
+    type: LoadBalancer  # Expose externally on Docker Desktop
+    port: 8080
+
+# Notification Service
+notification-service:
+  image:
+    repository: gearup/notification-service
+    tag: latest
+  database:
+    name: as_notification_service
+    user: svc_notification_service
+
+# User Auth Service
+user-auth-service:
+  image:
+    repository: gearup/user-auth-service
+    tag: latest
+  database:
+    name: as_user_auth_service
+    user: svc_user_auth_service
+
+# Payment Service
+payment-service:
+  image:
+    repository: gearup/payment-service
+    tag: latest
+  database:
+    name: as_payment_service
+    user: svc_payment_service
+
+# Appointment Service
+appointment-service:
+  image:
+    repository: gearup/appointment-service
+    tag: latest
+  database:
+    name: as_appointment_service
+    user: svc_appointment_service
+
+# Analytical Service
+analytical-service:
+  image:
+    repository: gearup/analytical-service
+    tag: latest
+  database:
+    name: as_analytical_service
+    user: svc_analytical_service
+
+# Customer Service
+customer-service:
+  image:
+    repository: gearup/customer-service
+    tag: latest
+  database:
+    name: as_customer_service
+    user: svc_customer_service
+
+# Tracking Service
+tracking-service:
+  image:
+    repository: gearup/tracking-service
+    tag: latest
+  database:
+    name: as_tracking_service
+    user: svc_tracking_service
+
+# Vehicle Service
+vehicle-service:
+  image:
+    repository: gearup/vehicle-service
+    tag: latest
+  database:
+    name: as_vehicle_service
+    user: svc_vehicle_service
+
+# Modification Service
+modification-service:
+  image:
+    repository: gearup/modification-service
+    tag: latest
+  database:
+    name: as_modification_service
+    user: svc_modification_service

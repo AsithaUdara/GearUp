@@ -1,0 +1,85 @@
+---
+# Service Discovery (Eureka) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-discovery
+  namespace: gearup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-discovery
+  template:
+    metadata:
+      labels:
+        app: service-discovery
+    spec:
+      containers:
+        - name: service-discovery
+          image: gearup/service-discovery:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8761
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "default"
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: "service-discovery"
+            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+              value: "false"
+            - name: EUREKA_CLIENT_FETCH_REGISTRY
+              value: "false"
+            - name: SPRING_SECURITY_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: eureka-secret
+                  key: admin-username
+            - name: SPRING_SECURITY_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: eureka-secret
+                  key: admin-password
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+              httpHeaders:
+                - name: Authorization
+                  value: Basic YWRtaW46cGFzc3dvcmQ=  # admin:password in base64
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+              httpHeaders:
+                - name: Authorization
+                  value: Basic YWRtaW46cGFzc3dvcmQ=
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+---
+# Service Discovery Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-discovery
+  namespace: gearup
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8761
+      targetPort: 8761
+      protocol: TCP
+      name: http
+  selector:
+    app: service-discovery

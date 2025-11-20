@@ -2,12 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tracking-service
-  namespace: default
+  namespace: gearup
   labels:
     app: tracking-service
     tier: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: tracking-service
@@ -22,7 +22,7 @@ spec:
         image: gearup/tracking-service:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 8086
+        - containerPort: 8091
           name: http
           protocol: TCP
         env:
@@ -41,16 +41,15 @@ spec:
             configMapKeyRef:
               name: tracking-service-config
               key: SPRING_DATASOURCE_DB
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres-service:5432/as_tracking_service
         - name: SPRING_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: username
+          value: "svc_tracking_service"
         - name: SPRING_DATASOURCE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: postgres-secret
-              key: password
+              key: tracking-db-password
         - name: SERVER_PORT
           valueFrom:
             configMapKeyRef:
@@ -66,42 +65,61 @@ spec:
             configMapKeyRef:
               name: tracking-service-config
               key: EUREKA_SERVER
+        - name: SPRING_CLOUD_CONFIG_URI
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: SPRING_CLOUD_CONFIG_URI
+        - name: SPRING_RABBITMQ_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: SPRING_RABBITMQ_HOST
+        - name: SPRING_RABBITMQ_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: SPRING_RABBITMQ_PORT
+        - name: SPRING_RABBITMQ_USERNAME
+          value: "guest"
+        - name: SPRING_RABBITMQ_PASSWORD
+          value: "guest"
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "50m"
           limits:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "256Mi"
+            cpu: "200m"
         livenessProbe:
           httpGet:
             path: /actuator/health/liveness
-            port: 8086
-          initialDelaySeconds: 60
+            port: 8091
+          initialDelaySeconds: 120
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 3
+          failureThreshold: 5
         readinessProbe:
           httpGet:
             path: /actuator/health/readiness
-            port: 8086
-          initialDelaySeconds: 30
+            port: 8091
+          initialDelaySeconds: 90
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 3
+          failureThreshold: 5
       restartPolicy: Always
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: tracking-service-hpa
-  namespace: default
+  namespace: gearup
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: tracking-service
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 5
   metrics:
   - type: Resource

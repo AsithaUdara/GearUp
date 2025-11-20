@@ -1,0 +1,46 @@
+---
+# Common Environment Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+  namespace: gearup
+data:
+  # PostgreSQL Configuration
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+
+  # RabbitMQ Configuration
+  SPRING_RABBITMQ_HOST: "rabbitmq-service"
+  SPRING_RABBITMQ_PORT: "5672"
+  RABBITMQ_HOST: "rabbitmq-service"
+  RABBITMQ_PORT: "5672"
+
+  # Redis Configuration
+  SPRING_DATA_REDIS_HOST: "redis-service"
+  SPRING_DATA_REDIS_PORT: "6379"
+
+  # Eureka Configuration
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://admin:password@service-discovery:8761/eureka/"
+
+  # Config Server Configuration
+  SPRING_CLOUD_CONFIG_URI: "http://config-server:8888"
+  SPRING_CLOUD_CONFIG_USERNAME: "configadmin"
+  SPRING_CLOUD_CONFIG_PASSWORD: "change-me"
+
+  # Ollama Configuration
+  OLLAMA_BASE_URL: "http://ollama-service:11434"
+  OLLAMA_CHAT_MODEL: "llama3.2:3b"
+  OLLAMA_EMBEDDING_MODEL: "nomic-embed-text"
+
+  # Firebase Configuration
+  FIREBASE_CONFIG_PATH: "/app/secrets/firebase-service-account.json"
+  FIREBASE_SERVICE_ACCOUNT_JSON: "/app/secrets/firebase-service-account.json"
+  APP_FIREBASE_CONFIGURATION_FILE: "/app/secrets/firebase-service-account.json"
+
+  # JPA Configuration
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
+
+  # Eureka Client Configuration
+  EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+  EUREKA_CLIENT_FETCH_REGISTRY: "true"

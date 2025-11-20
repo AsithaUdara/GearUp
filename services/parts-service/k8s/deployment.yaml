@@ -4,7 +4,7 @@ metadata:
   name: parts-service
   namespace: gearup
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: parts-service
@@ -16,8 +16,12 @@ spec:
       containers:
       - name: parts-service
         image: gearup/parts-service:latest
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 8082
+        - containerPort: 8093
+        envFrom:
+        - configMapRef:
+            name: common-config
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "prod"
@@ -25,35 +29,43 @@ spec:
           value: "parts-db-service:5432"
         - name: PARTS_DB_NAME
           value: "parts_db"
-        - name: PARTS_DB_USERNAME
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://parts-db-service:5432/parts_db"
+        - name: SPRING_DATASOURCE_USERNAME
           valueFrom:
             secretKeyRef:
               name: parts-service-secrets
               key: PARTS_DB_USERNAME
-        - name: PARTS_DB_PASSWORD
+        - name: SPRING_DATASOURCE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: parts-service-secrets
               key: PARTS_DB_PASSWORD
+        - name: SPRING_RABBITMQ_USERNAME
+          value: "guest"
+        - name: SPRING_RABBITMQ_PASSWORD
+          value: "guest"
         livenessProbe:
           httpGet:
             path: /actuator/health
-            port: 8082
-          initialDelaySeconds: 30
+            port: 8093
+          initialDelaySeconds: 120
           periodSeconds: 10
+          failureThreshold: 5
         readinessProbe:
           httpGet:
             path: /actuator/health
-            port: 8082
-          initialDelaySeconds: 30
+            port: 8093
+          initialDelaySeconds: 90
           periodSeconds: 10
+          failureThreshold: 5
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "50m"
           limits:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "256Mi"
+            cpu: "200m"
         volumeMounts:
         - name: config-volume
           mountPath: /config

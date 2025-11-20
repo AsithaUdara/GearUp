@@ -1,0 +1,105 @@
+---
+# Config Server ConfigMap (for config-repo files)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-repo
+  namespace: gearup
+data:
+  application.yml: |
+    # This is a placeholder - mount actual config-repo files here or use Git backend
+    spring:
+      application:
+        name: config-server
+
+---
+# Config Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  namespace: gearup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:
+      labels:
+        app: config-server
+    spec:
+      containers:
+        - name: config-server
+          image: gearup/config-server:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8888
+              name: http
+          env:
+            - name: CONFIG_SERVER_PORT
+              value: "8888"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "native"
+            - name: SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS
+              value: "file:///app/config-repo"
+            - name: SPRING_SECURITY_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: config-server-secret
+                  key: username
+            - name: SPRING_SECURITY_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: config-server-secret
+                  key: password
+          volumeMounts:
+            - name: config-repo
+              mountPath: /app/config-repo
+              readOnly: true
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8888
+              httpHeaders:
+                - name: Authorization
+                  value: Basic Y29uZmlnYWRtaW46Y2hhbmdlLW1l  # configadmin:change-me in base64
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8888
+              httpHeaders:
+                - name: Authorization
+                  value: Basic Y29uZmlnYWRtaW46Y2hhbmdlLW1l
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: config-repo
+          configMap:
+            name: config-repo
+
+---
+# Config Server Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server
+  namespace: gearup
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8888
+      targetPort: 8888
+      protocol: TCP
+      name: http
+  selector:
+    app: config-server

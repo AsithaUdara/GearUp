@@ -20,14 +20,14 @@ spec:
         ports:
         - containerPort: 5432
         env:
-        - name: SPRING_DATASOURCE_DB
+        - name: POSTGRES_DB
           value: parts_db
-        - name: SPRING_DATASOURCE_USERNAME
+        - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
               name: parts-service-secrets
               key: PARTS_DB_USERNAME
-        - name: SPRING_DATASOURCE_PASSWORD
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: parts-service-secrets

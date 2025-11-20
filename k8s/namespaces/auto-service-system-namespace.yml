@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: auto-service-system
-  labels:
-    name: auto-service-system

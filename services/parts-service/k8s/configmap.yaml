@@ -18,7 +18,7 @@ data:
         baselineOnMigrate: true
         
     server:
-      port: 8082
+      port: 8093
       
     management:
       endpoints:

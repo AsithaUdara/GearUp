@@ -8,6 +8,6 @@ spec:
     app: parts-service
   ports:
     - protocol: TCP
-      port: 8082
-      targetPort: 8082
+      port: 8093
+      targetPort: 8093
   type: ClusterIP
