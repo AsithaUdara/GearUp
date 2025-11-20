@@ -4,7 +4,7 @@ set -e
 # This script runs during PostgreSQL container initialization
 # Environment variables are passed from docker-compose
 
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "postgres" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
     -- Create databases for each service
     CREATE DATABASE as_notification_service;
     CREATE DATABASE as_user_auth_service;
@@ -58,7 +58,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_template_servic
 EOSQL
 
 # Notification
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_notification_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_notification_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_notification_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_notification_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_notification_service;
@@ -67,7 +67,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_no
 EOSQL
 
 # User auth
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_user_auth_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_user_auth_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_user_auth_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_user_auth_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_user_auth_service;
@@ -76,7 +76,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_us
 EOSQL
 
 # Chatbot with vector
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_chatbot_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_chatbot_service" <<-EOSQL
     CREATE EXTENSION IF NOT EXISTS vector;
 
     GRANT ALL ON SCHEMA public TO svc_chatbot_service;
@@ -87,7 +87,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_ch
 EOSQL
 
 # Customer
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_customer_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_customer_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_customer_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_customer_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_customer_service;
@@ -96,7 +96,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_cu
 EOSQL
 
 # Vehicle
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_vehicle_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_vehicle_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_vehicle_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_vehicle_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_vehicle_service;
@@ -105,7 +105,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_ve
 EOSQL
 
 # Analytical
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_analytical_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_analytical_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_analytical_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_analytical_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_analytical_service;
@@ -114,7 +114,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_an
 EOSQL
 
 # Tracking
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_tracking_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_tracking_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_tracking_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_tracking_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_tracking_service;
@@ -123,7 +123,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_tr
 EOSQL
 
 # Payment
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_payment_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_payment_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_payment_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_payment_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_payment_service;
@@ -132,7 +132,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_pa
 EOSQL
 
 # Parts
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_parts_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_parts_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_parts_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_parts_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_parts_service;
@@ -141,7 +141,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_pa
 EOSQL
 
 # Appointment
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_appointment_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_appointment_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_appointment_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_appointment_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_appointment_service;
@@ -150,7 +150,7 @@ psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_ap
 EOSQL
 
 # Modification
-psql -v ON_ERROR_STOP=1 --username "$SPRING_DATASOURCE_USERNAME" --dbname "as_modification_service" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "as_modification_service" <<-EOSQL
     GRANT ALL ON SCHEMA public TO svc_modification_service;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO svc_modification_service;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO svc_modification_service;

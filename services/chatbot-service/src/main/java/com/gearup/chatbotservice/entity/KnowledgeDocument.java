@@ -3,14 +3,14 @@ package com.gearup.chatbotservice.entity;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
-import com.gearup.chatbotservice.config.VectorType;
+import com.gearup.chatbotservice.config.VectorAttributeConverter;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -56,8 +56,8 @@ public class KnowledgeDocument {
     @Column(length = 100)
     private String category;
     
-    @Type(VectorType.class)
-    @Column(columnDefinition = "vector(768)")
+    @Convert(converter = VectorAttributeConverter.class)
+    @Column(columnDefinition = "vector(768)", name = "embedding")
     private String embedding;
     
     @CreationTimestamp

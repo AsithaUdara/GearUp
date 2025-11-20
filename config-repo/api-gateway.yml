@@ -102,6 +102,16 @@ spring:
             - StripPrefix=0
         
         # ========================================
+        # Notification Service - WebSocket
+        # ========================================
+        - id: notification-service-websocket
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/ws/**
+          filters:
+            - StripPrefix=0
+        
+        # ========================================
         # Analytical Service - v1 API
         # ========================================
         - id: analytical-service

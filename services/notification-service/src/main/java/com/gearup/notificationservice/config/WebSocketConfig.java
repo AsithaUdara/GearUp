@@ -44,8 +44,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Register WebSocket endpoint that clients will use to connect
-        registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000")
+        // Endpoint: /api/v1/ws (matches API Gateway routing)
+        registry.addEndpoint("/api/v1/ws")
+                .setAllowedOrigins(
+                    "http://localhost:3000",
+                    "http://localhost:9090",
+                    "http://localhost:8080"
+                )
                 .withSockJS();
     }
 
