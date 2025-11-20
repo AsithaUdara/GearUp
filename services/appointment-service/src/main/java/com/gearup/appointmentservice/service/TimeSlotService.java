@@ -33,6 +33,10 @@ public class TimeSlotService {
                 .toList();
     }
     
+    public List<TimeSlotDTO> getAvailableTimeSlotsForCustomer(Long serviceId, LocalDate date) {
+        return getAvailableTimeSlots(serviceId, date);
+    }
+    
     public Optional<TimeSlotDTO> getTimeSlotById(Long id) {
         log.debug("Fetching time slot with id: {}", id);
         return timeSlotRepository.findById(id)

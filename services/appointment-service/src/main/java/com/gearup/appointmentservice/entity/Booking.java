@@ -40,6 +40,9 @@ public class Booking {
     @Column(name = "customer_phone")
     private String customerPhone;
     
+    @Column(name = "assigned_employee_id")
+    private Long assignedEmployeeId;
+    
     @Enumerated(EnumType.STRING)
     private BookingStatus status = BookingStatus.CONFIRMED;
     

@@ -7,6 +7,7 @@ import com.gearup.appointmentservice.entity.Service;
 import com.gearup.appointmentservice.entity.Employee;
 import com.gearup.appointmentservice.entity.TimeSlot;
 import com.gearup.appointmentservice.repository.BookingRepository;
+import com.gearup.appointmentservice.repository.EmployeeRepository;
 import com.gearup.appointmentservice.repository.ServiceRepository;
 import com.gearup.appointmentservice.repository.TimeSlotRepository;
 import com.gearup.shared.event.appointment.*;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -80,31 +82,31 @@ public class BookingService {
             
             AppointmentCreatedEvent event = new AppointmentCreatedEvent(
                 java.util.UUID.randomUUID().toString(),  // eventId
-                saved.getId(),                            // bookingId
-                saved.getUserId(),                        // customerId
-                saved.getCustomerName(),                  // customerName
-                svc.getId(),                              // serviceId
-                svc.getName(),                            // serviceName
+                booking.getId(),                          // bookingId
+                booking.getUserId(),                      // customerId
+                booking.getCustomerName(),                // customerName
+                service.getId(),                          // serviceId
+                service.getName(),                        // serviceName
                 timeSlot.getId(),                         // timeSlotId
                 slotDateTime,                             // slotDateTime
-                saved.getCustomerEmail(),                 // customerEmail
-                saved.getCustomerPhone(),                 // customerPhone
-                saved.getStatus().name(),                 // status
-                saved.getNotes()                          // notes
+                booking.getCustomerEmail(),               // customerEmail
+                booking.getCustomerPhone(),               // customerPhone
+                booking.getStatus().name(),               // status
+                booking.getNotes()                        // notes
             );
             eventPublisher.publish(
                 RabbitMQConstants.APPOINTMENT_EXCHANGE,
                 RabbitMQConstants.APPOINTMENT_CREATED_KEY,
                 event
             );
-            log.info("📢 Published AppointmentCreatedEvent for booking: {}", saved.getId());
+            log.info("📢 Published AppointmentCreatedEvent for booking: {}", booking.getId());
         } catch (Exception e) {
-            log.error("❌ Failed to publish AppointmentCreatedEvent for booking: {}", saved.getId(), e);
+            log.error("❌ Failed to publish AppointmentCreatedEvent for booking: {}", booking.getId(), e);
             // Don't fail the booking creation if event publishing fails
         }
 
-        log.info("Booking created successfully with id: {}", saved.getId());
-        return convertToDTO(saved);
+        log.info("Booking created successfully with id: {}", booking.getId());
+        return convertToDTO(booking);
     }
     
     public List<BookingDTO> getUserBookings(String userId) {
@@ -306,7 +308,6 @@ public class BookingService {
         log.info("Booking cancelled successfully with id: {}", booking.getId());
         // 📢 Publish AppointmentCancelledEvent
         try {
-            TimeSlot timeSlot = booking.getTimeSlot();
             
             AppointmentCancelledEvent event = new AppointmentCancelledEvent(
                 java.util.UUID.randomUUID().toString(),
@@ -330,6 +331,16 @@ public class BookingService {
         }
         
         log.info("Booking {} cancelled", booking.getId());
+    }
+    
+    // Helper methods for employee assignment validation
+    private boolean isSameDate(LocalDate date1, LocalDate date2) {
+        return date1.equals(date2);
+    }
+    
+    private boolean timeSlotsOverlap(java.time.LocalTime start1, java.time.LocalTime end1,
+                                      java.time.LocalTime start2, java.time.LocalTime end2) {
+        return start1.isBefore(end2) && start2.isBefore(end1);
     }
     
     private BookingDTO convertToDTO(Booking booking) {

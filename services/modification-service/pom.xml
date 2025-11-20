@@ -80,6 +80,19 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Shared libs: common utils and event models -->
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-common-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.gearup</groupId>
+            <artifactId>shared-event-models</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

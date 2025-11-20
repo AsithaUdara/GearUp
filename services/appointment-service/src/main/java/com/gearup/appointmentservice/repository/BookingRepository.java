@@ -23,4 +23,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     
     @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.timeSlot.id = :timeSlotId AND b.status != 'CANCELLED'")
     boolean existsByTimeSlotIdAndStatusNotCancelled(@Param("timeSlotId") Long timeSlotId);
+    
+    List<Booking> findByAssignedEmployeeId(Long employeeId);
 }
