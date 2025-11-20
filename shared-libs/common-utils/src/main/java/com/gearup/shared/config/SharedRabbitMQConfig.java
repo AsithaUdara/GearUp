@@ -9,6 +9,7 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +38,18 @@ public class SharedRabbitMQConfig {
      */
     @Bean
     public MessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
+
+        // Configure type mapper to respect incoming __TypeId__ headers and
+        // restrict trusted packages to avoid accidental/mis-typed deserialization.
+        DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+        typeMapper.setTypePrecedence(DefaultJackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
+        // TEMPORARY: Trust all packages to test if this is the only blocker
+        // TODO: Narrow this down to specific packages once we confirm it works
+        typeMapper.setTrustedPackages("*");
+
+        converter.setJavaTypeMapper(typeMapper);
+        return converter;
     }
 
     /**

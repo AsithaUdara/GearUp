@@ -19,9 +19,10 @@ public class ServiceTemplateService {
     private final ServiceTemplateRepository repository;
     private final TemplateEventPublisher eventPublisher;
 
-    public List<ServiceTemplateDto> findAll(boolean onlyActive) {
-        var list = onlyActive ? repository.findByActiveTrue() : repository.findAll();
-        return list.stream().map(this::toDto).collect(Collectors.toList());
+    public org.springframework.data.domain.Page<ServiceTemplateDto> findAll(boolean onlyActive, org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<com.gearup.templateservice.model.ServiceTemplate> page = onlyActive ?
+            repository.findByActiveTrue(pageable) : repository.findAll(pageable);
+        return page.map(this::toDto);
     }
 
     public ServiceTemplateDto findById(Long id) {

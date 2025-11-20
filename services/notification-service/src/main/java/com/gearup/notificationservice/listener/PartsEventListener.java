@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 /**
  * Listens for parts-related events and sends notifications
  */
-@Component
+//@Component  // Temporarily disabled - events handled by consolidated dispatcher
 @RequiredArgsConstructor
 @Slf4j
 public class PartsEventListener {
@@ -23,7 +23,23 @@ public class PartsEventListener {
     private final NotificationService notificationService;
 
     @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handlePartsInventoryLow(PartsInventoryLowEvent event) {
+    public void handleMessage(org.springframework.messaging.Message<?> message) {
+        Object payload = message.getPayload();
+
+        try {
+            if (payload instanceof PartsInventoryLowEvent) {
+                handlePartsInventoryLow((PartsInventoryLowEvent) payload);
+            } else if (payload instanceof PartsStatusChangedEvent) {
+                handlePartsStatusChanged((PartsStatusChangedEvent) payload);
+            }
+            // Silently ignore other event types
+        } catch (Exception e) {
+            log.error("Error processing parts event: {}", payload.getClass().getName(), e);
+            throw e;
+        }
+    }
+
+    private void handlePartsInventoryLow(PartsInventoryLowEvent event) {
         try {
             log.info("🔔 Received PartsInventoryLowEvent: partId={}, partName={}, current={}, minimum={}",
                     event.getPartId(), event.getPartName(), event.getCurrentQuantity(), event.getMinimumQuantity());
@@ -47,8 +63,7 @@ public class PartsEventListener {
         }
     }
 
-    @RabbitListener(queues = RabbitMQConstants.NOTIFICATION_QUEUE)
-    public void handlePartsStatusChanged(PartsStatusChangedEvent event) {
+    private void handlePartsStatusChanged(PartsStatusChangedEvent event) {
         try {
             log.info("🔔 Received PartsStatusChangedEvent: partId={}, partName={}, {} -> {}",
                     event.getPartId(), event.getPartName(), event.getOldStatus(), event.getNewStatus());
@@ -57,7 +72,7 @@ public class PartsEventListener {
             String title = String.format("Parts Status Updated: %s", event.getPartName());
             String message = String.format("Part '%s' (ID: %d) status changed from %s to %s by %s.",
                     event.getPartName(), event.getPartId(), event.getOldStatus(), event.getNewStatus(), event.getChangedBy());
-            
+
             NotificationPriority priority = determinePriority(event.getNewStatus());
             String channels = determineChannels(event.getNewStatus());
             NotificationType type = determineType(event.getNewStatus());

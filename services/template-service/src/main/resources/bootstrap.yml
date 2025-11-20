@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: template-service
+  config:
+    import: "configserver:${SPRING_CLOUD_CONFIG_URI:http://localhost:8888}"
+  cloud:
+    bootstrap:
+      enabled: true
+    config:
+      fail-fast: true
+      uri: ${SPRING_CLOUD_CONFIG_URI:http://localhost:8888}
+      username: ${SPRING_CLOUD_CONFIG_USERNAME:configadmin}
+      password: ${SPRING_CLOUD_CONFIG_PASSWORD:change-me}
