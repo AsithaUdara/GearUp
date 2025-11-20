@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers("/ws/**").permitAll() // WebSocket endpoint
+                        .requestMatchers("/api/v1/ws/**").permitAll() // WebSocket endpoint
                         .requestMatchers("/api/public/**").permitAll()
                         .anyRequest().authenticated()
                 )
