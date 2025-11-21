@@ -3,6 +3,7 @@ package com.gearup.appointmentservice.service;
 import com.gearup.appointmentservice.dto.*;
 import com.gearup.appointmentservice.entity.Booking;
 import com.gearup.appointmentservice.entity.BookingStatus;
+import com.gearup.appointmentservice.entity.Service;
 import com.gearup.appointmentservice.entity.Employee;
 import com.gearup.appointmentservice.entity.TimeSlot;
 import com.gearup.appointmentservice.repository.BookingRepository;
@@ -14,20 +15,19 @@ import com.gearup.shared.messaging.EventPublisher;
 import com.gearup.shared.messaging.RabbitMQConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+@Component
 @RequiredArgsConstructor
 @Slf4j
 public class BookingService {
-
+    
     private final BookingRepository bookingRepository;
     private final ServiceRepository serviceRepository;
     private final TimeSlotRepository timeSlotRepository;
@@ -40,22 +40,27 @@ public class BookingService {
     @Transactional
     public BookingDTO createBooking(CreateBookingRequest request) {
         log.debug("Creating booking for user: {} and service: {}", request.getUserId(), request.getServiceId());
-
-        com.gearup.appointmentservice.entity.Service svc =
-                serviceRepository.findById(request.getServiceId())
-                        .orElseThrow(() -> new RuntimeException("Service not found"));
-
+        
+        // Validate service exists
+        Service service = serviceRepository.findById(request.getServiceId())
+                .orElseThrow(() -> new RuntimeException("Service not found"));
+        
+        // Validate time slot exists and is available
         TimeSlot timeSlot = timeSlotRepository.findById(request.getTimeSlotId())
                 .orElseThrow(() -> new RuntimeException("Time slot not found"));
         
-        if (!timeSlot.getIsAvailable())
+        if (!timeSlot.getIsAvailable()) {
             throw new RuntimeException("Time slot is not available");
+        }
         
-        if (bookingRepository.existsByTimeSlotIdAndStatusNotCancelled(request.getTimeSlotId()))
+        // Check if time slot is already booked
+        if (bookingRepository.existsByTimeSlotIdAndStatusNotCancelled(request.getTimeSlotId())) {
             throw new RuntimeException("Time slot is already booked");
-
+        }
+        
+        // Create booking
         Booking booking = new Booking();
-        booking.setService(svc);
+        booking.setService(service);
         booking.setTimeSlot(timeSlot);
         booking.setUserId(request.getUserId());
         booking.setCustomerName(request.getCustomerName());
@@ -64,9 +69,10 @@ public class BookingService {
         booking.setNotes(request.getNotes());
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setBookingDate(LocalDateTime.now());
-
-        Booking saved = bookingRepository.save(booking);
-
+        
+        booking = bookingRepository.save(booking);
+        
+        // Mark time slot as unavailable
         timeSlot.setIsAvailable(false);
         timeSlotRepository.save(timeSlot);
 
@@ -76,61 +82,47 @@ public class BookingService {
             
             AppointmentCreatedEvent event = new AppointmentCreatedEvent(
                 java.util.UUID.randomUUID().toString(),  // eventId
-                saved.getId(),                            // bookingId
-                saved.getUserId(),                        // customerId
-                saved.getCustomerName(),                  // customerName
-                svc.getId(),                              // serviceId
-                svc.getName(),                            // serviceName
+                booking.getId(),                          // bookingId
+                booking.getUserId(),                      // customerId
+                booking.getCustomerName(),                // customerName
+                service.getId(),                          // serviceId
+                service.getName(),                        // serviceName
                 timeSlot.getId(),                         // timeSlotId
                 slotDateTime,                             // slotDateTime
-                saved.getCustomerEmail(),                 // customerEmail
-                saved.getCustomerPhone(),                 // customerPhone
-                saved.getStatus().name(),                 // status
-                saved.getNotes()                          // notes
+                booking.getCustomerEmail(),               // customerEmail
+                booking.getCustomerPhone(),               // customerPhone
+                booking.getStatus().name(),               // status
+                booking.getNotes()                        // notes
             );
             eventPublisher.publish(
                 RabbitMQConstants.APPOINTMENT_EXCHANGE,
                 RabbitMQConstants.APPOINTMENT_CREATED_KEY,
                 event
             );
-            log.info("📢 Published AppointmentCreatedEvent for booking: {}", saved.getId());
+            log.info("📢 Published AppointmentCreatedEvent for booking: {}", booking.getId());
         } catch (Exception e) {
-            log.error("❌ Failed to publish AppointmentCreatedEvent for booking: {}", saved.getId(), e);
+            log.error("❌ Failed to publish AppointmentCreatedEvent for booking: {}", booking.getId(), e);
             // Don't fail the booking creation if event publishing fails
         }
 
-        log.info("Booking created successfully with id: {}", saved.getId());
-        return convertToDTO(saved);
+        log.info("Booking created successfully with id: {}", booking.getId());
+        return convertToDTO(booking);
     }
-
-    // -----------------------------
-    // READ
-    // -----------------------------
-    public List<BookingDTO> getAllBookings() {
-        log.debug("Fetching all bookings");
-        return bookingRepository.findAll().stream()
-                .map(this::convertToDTO).toList();
-    }
-
-    // NEW: Get only assigned bookings
-    public List<BookingDTO> getAssignedBookings() {
-        log.debug("Fetching bookings with assigned employees");
-        return bookingRepository.findAll()
-                .stream()
-                .filter(booking -> booking.getAssignedEmployeeId() != null)
-                .filter(booking -> booking.getStatus() != BookingStatus.CANCELLED)
+    
+    public List<BookingDTO> getUserBookings(String userId) {
+        log.debug("Fetching bookings for user: {}", userId);
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByBookingDateDesc(userId);
+        return bookings.stream()
                 .map(this::convertToDTO)
                 .toList();
     }
-
+    
     public Optional<BookingDTO> getBookingById(Long id) {
-        log.debug("Fetching booking by ID: {}", id);
-        return bookingRepository.findById(id).map(this::convertToDTO);
+        log.debug("Fetching booking with id: {}", id);
+        return bookingRepository.findById(id)
+                .map(this::convertToDTO);
     }
-
-    // -----------------------------
-    // UPDATE
-    // -----------------------------
+    
     @Transactional
     public BookingDTO updateBooking(Long id, UpdateBookingRequest request) {
         log.debug("Updating booking with id: {}", id);
@@ -138,21 +130,28 @@ public class BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
         
-        if (request.getCustomerName() != null)
+        // Update fields if provided
+        if (request.getCustomerName() != null) {
             booking.setCustomerName(request.getCustomerName());
-        if (request.getCustomerEmail() != null)
+        }
+        if (request.getCustomerEmail() != null) {
             booking.setCustomerEmail(request.getCustomerEmail());
-        if (request.getCustomerPhone() != null)
+        }
+        if (request.getCustomerPhone() != null) {
             booking.setCustomerPhone(request.getCustomerPhone());
-        if (request.getNotes() != null)
+        }
+        if (request.getNotes() != null) {
             booking.setNotes(request.getNotes());
+        }
         if (request.getStatus() != null) {
             BookingStatus oldStatus = booking.getStatus();
             booking.setStatus(request.getStatus());
+            
+            // If booking is cancelled, make time slot available again
             if (request.getStatus() == BookingStatus.CANCELLED && oldStatus != BookingStatus.CANCELLED) {
-                TimeSlot slot = booking.getTimeSlot();
-                slot.setIsAvailable(true);
-                timeSlotRepository.save(slot);
+                TimeSlot timeSlot = booking.getTimeSlot();
+                timeSlot.setIsAvailable(true);
+                timeSlotRepository.save(timeSlot);
             }
         }
         
@@ -294,19 +293,21 @@ public class BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
         
-        if (booking.getStatus() == BookingStatus.CANCELLED)
-            throw new RuntimeException("Booking already cancelled");
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Booking is already cancelled");
+        }
         
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
         
-        TimeSlot slot = booking.getTimeSlot();
-        slot.setIsAvailable(true);
-        timeSlotRepository.save(slot);
+        // Make time slot available again
+        TimeSlot timeSlot = booking.getTimeSlot();
+        timeSlot.setIsAvailable(true);
+        timeSlotRepository.save(timeSlot);
         
+        log.info("Booking cancelled successfully with id: {}", booking.getId());
         // 📢 Publish AppointmentCancelledEvent
         try {
-            TimeSlot timeSlot = booking.getTimeSlot();
             
             AppointmentCancelledEvent event = new AppointmentCancelledEvent(
                 java.util.UUID.randomUUID().toString(),
@@ -331,22 +332,19 @@ public class BookingService {
         
         log.info("Booking {} cancelled", booking.getId());
     }
-
-    // -----------------------------
-    // HELPER METHODS
-    // -----------------------------
+    
+    // Helper methods for employee assignment validation
     private boolean isSameDate(LocalDate date1, LocalDate date2) {
         return date1.equals(date2);
     }
-
-    private boolean timeSlotsOverlap(LocalTime start1, LocalTime end1, 
-                                     LocalTime start2, LocalTime end2) {
-        // Slots overlap if: start1 < end2 AND start2 < end1
+    
+    private boolean timeSlotsOverlap(java.time.LocalTime start1, java.time.LocalTime end1,
+                                      java.time.LocalTime start2, java.time.LocalTime end2) {
         return start1.isBefore(end2) && start2.isBefore(end1);
     }
-
+    
     private BookingDTO convertToDTO(Booking booking) {
-        TimeSlotDTO slotDTO = new TimeSlotDTO(
+        TimeSlotDTO timeSlotDTO = new TimeSlotDTO(
                 booking.getTimeSlot().getId(),
                 booking.getTimeSlot().getService().getId(),
                 booking.getTimeSlot().getService().getName(),
@@ -355,15 +353,7 @@ public class BookingService {
                 booking.getTimeSlot().getEndTime(),
                 booking.getTimeSlot().getIsAvailable()
         );
-
-        // Get employee name if assigned
-        String assignedEmployeeName = null;
-        if (booking.getAssignedEmployeeId() != null) {
-            assignedEmployeeName = employeeRepository.findById(booking.getAssignedEmployeeId())
-                    .map(employee -> employee.getName())
-                    .orElse(null);
-        }
-
+        
         return new BookingDTO(
                 booking.getId(),
                 booking.getService().getId(),
@@ -376,9 +366,7 @@ public class BookingService {
                 booking.getStatus(),
                 booking.getNotes(),
                 booking.getBookingDate(),
-                slotDTO,
-                booking.getAssignedEmployeeId(),
-                assignedEmployeeName
+                timeSlotDTO
         );
     }
 }
