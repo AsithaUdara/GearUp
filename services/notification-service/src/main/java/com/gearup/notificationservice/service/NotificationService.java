@@ -24,6 +24,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NotificationService {
 
+    // TODO: Integrate actual email delivery service (SendGrid, AWS SES, Mailgun)
+    // TODO: Integrate SMS delivery service (Twilio, AWS SNS)
+    // TODO: Integrate push notification service (FCM, APNs)
+    // TODO: Implement retry mechanism with exponential backoff for failed deliveries
+    // TODO: Add dead letter queue for permanently failed notifications
+    // TODO: Implement notification templates with variable substitution
+    // TODO: Add bulk notification sending with rate limiting
+    // TODO: Implement notification scheduling for future delivery
+    // TODO: Add notification preferences per user (email, SMS, push toggles)
+    // TODO: Implement notification batching for digest emails
+    // TODO: Add delivery status tracking (sent, delivered, failed, read)
+    // TODO: Implement notification priority queue (critical, high, normal, low)
+    // TODO: Add notification analytics (open rates, click-through rates)
+    // TODO: Implement notification archival and cleanup policies
+    // TODO: Add A/B testing capability for notification content
+    // TODO: Implement notification delivery receipts and read confirmations
+    // TODO: Add multi-language support for notification content
+
     private final NotificationRepository notificationRepository;
     private final RedisNotificationCache redisNotificationCache;
     private final WebSocketNotificationSender webSocketNotificationSender;

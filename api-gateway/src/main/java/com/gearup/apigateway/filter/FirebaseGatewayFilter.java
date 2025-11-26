@@ -24,6 +24,15 @@ import reactor.core.scheduler.Schedulers;
  * to be available for downstream services.
  * <p>
  * Public endpoints (like chatbot) are allowed without authentication.
+ * 
+ * TODO: Add token caching with Redis to avoid repeated Firebase API calls
+ * TODO: Implement token blacklisting for logout functionality
+ * TODO: Add request/response logging for audit trail
+ * TODO: Add metrics for authentication failures and latency
+ * TODO: Implement rate limiting per user based on X-User-Id
+ * TODO: Add X-User-Roles header extraction from Firebase custom claims
+ * TODO: Add X-Request-Id header for distributed tracing
+ * TODO: Implement IP-based rate limiting for unauthenticated requests
  */
 @Component
 public class FirebaseGatewayFilter implements GlobalFilter, Ordered {

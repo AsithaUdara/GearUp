@@ -21,6 +21,19 @@ public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
+    // TODO: Add brute force protection with rate limiting per email/IP
+    // TODO: Implement comprehensive audit logging for all authentication events
+    // TODO: Add failed login attempt tracking and notification
+    // TODO: Implement account lockout after N failed attempts
+    // TODO: Add multi-factor authentication (MFA) support
+    // TODO: Implement password complexity requirements and validation
+    // TODO: Add password expiration and rotation policies
+    // TODO: Implement concurrent session limits per user
+    // TODO: Add device fingerprinting for suspicious activity detection
+    // TODO: Implement token revocation list with Redis
+    // TODO: Add email verification reminder for unverified accounts
+    // TODO: Implement passwordless authentication options (magic links, WebAuthn)
+
     private final UserService userService;
     private final TokenService tokenService;
     private final AuditService auditService;

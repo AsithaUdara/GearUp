@@ -15,6 +15,21 @@ import java.util.List;
 
 /**
  * REST controller handling CRUD operations and actions for bookings.
+ * 
+ * TODO: Add distributed lock to prevent double booking of same time slot
+ * TODO: Implement booking validation (time slot availability, service compatibility)
+ * TODO: Add rate limiting per customer to prevent booking spam
+ * TODO: Implement booking capacity management per time slot
+ * TODO: Add booking modification with rescheduling fee calculation
+ * TODO: Implement booking cancellation with refund policy
+ * TODO: Add booking status transition validation (FSM pattern)
+ * TODO: Implement overbooking prevention with real-time slot checking
+ * TODO: Add customer booking history and loyalty points
+ * TODO: Implement dynamic pricing based on demand and time
+ * TODO: Add group booking functionality for multiple services
+ * TODO: Implement booking conflict resolution strategies
+ * TODO: Add automated follow-up after service completion
+ * TODO: Implement booking analytics and reporting endpoints
  */
 @RestController
 @RequestMapping("/api/v1/bookings")

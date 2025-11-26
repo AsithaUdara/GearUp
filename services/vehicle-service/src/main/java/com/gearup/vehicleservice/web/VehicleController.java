@@ -33,6 +33,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class VehicleController {
 
+    // TODO: Add VIN (Vehicle Identification Number) validation and decoding
+    // TODO: Implement license plate format validation per country/region
+    // TODO: Add vehicle manufacturer data integration (make/model validation)
+    // TODO: Implement vehicle insurance information tracking
+    // TODO: Add vehicle registration expiry tracking and reminders
+    // TODO: Implement vehicle maintenance schedule and history
+    // TODO: Add vehicle mileage tracking and oil change reminders
+    // TODO: Implement vehicle document storage (registration, insurance, inspection)
+    // TODO: Add vehicle ownership transfer workflow
+    // TODO: Implement vehicle recall checking via external APIs
+    // TODO: Add vehicle valuation estimation
+    // TODO: Implement vehicle sharing/fleet management features
+    // TODO: Add vehicle telematics integration (OBD-II data)
+    // TODO: Implement vehicle service history export functionality
+    // TODO: Add bulk vehicle import from CSV/Excel
+
     private final VehicleService service;
 
     @GetMapping("/user/{userId}")

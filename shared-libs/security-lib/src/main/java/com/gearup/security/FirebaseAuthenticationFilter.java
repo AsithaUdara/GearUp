@@ -24,6 +24,22 @@ import jakarta.servlet.http.HttpServletResponse;
  * This class verifies Firebase ID tokens from the Authorization header (Bearer token)
  * and sets a simple Authentication with the uid as principal. It intentionally keeps
  * GrantedAuthorities empty — services should map roles/claims as needed.
+ * 
+ * TODO: Extract and map custom claims to GrantedAuthorities (roles)
+ * TODO: Implement token caching with Redis to reduce Firebase API calls
+ * TODO: Add token blacklist/revocation list support
+ * TODO: Implement token refresh logic before expiration
+ * TODO: Add rate limiting per user/IP to prevent abuse
+ * TODO: Implement multi-factor authentication (MFA) verification
+ * TODO: Add device fingerprinting for suspicious activity detection
+ * TODO: Implement audit logging for all authentication attempts
+ * TODO: Add X-Request-Id header for distributed tracing
+ * TODO: Implement IP whitelist/blacklist functionality
+ * TODO: Add geolocation-based access restrictions
+ * TODO: Implement session management and concurrent login limits
+ * TODO: Add security headers to responses (HSTS, CSP, etc.)
+ * TODO: Implement token expiration warning headers
+ * TODO: Add comprehensive metrics for authentication events
  */
 public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
 

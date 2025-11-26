@@ -21,6 +21,22 @@ import com.gearup.shared.messaging.RabbitMQConstants;
  * Shared RabbitMQ Configuration
  * This configuration is used by all microservices
  * Defines exchanges, queues, and bindings
+ * 
+ * TODO: Add dead letter exchange (DLX) configuration for all queues
+ * TODO: Implement retry mechanism with exponential backoff
+ * TODO: Add message TTL (time-to-live) configuration
+ * TODO: Implement message deduplication to prevent duplicate processing
+ * TODO: Add queue length limits and overflow behavior
+ * TODO: Implement message priority queues for critical events
+ * TODO: Add monitoring and alerting for queue depths
+ * TODO: Implement circuit breaker for message publishing failures
+ * TODO: Add message tracing and correlation IDs
+ * TODO: Implement message versioning for backward compatibility
+ * TODO: Add consumer prefetch configuration for optimal throughput
+ * TODO: Implement delayed message delivery (scheduled events)
+ * TODO: Add message compression for large payloads
+ * TODO: Implement poison message detection and quarantine
+ * TODO: Add performance metrics (publish/consume latency)
  */
 @Configuration
 public class SharedRabbitMQConfig {
